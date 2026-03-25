@@ -6,6 +6,15 @@ vendor/
 .env
 .env.local
 .env.*.local
+.env.dev
+.env.test
+.env.prod
+**/.env
+**/.env.local
+**/.env.*.local
+**/.env.dev
+**/.env.test
+**/.env.prod
 
 # Build artifacts
 dist/
@@ -20,4 +29,3 @@ coverage/
 Thumbs.db
 .idea/
 .vscode/
-
