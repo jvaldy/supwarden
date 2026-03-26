@@ -20,7 +20,6 @@ supwarden/
 ├── .editorconfig
 ├── .gitignore
 ├── .docker-compose.yml
-├── .Makefile
 ├── .env.example
 └── README.md
 ```
@@ -105,15 +104,34 @@ Cette structure sert de convention de rangement. Les dossiers plus avancés déj
 
 ## Démarrage rapide
 
-1. Copier `.env.example` vers `.env`.
-2. Lancer `make init` puis `make up`.
-3. Ouvrir le frontend sur `http://localhost:5173`.
-4. Ouvrir l'API sur `http://localhost:8000`.
-5. Utiliser Mercure via `http://localhost:3000/.well-known/mercure`.
+1. Copier `.env.example` vers `.env` si le fichier n'existe pas encore.
+2. Remplacer dans `.env` toutes les valeurs `__SET_...__` par des secrets locaux propres avant tout démarrage.
+3. Lancer `docker compose -f .docker-compose.yml --env-file .env up -d --build`.
+4. Ouvrir le frontend sur `http://localhost:5173`.
+5. Ouvrir l'API sur `http://localhost:8000`.
+6. Ouvrir Adminer sur `http://localhost:8080`.
+7. Utiliser Mercure via `http://localhost:3000/.well-known/mercure`.
 
 ## Outils disponibles
 
-- `make up` : démarre toute la stack Docker.
-- `make down` : arrête la stack.
-- `make api-check` : vérifie l'application Symfony localement.
-- `make web-build` : construit le frontend React localement.
+- `docker compose -f .docker-compose.yml --env-file .env up -d --build` : démarre toute la stack Docker.
+- `docker compose -f .docker-compose.yml --env-file .env down --remove-orphans` : arrête la stack.
+- `cd apps/api && composer install && php bin/console about` : vérifie l'application Symfony localement.
+- `cd apps/web && npm install && npm run build` : construit le frontend React localement.
+
+## Accès base de données
+
+Une interface graphique PostgreSQL est disponible via Adminer sur `http://localhost:8080`.
+
+Utiliser les informations suivantes :
+- Système : `PostgreSQL`
+- Serveur : `db`
+- Utilisateur : `supwarden`
+- Mot de passe : la valeur de `POSTGRES_PASSWORD` dans `.env`
+- Base de données : `supwarden`
+
+## Sécurité
+
+Les variables d'environnement locales sont définies dans `.env`, qui ne doit pas être versionné. Le fichier `.env.example` sert uniquement de modèle de configuration.
+
+Les secrets applicatifs doivent rester hors du dépôt. Les mots de passe utilisateur et les codes PIN sont destinés à être stockés sous forme hachée, jamais en clair.
