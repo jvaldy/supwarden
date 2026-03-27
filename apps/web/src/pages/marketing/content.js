@@ -3,7 +3,7 @@ export const colorGroups = [
     title: 'Couleurs principales',
     items: [
       { name: 'Ink 950', value: '#08111D', role: 'Fond principal et pages structurantes' },
-      { name: 'Ink 900', value: '#0F1D2D', role: 'Plans intermediaires et profondeur' },
+      { name: 'Ink 900', value: '#0F1D2D', role: 'Plans intermédiaires et profondeur' },
       { name: 'Ink 800', value: '#13263A', role: 'Cartes, sections et surfaces' },
       { name: 'Cyan 500', value: '#5FA8D3', role: 'Halo, signature visuelle et focus' },
       { name: 'Cyan 400', value: '#8FD3FF', role: 'Actions importantes et repères' },
@@ -23,7 +23,7 @@ export const colorGroups = [
 export const principles = [
   'Mettre l’utilisateur en confiance sans surjouer la sécurité.',
   'Rendre les actions importantes visibles dès le premier regard.',
-  'Conserver une interface aérienne, claire et stable.',
+  'Conserver une interface aérée, claire et stable.',
 ]
 
 export const experiencePillars = [
@@ -80,27 +80,27 @@ export const tableRows = [
 
 export const landingForces = [
   {
-    title: 'Un espace clair pour chaque equipe',
-    description: 'Creez des trousseaux personnels ou partages pour organiser les acces sans confusion.',
+    title: 'Un espace clair pour chaque équipe',
+    description: 'Créez des trousseaux personnels ou partagés pour organiser les accès sans confusion.',
   },
   {
     title: 'Les bons droits, au bon moment',
-    description: 'Lecture, modification et acces sensibles restent visibles pour eviter les zones grises.',
+    description: 'Lecture, modification et accès sensibles restent visibles pour éviter les zones grises.',
   },
   {
-    title: 'Toutes les informations utiles au meme endroit',
-    description: 'Identifiants, mots de passe, notes, URIs et pieces jointes restent regroupes dans un seul element.',
+    title: 'Toutes les informations utiles au même endroit',
+    description: 'Identifiants, mots de passe, notes, URIs et pièces jointes restent regroupés dans un seul élément.',
   },
   {
     title: 'Connexion simple et flexible',
-    description: 'Accedez a l outil avec une connexion standard ou federée selon les usages de l entreprise.',
+    description: 'Accédez à l’outil avec une connexion standard ou fédérée selon les usages de l’entreprise.',
   },
   {
-    title: 'Recherche, import et export facilites',
-    description: 'Retrouvez rapidement vos informations et gardez des donnees interpretables en JSON ou CSV.',
+    title: 'Recherche, import et export facilités',
+    description: 'Retrouvez rapidement vos informations et gardez des données interprétables en JSON ou CSV.',
   },
   {
     title: 'Une collaboration qui garde le contexte',
-    description: 'La messagerie integree aide les equipes a echanger directement au bon endroit.',
+    description: 'La messagerie intégrée aide les équipes à échanger directement au bon endroit.',
   },
 ]
