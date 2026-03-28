@@ -32,6 +32,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      * @var list<string>
      */
     #[ORM\Column]
+    #[Groups(['user:read'])]
     private array $roles = [];
 
     #[ORM\Column]
@@ -55,6 +56,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(options: ['default' => true])]
     #[Groups(['user:read'])]
     private bool $isActive = true;
+
+    #[ORM\Column(options: ['default' => 1])]
+    private int $authTokenVersion = 1;
 
     public function __construct()
     {
@@ -169,11 +173,30 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    public function getAuthTokenVersion(): int
+    {
+        return $this->authTokenVersion;
+    }
+
+    public function setAuthTokenVersion(int $authTokenVersion): self
+    {
+        $this->authTokenVersion = $authTokenVersion;
+
+        return $this;
+    }
+
+    public function incrementAuthTokenVersion(): self
+    {
+        ++$this->authTokenVersion;
+
+        return $this;
+    }
+
     public function getDisplayName(): string
     {
-        $parts = array_filter([$this->firstname, $this->lastname]);
+        $nameParts = array_filter([$this->firstname, $this->lastname]);
 
-        return $parts !== [] ? implode(' ', $parts) : $this->email;
+        return $nameParts !== [] ? implode(' ', $nameParts) : $this->email;
     }
 
     private function normalizeName(?string $value): ?string
@@ -182,8 +205,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             return null;
         }
 
-        $trimmed = trim($value);
+        $trimmedValue = trim($value);
 
-        return $trimmed !== '' ? $trimmed : null;
+        return $trimmedValue !== '' ? $trimmedValue : null;
     }
 }

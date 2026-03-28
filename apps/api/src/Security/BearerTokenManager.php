@@ -14,11 +14,12 @@ class BearerTokenManager
 
     public function create(User $user): string
     {
-        // Jeton signé léger pour une API stateless, sans dépendance JWT externe.
+        // Jeton signé simple, suffisant pour l'API sans dépendance JWT supplémentaire.
         $tokenPayload = [
             'sub' => $user->getId(),
             'iat' => time(),
             'exp' => time() + $this->tokenTtl,
+            'version' => $user->getAuthTokenVersion(),
         ];
 
         $encodedPayload = $this->base64UrlEncode(json_encode($tokenPayload, JSON_THROW_ON_ERROR));
@@ -28,7 +29,7 @@ class BearerTokenManager
     }
 
     /**
-     * @return array{sub:int,iat:int,exp:int}|null
+     * @return array{sub:int,iat:int,exp:int,version:int}|null
      */
     public function parse(string $token): ?array
     {
@@ -45,12 +46,12 @@ class BearerTokenManager
             return null;
         }
 
-        // Le jeton est rejeté si sa signature ou sa date d'expiration ne correspondent pas.
+        // Refuse tout jeton incomplet, altéré ou expiré.
         $decodedPayload = json_decode($this->base64UrlDecode($encodedPayload), true);
 
         if (
             !is_array($decodedPayload)
-            || !isset($decodedPayload['sub'], $decodedPayload['iat'], $decodedPayload['exp'])
+            || !isset($decodedPayload['sub'], $decodedPayload['iat'], $decodedPayload['exp'], $decodedPayload['version'])
         ) {
             return null;
         }
@@ -63,6 +64,7 @@ class BearerTokenManager
             'sub' => (int) $decodedPayload['sub'],
             'iat' => (int) $decodedPayload['iat'],
             'exp' => (int) $decodedPayload['exp'],
+            'version' => (int) $decodedPayload['version'],
         ];
     }
 

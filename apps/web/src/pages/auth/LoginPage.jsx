@@ -1,7 +1,31 @@
+﻿import { useState } from 'react'
+import { useAuth } from '../../context/authContext.js'
+
 export function LoginPage({ navigate }) {
-  const handleSubmit = (event) => {
+  const { login } = useAuth()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [formError, setFormError] = useState('')
+
+  async function handleSubmit(event) {
     event.preventDefault()
-    navigate('/dashboard')
+    setFormError('')
+    setIsSubmitting(true)
+
+    try {
+      // Attends la création effective de la session avant de basculer sur l'espace privé.
+      await login({
+        email,
+        password,
+      })
+
+      navigate('/dashboard')
+    } catch (error) {
+      setFormError(error.responseData?.message ?? 'Connexion impossible pour le moment.')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -17,16 +41,30 @@ export function LoginPage({ navigate }) {
         <form className="auth-form" onSubmit={handleSubmit}>
           <label className="field">
             <span>Adresse e-mail</span>
-            <input placeholder="vous@entreprise.fr" type="email" />
+            <input
+              autoComplete="email"
+              onChange={(event) => setEmail(event.target.value)}
+              placeholder="vous@entreprise.fr"
+              type="email"
+              value={email}
+            />
           </label>
 
           <label className="field">
             <span>Mot de passe</span>
-            <input placeholder="Votre mot de passe" type="password" />
+            <input
+              autoComplete="current-password"
+              onChange={(event) => setPassword(event.target.value)}
+              placeholder="Votre mot de passe"
+              type="password"
+              value={password}
+            />
           </label>
 
-          <button className="button-link button-link-primary auth-submit" type="submit">
-            Se connecter
+          {formError ? <p className="field-feedback field-feedback-error">{formError}</p> : null}
+
+          <button className="button-link button-link-primary auth-submit" disabled={isSubmitting} type="submit">
+            {isSubmitting ? 'Connexion en cours...' : 'Se connecter'}
           </button>
         </form>
 

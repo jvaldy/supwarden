@@ -15,6 +15,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\CurrentUser;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Component\Validator\ConstraintViolationInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -40,32 +41,8 @@ final class AuthController extends AbstractController
             )
         )
     )]
-    #[OA\Response(
-        response: 201,
-        description: 'Utilisateur créé et jeton d’authentification retourné.',
-        content: new OA\JsonContent(
-            properties: [
-                new OA\Property(property: 'token', type: 'string'),
-                new OA\Property(
-                    property: 'user',
-                    properties: [
-                        new OA\Property(property: 'id', type: 'integer', example: 1),
-                        new OA\Property(property: 'email', type: 'string', format: 'email', example: 'alice@example.com'),
-                        new OA\Property(property: 'createdAt', type: 'string', format: 'date-time'),
-                        new OA\Property(property: 'firstname', type: 'string', nullable: true, example: 'Alice'),
-                        new OA\Property(property: 'lastname', type: 'string', nullable: true, example: 'Martin'),
-                        new OA\Property(property: 'isActive', type: 'boolean', example: true),
-                    ],
-                    type: 'object'
-                ),
-            ],
-            type: 'object'
-        )
-    )]
-    #[OA\Response(
-        response: 422,
-        description: 'Les données envoyées sont invalides.'
-    )]
+    #[OA\Response(response: 201, description: 'Utilisateur créé et jeton d’authentification retourné.')]
+    #[OA\Response(response: 422, description: 'Les données envoyées sont invalides.')]
     #[Route('/register', name: 'register', methods: ['POST'])]
     public function register(
         Request $request,
@@ -136,28 +113,7 @@ final class AuthController extends AbstractController
             )
         )
     )]
-    #[OA\Response(
-        response: 200,
-        description: 'Jeton d’authentification et utilisateur courant.',
-        content: new OA\JsonContent(
-            properties: [
-                new OA\Property(property: 'token', type: 'string'),
-                new OA\Property(
-                    property: 'user',
-                    properties: [
-                        new OA\Property(property: 'id', type: 'integer', example: 1),
-                        new OA\Property(property: 'email', type: 'string', format: 'email', example: 'alice@example.com'),
-                        new OA\Property(property: 'createdAt', type: 'string', format: 'date-time'),
-                        new OA\Property(property: 'firstname', type: 'string', nullable: true, example: 'Alice'),
-                        new OA\Property(property: 'lastname', type: 'string', nullable: true, example: 'Martin'),
-                        new OA\Property(property: 'isActive', type: 'boolean', example: true),
-                    ],
-                    type: 'object'
-                ),
-            ],
-            type: 'object'
-        )
-    )]
+    #[OA\Response(response: 200, description: 'Jeton d’authentification et utilisateur courant.')]
     #[OA\Response(response: 401, description: 'Identifiants invalides.')]
     #[OA\Response(response: 422, description: 'Les données envoyées sont invalides.')]
     #[Route('/login', name: 'login', methods: ['POST'])]
@@ -200,6 +156,34 @@ final class AuthController extends AbstractController
         return $this->json([
             'token' => $bearerTokenManager->create($user),
             'user' => $normalizer->normalize($user, null, ['groups' => ['user:read']]),
+        ]);
+    }
+
+    #[OA\Post(
+        path: '/api/auth/logout',
+        summary: 'Invalide le jeton courant côté serveur.',
+        security: [['Bearer' => []]],
+        tags: ['Authentification']
+    )]
+    #[OA\Response(response: 200, description: 'Session invalidée côté serveur.')]
+    #[OA\Response(response: 401, description: 'Authentification requise.')]
+    #[Route('/logout', name: 'logout', methods: ['POST'])]
+    public function logout(
+        #[CurrentUser] ?User $authenticatedUser,
+        EntityManagerInterface $entityManager
+    ): JsonResponse {
+        if ($authenticatedUser === null) {
+            return $this->json([
+                'message' => 'Authentification requise.',
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+
+        // Incrémente la version attendue pour invalider tous les jetons plus anciens.
+        $authenticatedUser->incrementAuthTokenVersion();
+        $entityManager->flush();
+
+        return $this->json([
+            'message' => 'Déconnexion prise en compte côté serveur.',
         ]);
     }
 

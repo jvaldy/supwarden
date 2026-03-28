@@ -42,12 +42,16 @@ class ApiTokenAuthenticator extends AbstractAuthenticator implements Authenticat
         }
 
         return new SelfValidatingPassport(
-            new UserBadge((string) $tokenPayload['sub'], function (string $userIdentifier) {
-                // Refuse l'accès si l'utilisateur n'existe plus ou a été désactivé.
+            new UserBadge((string) $tokenPayload['sub'], function (string $userIdentifier) use ($tokenPayload) {
+                // Refuse l'accès si l'utilisateur n'existe plus, est inactif ou a invalidé ses anciens jetons.
                 $authenticatedUser = $this->userRepository->findActiveById((int) $userIdentifier);
 
                 if ($authenticatedUser === null) {
                     throw new CustomUserMessageAuthenticationException('Utilisateur introuvable ou inactif.');
+                }
+
+                if ($authenticatedUser->getAuthTokenVersion() !== $tokenPayload['version']) {
+                    throw new CustomUserMessageAuthenticationException('Le jeton d\'authentification n\'est plus valide.');
                 }
 
                 return $authenticatedUser;

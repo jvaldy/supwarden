@@ -21,8 +21,10 @@ security:
     access_control:
         - { path: ^/api/doc, roles: PUBLIC_ACCESS }
         - { path: ^/api/doc/openapi, roles: PUBLIC_ACCESS }
+        - { path: ^/api/auth/logout, roles: ROLE_USER }
         - { path: ^/api/auth, roles: PUBLIC_ACCESS }
         - { path: ^/api/health, roles: PUBLIC_ACCESS }
+        - { path: ^/api/admin, roles: ROLE_ADMIN }
         - { path: ^/api/me, roles: ROLE_USER }
         - { path: ^/api, roles: ROLE_USER }
 

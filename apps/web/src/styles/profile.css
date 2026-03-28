@@ -1,0 +1,68 @@
+.profile-card {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.profile-section {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-subtle);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.profile-section-danger {
+  border-color: rgba(255, 143, 159, 0.24);
+  background: rgba(255, 143, 159, 0.04);
+}
+
+.profile-section-header {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.profile-section-header h2 {
+  margin: 0;
+}
+
+.profile-section-header p {
+  margin: 0;
+  color: var(--color-text-soft);
+  line-height: 1.7;
+}
+
+.profile-form {
+  display: grid;
+  gap: var(--space-4);
+  margin-top: 0;
+}
+
+.field-checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.8rem;
+  color: var(--color-text-soft);
+  line-height: 1.6;
+}
+
+.field-checkbox input {
+  margin-top: 0.2rem;
+}
+
+@media (min-width: 640px) {
+  .profile-summary,
+  .profile-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .profile-form-wide {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (min-width: 900px) {
+  .profile-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

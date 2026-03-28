@@ -25,4 +25,15 @@ class UserRepository extends ServiceEntityRepository
     {
         return $this->findOneBy(['id' => $id, 'isActive' => true]);
     }
+
+    /**
+     * @return list<User>
+     */
+    public function findAllOrderedByCreationDateDesc(): array
+    {
+        return $this->createQueryBuilder('user')
+            ->orderBy('user.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
 }

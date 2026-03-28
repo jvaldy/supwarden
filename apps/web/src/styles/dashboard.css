@@ -1,0 +1,51 @@
+.dashboard-shell {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.dashboard-title {
+  margin: 0;
+  max-width: 18ch;
+  font-size: clamp(2rem, 4vw, 2.9rem);
+  line-height: 1.08;
+}
+
+.dashboard-card,
+.dashboard-summary {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+}
+
+.activity-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--space-3);
+}
+
+.activity-item {
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(173, 216, 255, 0.1);
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--color-text-soft);
+}
+
+@media (min-width: 640px) {
+  .dashboard-card,
+  .dashboard-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 900px) {
+  .dashboard-card {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-summary {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
