@@ -4,7 +4,7 @@ services:
       context: .
       dockerfile: infra/docker/api/Dockerfile
     working_dir: /app/apps/api
-    command: sh -c "composer install && php -S 0.0.0.0:${APP_PORT:-8000} -t public"
+    command: sh /app/scripts/start-api.sh
     environment:
       APP_ENV: ${APP_ENV}
       APP_SECRET: ${APP_SECRET}
@@ -12,6 +12,10 @@ services:
       MERCURE_URL: http://mercure/.well-known/mercure
       MERCURE_PUBLIC_URL: ${MERCURE_PUBLIC_URL}
       MERCURE_JWT_SECRET: ${MERCURE_JWT_SECRET}
+      GOOGLE_OAUTH_CLIENT_ID: ${GOOGLE_OAUTH_CLIENT_ID}
+      GOOGLE_OAUTH_CLIENT_SECRET: ${GOOGLE_OAUTH_CLIENT_SECRET}
+      GOOGLE_OAUTH_REDIRECT_URI: ${GOOGLE_OAUTH_REDIRECT_URI}
+      GOOGLE_OAUTH_FRONTEND_CALLBACK_URL: ${GOOGLE_OAUTH_FRONTEND_CALLBACK_URL}
     volumes:
       - ./:/app
       - api_vendor:/app/apps/api/vendor
