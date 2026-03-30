@@ -5,6 +5,10 @@
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
     app.auth_token_ttl: 3600
+    app.google_oauth_client_id: '%env(GOOGLE_OAUTH_CLIENT_ID)%'
+    app.google_oauth_client_secret: '%env(GOOGLE_OAUTH_CLIENT_SECRET)%'
+    app.google_oauth_redirect_uri: '%env(GOOGLE_OAUTH_REDIRECT_URI)%'
+    app.google_oauth_frontend_callback_url: '%env(GOOGLE_OAUTH_FRONTEND_CALLBACK_URL)%'
 
 services:
     # default configuration for services in *this* file
@@ -25,6 +29,20 @@ services:
         arguments:
             $appSecret: '%env(APP_SECRET)%'
             $tokenTtl: '%app.auth_token_ttl%'
+
+    App\Security\AuthRateLimiter:
+        arguments:
+            $loginLimiter: '@limiter.auth_login'
+            $registerLimiter: '@limiter.auth_register'
+
+    App\Security\OAuth\GoogleOAuthClientInterface: '@App\Security\OAuth\GoogleOAuthClient'
+
+    App\Security\OAuth\GoogleOAuthClient:
+        arguments:
+            $clientId: '%app.google_oauth_client_id%'
+            $clientSecret: '%app.google_oauth_client_secret%'
+            $redirectUri: '%app.google_oauth_redirect_uri%'
+            $frontendCallbackUrl: '%app.google_oauth_frontend_callback_url%'
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

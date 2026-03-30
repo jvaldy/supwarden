@@ -15,7 +15,7 @@ describe('Session', () => {
     cy.location('pathname').should('eq', '/connexion')
   })
 
-  it('redirige un utilisateur connectÃ© depuis la connexion vers le tableau de bord', () => {
+  it('redirige un utilisateur connecté depuis la connexion vers le tableau de bord', () => {
     registerUserThroughApi().then((session) => {
       visitWithSession('/connexion', session)
 
@@ -24,7 +24,7 @@ describe('Session', () => {
     })
   })
 
-  it('redirige un utilisateur connectÃ© depuis lâ€™inscription vers le tableau de bord', () => {
+  it("redirige un utilisateur connecté depuis l'inscription vers le tableau de bord", () => {
     registerUserThroughApi().then((session) => {
       visitWithSession('/inscription', session)
 
@@ -33,7 +33,7 @@ describe('Session', () => {
     })
   })
 
-  it('restaure la session aprÃ¨s un rechargement de page', () => {
+  it('restaure la session après un rechargement de page', () => {
     registerUserThroughApi().then((session) => {
       visitWithSession('/dashboard', session)
       cy.reload()

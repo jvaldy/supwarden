@@ -1,4 +1,4 @@
-import {
+﻿import {
   buttonExamples,
   colorGroups,
   experiencePillars,
@@ -52,7 +52,7 @@ export function BrandPage() {
         ))}
       </section>
 
-      <section className="showcase-grid" aria-label="elements de la charte">
+      <section className="showcase-grid" aria-label="éléments de la charte">
         <article className="showcase-card showcase-card-wide">
           <div className="section-heading">
             <p className="panel-label">Expérience</p>

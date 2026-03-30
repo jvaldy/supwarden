@@ -58,12 +58,15 @@
 }
 
 .account-menu {
-  position: relative;
+  display: grid;
+  gap: 0.65rem;
+  width: 100%;
 }
 
 .account-menu-trigger {
   gap: 0.45rem;
   white-space: nowrap;
+  justify-self: flex-start;
 }
 
 .account-menu-caret {
@@ -71,10 +74,7 @@
 }
 
 .account-dropdown {
-  position: absolute;
-  top: calc(100% + 0.65rem);
-  right: 0;
-  min-width: 210px;
+  width: min(100%, 18rem);
   padding: 0.5rem;
   border-radius: var(--radius-md);
   border: 1px solid var(--border-subtle);
@@ -141,5 +141,19 @@
 
   .topnav {
     justify-content: flex-end;
+  }
+
+  .account-menu {
+    position: relative;
+    display: block;
+    width: auto;
+  }
+
+  .account-dropdown {
+    position: absolute;
+    top: calc(100% + 0.65rem);
+    right: 0;
+    min-width: 210px;
+    width: auto;
   }
 }

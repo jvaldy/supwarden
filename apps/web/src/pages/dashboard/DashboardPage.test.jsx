@@ -41,6 +41,7 @@ describe('DashboardPage', () => {
   })
 
   test('affiche la section administrateur pour un compte admin', async () => {
+    // Le détail des utilisateurs admin dépend d'un chargement séparé.
     fetchAdminUsers.mockResolvedValue({
       users: [
         {

@@ -41,6 +41,7 @@ final class MeController extends AbstractController
     )]
     #[OA\Response(response: 401, description: 'Authentification requise.')]
     #[Route('/api/me', name: 'api_me', methods: ['GET'])]
+    // Retourne le profil courant avec les seuls champs autorisés côté API.
     public function __invoke(
         #[CurrentUser] ?User $authenticatedUser,
         NormalizerInterface $normalizer

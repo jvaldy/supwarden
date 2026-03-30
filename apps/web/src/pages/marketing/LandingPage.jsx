@@ -1,4 +1,4 @@
-import supwardenLogoMark from '../../assets/supwarden-logo-mark.svg'
+﻿import supwardenLogoMark from '../../assets/supwarden-logo-mark.svg'
 import { landingForces } from './content.js'
 
 export function LandingPage({ navigate }) {

@@ -1,5 +1,6 @@
 ﻿import { useState } from 'react'
 import { useAuth } from '../../context/authContext.js'
+import { redirectToGoogleOAuth } from '../../services/authApi.js'
 
 export function RegisterPage({ navigate }) {
   const { register } = useAuth()
@@ -11,6 +12,7 @@ export function RegisterPage({ navigate }) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formError, setFormError] = useState('')
 
+  // Valide le formulaire minimum avant de déléguer la création du compte à l'API.
   async function handleSubmit(event) {
     event.preventDefault()
     setFormError('')
@@ -45,6 +47,11 @@ export function RegisterPage({ navigate }) {
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  // Réutilise le même point d'entrée Google que la page de connexion.
+  function handleGoogleRegister() {
+    redirectToGoogleOAuth()
   }
 
   return (
@@ -119,6 +126,10 @@ export function RegisterPage({ navigate }) {
             {isSubmitting ? 'Création du compte...' : 'Créer mon compte'}
           </button>
         </form>
+
+        <button className="button-link button-link-secondary auth-submit" onClick={handleGoogleRegister} type="button">
+          S'inscrire avec Google
+        </button>
 
         <div className="auth-actions">
           <button className="button-link button-link-ghost" onClick={() => navigate('/connexion')} type="button">

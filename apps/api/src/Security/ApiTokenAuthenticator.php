@@ -23,6 +23,7 @@ class ApiTokenAuthenticator extends AbstractAuthenticator implements Authenticat
     ) {
     }
 
+    // Active l'authenticator seulement sur les requêtes qui portent déjà un Bearer token.
     public function supports(Request $request): ?bool
     {
         $authorizationHeader = $request->headers->get('Authorization');
@@ -31,6 +32,7 @@ class ApiTokenAuthenticator extends AbstractAuthenticator implements Authenticat
         return is_string($authorizationHeader) && str_starts_with($authorizationHeader, 'Bearer ');
     }
 
+    // Valide le jeton puis rattache l'utilisateur actif correspondant.
     public function authenticate(Request $request): Passport
     {
         $authorizationHeader = $request->headers->get('Authorization', '');
@@ -64,6 +66,7 @@ class ApiTokenAuthenticator extends AbstractAuthenticator implements Authenticat
         return null;
     }
 
+    // Renvoie un message API lisible quand le jeton ne peut pas être accepté.
     public function onAuthenticationFailure(Request $request, AuthenticationException $authenticationException): ?Response
     {
         return new JsonResponse([
@@ -71,6 +74,7 @@ class ApiTokenAuthenticator extends AbstractAuthenticator implements Authenticat
         ], Response::HTTP_UNAUTHORIZED);
     }
 
+    // Uniformise la réponse des routes privées visitées sans authentification valide.
     public function start(Request $request, AuthenticationException $authenticationException = null): Response
     {
         // Uniformise la réponse JSON des routes privées non authentifiées.

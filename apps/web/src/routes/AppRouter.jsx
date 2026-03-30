@@ -1,7 +1,8 @@
-﻿import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { PublicLayout } from '../layouts/PublicLayout.jsx'
 import { useAuth } from '../context/authContext.js'
 import { LoginPage } from '../pages/auth/LoginPage.jsx'
+import { OAuthCallbackPage } from '../pages/auth/OAuthCallbackPage.jsx'
 import { RegisterPage } from '../pages/auth/RegisterPage.jsx'
 import { DashboardPage } from '../pages/dashboard/DashboardPage.jsx'
 import { BrandPage } from '../pages/marketing/BrandPage.jsx'
@@ -70,6 +71,7 @@ export function AppRouter() {
   )
 }
 
+// Rend la bonne page en fonction de l'URL courante et de l'état de session.
 function renderPage({ path, navigate, isAuthenticated, isSessionLoading }) {
   switch (path) {
     case '/brand':
@@ -88,6 +90,8 @@ function renderPage({ path, navigate, isAuthenticated, isSessionLoading }) {
       return <DashboardPage />
     case '/inscription':
       return <RegisterPage navigate={navigate} />
+    case '/oauth/callback':
+      return <OAuthCallbackPage navigate={navigate} />
     case '/profil':
       if (isSessionLoading) {
         return <PageStatus message="Restauration de votre session en cours..." />
@@ -103,6 +107,7 @@ function renderPage({ path, navigate, isAuthenticated, isSessionLoading }) {
   }
 }
 
+// Affiche un état transitoire simple pendant les redirections ou restaurations.
 function PageStatus({ message }) {
   return (
     <section className="auth-shell">
@@ -113,6 +118,7 @@ function PageStatus({ message }) {
   )
 }
 
+// Synchronise l'URL du navigateur avec l'état interne du routeur.
 function navigateToPath(path, setPath) {
   if (path !== window.location.pathname) {
     window.history.pushState({}, '', path)
@@ -121,6 +127,7 @@ function navigateToPath(path, setPath) {
   setPath(path)
 }
 
+// Évite les variations d'URL qui casseraient les comparaisons de routes.
 function normalizePath(value) {
   const trimmed = value.replace(/\/+$/, '')
   return trimmed || '/'

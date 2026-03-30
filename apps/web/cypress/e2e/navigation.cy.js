@@ -1,6 +1,6 @@
 import { registerUserThroughApi, visitWithSession } from '../helpers/session.js'
 
-describe('Navigation connectÃ©e', () => {
+describe('Navigation connectée', () => {
   it('ouvre et referme le menu Mon compte', () => {
     registerUserThroughApi().then((session) => {
       visitWithSession('/dashboard', session)
@@ -20,19 +20,19 @@ describe('Navigation connectÃ©e', () => {
       cy.contains('button', 'Profil').click()
 
       cy.location('pathname').should('eq', '/profil')
-      cy.contains('GÃ©rez vos informations personnelles et votre sÃ©curitÃ©.').should('be.visible')
+      cy.contains('Gérez vos informations personnelles et votre sécurité.').should('be.visible')
     })
   })
 
-  it('dÃ©connecte lâ€™utilisateur depuis le menu Mon compte', () => {
+  it("déconnecte l'utilisateur depuis le menu Mon compte", () => {
     registerUserThroughApi().then((session) => {
       visitWithSession('/dashboard', session)
 
       cy.contains('button', 'Mon compte').click()
-      cy.contains('button', 'Se dÃ©connecter').click()
+      cy.contains('button', 'Se déconnecter').click()
 
       cy.location('pathname').should('eq', '/')
-      cy.contains('Simplifiez le partage des accÃ¨s dans votre Ã©quipe.').should('be.visible')
+      cy.contains("Simplifiez le partage des accès dans votre équipe.").should('be.visible')
     })
   })
 })

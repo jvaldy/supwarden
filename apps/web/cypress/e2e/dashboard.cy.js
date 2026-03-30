@@ -1,7 +1,7 @@
 import { registerUserThroughApi, visitWithSession } from '../helpers/session.js'
 
 describe('Tableau de bord', () => {
-  it('affiche les informations du compte connecté', () => {
+  it('affiche les informations du compte connect�', () => {
     registerUserThroughApi({ firstname: 'Camille', lastname: 'Durand' }).then((session) => {
       visitWithSession('/dashboard', session)
 
@@ -12,7 +12,7 @@ describe('Tableau de bord', () => {
     })
   })
 
-  it('n’affiche pas la zone administrateur pour un compte standard', () => {
+  it("n'affiche pas la zone administrateur pour un compte standard", () => {
     registerUserThroughApi().then((session) => {
       visitWithSession('/dashboard', session)
 

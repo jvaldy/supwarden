@@ -6,6 +6,7 @@ use App\Dto\Auth\LoginInput;
 use App\Dto\Auth\RegisterInput;
 use App\Entity\User;
 use App\Repository\UserRepository;
+use App\Security\AuthRateLimiter;
 use App\Security\BearerTokenManager;
 use Doctrine\ORM\EntityManagerInterface;
 use OpenApi\Attributes as OA;
@@ -44,12 +45,14 @@ final class AuthController extends AbstractController
     #[OA\Response(response: 201, description: 'Utilisateur créé et jeton d’authentification retourné.')]
     #[OA\Response(response: 422, description: 'Les données envoyées sont invalides.')]
     #[Route('/register', name: 'register', methods: ['POST'])]
+    // Gère l'inscription classique puis ouvre immédiatement une session API.
     public function register(
         Request $request,
         ValidatorInterface $validator,
         UserRepository $userRepository,
         UserPasswordHasherInterface $passwordHasher,
         EntityManagerInterface $entityManager,
+        AuthRateLimiter $authRateLimiter,
         BearerTokenManager $bearerTokenManager,
         NormalizerInterface $normalizer
     ): JsonResponse {
@@ -88,6 +91,12 @@ final class AuthController extends AbstractController
         $hashedPassword = $passwordHasher->hashPassword($user, $registerInput->password);
         $user->setPassword($hashedPassword);
 
+        $rateLimitResponse = $authRateLimiter->consumeRegistrationAttempt($request);
+
+        if ($rateLimitResponse instanceof JsonResponse) {
+            return $rateLimitResponse;
+        }
+
         $entityManager->persist($user);
         $entityManager->flush();
 
@@ -117,11 +126,13 @@ final class AuthController extends AbstractController
     #[OA\Response(response: 401, description: 'Identifiants invalides.')]
     #[OA\Response(response: 422, description: 'Les données envoyées sont invalides.')]
     #[Route('/login', name: 'login', methods: ['POST'])]
+    // Authentifie un utilisateur local et applique la protection anti-bruteforce.
     public function login(
         Request $request,
         ValidatorInterface $validator,
         UserRepository $userRepository,
         UserPasswordHasherInterface $passwordHasher,
+        AuthRateLimiter $authRateLimiter,
         BearerTokenManager $bearerTokenManager,
         NormalizerInterface $normalizer
     ): JsonResponse {
@@ -148,10 +159,18 @@ final class AuthController extends AbstractController
         $passwordIsValid = $user !== null && $passwordHasher->isPasswordValid($user, $loginInput->password);
 
         if ($user === null || !$user->isActive() || !$passwordIsValid) {
+            $rateLimitResponse = $authRateLimiter->consumeFailedLoginAttempt($request);
+
+            if ($rateLimitResponse instanceof JsonResponse) {
+                return $rateLimitResponse;
+            }
+
             return $this->json([
                 'message' => 'Identifiants invalides.',
             ], Response::HTTP_UNAUTHORIZED);
         }
+
+        $authRateLimiter->resetLoginAttempts($request);
 
         return $this->json([
             'token' => $bearerTokenManager->create($user),
@@ -168,6 +187,7 @@ final class AuthController extends AbstractController
     #[OA\Response(response: 200, description: 'Session invalidée côté serveur.')]
     #[OA\Response(response: 401, description: 'Authentification requise.')]
     #[Route('/logout', name: 'logout', methods: ['POST'])]
+    // Invalide les jetons encore en circulation pour ce compte.
     public function logout(
         #[CurrentUser] ?User $authenticatedUser,
         EntityManagerInterface $entityManager
@@ -190,6 +210,7 @@ final class AuthController extends AbstractController
     /**
      * @return array<string, mixed>|JsonResponse
      */
+    // Refuse les requêtes vides ou non JSON avant d'entrer dans la logique métier.
     private function decodeJsonRequest(Request $request): array|JsonResponse
     {
         $requestContent = $request->getContent();
@@ -221,6 +242,7 @@ final class AuthController extends AbstractController
      * @param iterable<ConstraintViolationInterface> $constraintViolations
      * @return array<string, list<string>>
      */
+    // Ramène les violations Symfony dans un format directement exploitable côté interface.
     private function formatViolations(iterable $constraintViolations): array
     {
         // Regroupe les erreurs par champ pour simplifier l'exploitation côté frontend.

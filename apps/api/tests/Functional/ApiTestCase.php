@@ -19,6 +19,7 @@ abstract class ApiTestCase extends WebTestCase
         parent::setUp();
 
         $this->client = static::createClient();
+        $this->resetRateLimiterStorage();
         $this->entityManager = static::getContainer()->get(EntityManagerInterface::class);
         $this->resetDatabase();
     }
@@ -33,6 +34,10 @@ abstract class ApiTestCase extends WebTestCase
             ->setLastname($overrides['lastname'] ?? 'Martin')
             ->setIsActive($overrides['isActive'] ?? true)
             ->setRoles($overrides['roles'] ?? ['ROLE_USER']);
+
+        if (isset($overrides['hasLocalPassword'])) {
+            $user->setHasLocalPassword((bool) $overrides['hasLocalPassword']);
+        }
 
         $hashedPassword = $passwordHasher->hashPassword($user, $overrides['password'] ?? 'motdepasse123');
         $user->setPassword($hashedPassword);
@@ -80,5 +85,14 @@ abstract class ApiTestCase extends WebTestCase
         }
 
         $connection->executeStatement('PRAGMA foreign_keys = ON');
+    }
+
+    private function resetRateLimiterStorage(): void
+    {
+        $rateLimiterCachePool = static::getContainer()->get('cache.rate_limiter');
+
+        if (method_exists($rateLimiterCachePool, 'clear')) {
+            $rateLimiterCachePool->clear();
+        }
     }
 }

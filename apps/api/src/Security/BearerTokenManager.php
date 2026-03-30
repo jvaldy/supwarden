@@ -12,6 +12,7 @@ class BearerTokenManager
     ) {
     }
 
+    // Construit un jeton signé léger à partir de l'utilisateur courant.
     public function create(User $user): string
     {
         // Jeton signé simple, suffisant pour l'API sans dépendance JWT supplémentaire.
@@ -31,6 +32,7 @@ class BearerTokenManager
     /**
      * @return array{sub:int,iat:int,exp:int,version:int}|null
      */
+    // Valide le format, la signature et l'échéance avant de renvoyer le payload utile.
     public function parse(string $token): ?array
     {
         $tokenParts = explode('.', $token);
@@ -68,16 +70,19 @@ class BearerTokenManager
         ];
     }
 
+    // Signe le payload encodé avec le secret applicatif.
     private function sign(string $encodedPayload): string
     {
         return $this->base64UrlEncode(hash_hmac('sha256', $encodedPayload, $this->appSecret, true));
     }
 
+    // Produit une chaîne compatible URL pour le transport du jeton.
     private function base64UrlEncode(string $value): string
     {
         return rtrim(strtr(base64_encode($value), '+/', '-_'), '=');
     }
 
+    // Restaure un contenu encodé en base64url vers sa forme décodable.
     private function base64UrlDecode(string $value): string
     {
         $missingPaddingLength = strlen($value) % 4;

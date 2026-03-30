@@ -33,22 +33,22 @@ describe('Authentification', () => {
     cy.get('input[type="email"]').type(email)
     cy.get('input[autocomplete="new-password"]').eq(0).type('motdepasse123')
     cy.get('input[autocomplete="new-password"]').eq(1).type('motdepasse123')
-    cy.contains('button', 'CrÃ©er mon compte').click()
+    cy.contains('button', 'Créer mon compte').click()
 
     cy.location('pathname').should('eq', '/dashboard')
     cy.contains(email).should('be.visible')
   })
 
-  it('bloque lâ€™inscription si la confirmation du mot de passe ne correspond pas', () => {
+  it("bloque l'inscription si la confirmation du mot de passe ne correspond pas", () => {
     cy.visit('/inscription')
     cy.get('input[autocomplete="new-password"]').eq(0).type('motdepasse123')
     cy.get('input[autocomplete="new-password"]').eq(1).type('motdepasse-different')
-    cy.contains('button', 'CrÃ©er mon compte').click()
+    cy.contains('button', 'Créer mon compte').click()
 
-    cy.contains('Les mots de passe doivent Ãªtre identiques.').should('be.visible')
+    cy.contains('Les mots de passe doivent être identiques.').should('be.visible')
   })
 
-  it('refuse lâ€™inscription si lâ€™adresse e-mail existe dÃ©jÃ ', () => {
+  it("refuse l'inscription si l'adresse e-mail existe déjà", () => {
     const email = uniqueEmail('doublon')
 
     registerUserThroughApi({ email }).then(() => {
@@ -58,9 +58,9 @@ describe('Authentification', () => {
       cy.get('input[type="email"]').type(email)
       cy.get('input[autocomplete="new-password"]').eq(0).type('motdepasse123')
       cy.get('input[autocomplete="new-password"]').eq(1).type('motdepasse123')
-      cy.contains('button', 'CrÃ©er mon compte').click()
+      cy.contains('button', 'Créer mon compte').click()
 
-      cy.contains('Cette adresse e-mail est dÃ©jÃ  utilisÃ©e.').should('be.visible')
+      cy.contains('Cette adresse e-mail est déjà utilisée.').should('be.visible')
     })
   })
 })

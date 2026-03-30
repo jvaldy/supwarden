@@ -1,6 +1,7 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+﻿import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { vi } from 'vitest'
 import { AuthContext } from '../../context/authContext.js'
+import * as authApi from '../../services/authApi.js'
 import { RegisterPage } from './RegisterPage.jsx'
 
 function renderRegisterPage(overrides = {}) {
@@ -20,6 +21,17 @@ function renderRegisterPage(overrides = {}) {
 }
 
 describe('RegisterPage', () => {
+  test('redirige vers Google OAuth quand le bouton dédié est utilisé', () => {
+    // La finalisation du flux OAuth est couverte dans l'écran de callback.
+    const redirectToGoogleOAuthMock = vi.spyOn(authApi, 'redirectToGoogleOAuth').mockImplementation(() => {})
+
+    renderRegisterPage()
+
+    fireEvent.click(screen.getByRole('button', { name: "S'inscrire avec Google" }))
+
+    expect(redirectToGoogleOAuthMock).toHaveBeenCalled()
+  })
+
   test('soumet les informations d’inscription et navigue vers le tableau de bord', async () => {
     const { registerUser, navigate } = renderRegisterPage()
     registerUser.mockResolvedValue({

@@ -1,5 +1,6 @@
 ﻿import { useState } from 'react'
 import { useAuth } from '../../context/authContext.js'
+import { redirectToGoogleOAuth } from '../../services/authApi.js'
 
 export function LoginPage({ navigate }) {
   const { login } = useAuth()
@@ -8,13 +9,14 @@ export function LoginPage({ navigate }) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formError, setFormError] = useState('')
 
+  // Lance l'authentification classique puis bascule sur l'espace privé.
   async function handleSubmit(event) {
     event.preventDefault()
     setFormError('')
     setIsSubmitting(true)
 
     try {
-      // Attends la création effective de la session avant de basculer sur l'espace privé.
+      // Attend la création effective de la session avant de basculer sur l'espace privé.
       await login({
         email,
         password,
@@ -26,6 +28,11 @@ export function LoginPage({ navigate }) {
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  // Démarre le flux OAuth Google sans dupliquer la logique d'URL ici.
+  function handleGoogleLogin() {
+    redirectToGoogleOAuth()
   }
 
   return (
@@ -67,6 +74,10 @@ export function LoginPage({ navigate }) {
             {isSubmitting ? 'Connexion en cours...' : 'Se connecter'}
           </button>
         </form>
+
+        <button className="button-link button-link-secondary auth-submit" onClick={handleGoogleLogin} type="button">
+          Se connecter avec Google
+        </button>
 
         <div className="auth-actions">
           <button className="button-link button-link-ghost" onClick={() => navigate('/inscription')} type="button">

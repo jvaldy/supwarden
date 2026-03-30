@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
@@ -57,13 +59,32 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups(['user:read'])]
     private bool $isActive = true;
 
+    #[ORM\Column(options: ['default' => true])]
+    #[Groups(['user:read'])]
+    private bool $hasLocalPassword = true;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Ignore]
+    private ?string $pinHash = null;
+
+    #[ORM\Column(options: ['default' => false])]
+    #[Groups(['user:read'])]
+    private bool $hasPin = false;
+
     #[ORM\Column(options: ['default' => 1])]
     private int $authTokenVersion = 1;
+
+    /**
+     * @var Collection<int, OAuthAccount>
+     */
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: OAuthAccount::class, orphanRemoval: true)]
+    private Collection $oauthAccounts;
 
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
         $this->roles = ['ROLE_USER'];
+        $this->oauthAccounts = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -173,6 +194,42 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    public function hasLocalPassword(): bool
+    {
+        return $this->hasLocalPassword;
+    }
+
+    public function setHasLocalPassword(bool $hasLocalPassword): self
+    {
+        $this->hasLocalPassword = $hasLocalPassword;
+
+        return $this;
+    }
+
+    public function getPinHash(): ?string
+    {
+        return $this->pinHash;
+    }
+
+    public function setPinHash(?string $pinHash): self
+    {
+        $this->pinHash = $pinHash;
+
+        return $this;
+    }
+
+    public function hasPin(): bool
+    {
+        return $this->hasPin;
+    }
+
+    public function setHasPin(bool $hasPin): self
+    {
+        $this->hasPin = $hasPin;
+
+        return $this;
+    }
+
     public function getAuthTokenVersion(): int
     {
         return $this->authTokenVersion;
@@ -197,6 +254,33 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $nameParts = array_filter([$this->firstname, $this->lastname]);
 
         return $nameParts !== [] ? implode(' ', $nameParts) : $this->email;
+    }
+
+    /**
+     * @return Collection<int, OAuthAccount>
+     */
+    public function getOauthAccounts(): Collection
+    {
+        return $this->oauthAccounts;
+    }
+
+    public function addOauthAccount(OAuthAccount $oauthAccount): self
+    {
+        if (!$this->oauthAccounts->contains($oauthAccount)) {
+            $this->oauthAccounts->add($oauthAccount);
+            $oauthAccount->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeOauthAccount(OAuthAccount $oauthAccount): self
+    {
+        if ($this->oauthAccounts->removeElement($oauthAccount) && $oauthAccount->getUser() === $this) {
+            $oauthAccount->setUser(null);
+        }
+
+        return $this;
     }
 
     private function normalizeName(?string $value): ?string

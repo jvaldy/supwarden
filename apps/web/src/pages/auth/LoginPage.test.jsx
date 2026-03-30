@@ -1,6 +1,7 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+﻿import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { vi } from 'vitest'
 import { AuthContext } from '../../context/authContext.js'
+import * as authApi from '../../services/authApi.js'
 import { LoginPage } from './LoginPage.jsx'
 
 function renderLoginPage(overrides = {}) {
@@ -20,6 +21,17 @@ function renderLoginPage(overrides = {}) {
 }
 
 describe('LoginPage', () => {
+  test('redirige vers Google OAuth quand le bouton dédié est utilisé', () => {
+    // On se limite ici au déclenchement de la redirection côté interface.
+    const redirectToGoogleOAuthMock = vi.spyOn(authApi, 'redirectToGoogleOAuth').mockImplementation(() => {})
+
+    renderLoginPage()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Se connecter avec Google' }))
+
+    expect(redirectToGoogleOAuthMock).toHaveBeenCalled()
+  })
+
   test('soumet les identifiants et navigue vers le tableau de bord', async () => {
     const { login, navigate } = renderLoginPage()
     login.mockResolvedValue({ token: 'token', user: { email: 'alice@example.com' } })
@@ -42,7 +54,7 @@ describe('LoginPage', () => {
     expect(navigate).toHaveBeenCalledWith('/dashboard')
   })
 
-  test('affiche une erreur retourn�e par l�API', async () => {
+  test('affiche une erreur retournée par l’API', async () => {
     const { login } = renderLoginPage()
     login.mockRejectedValue({
       responseData: {

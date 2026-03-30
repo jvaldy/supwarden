@@ -26,4 +26,18 @@ class UpdateProfileInput
         maxMessage: 'Le nouveau mot de passe ne peut pas dépasser {{ limit }} caractères.'
     )]
     public ?string $newPassword = null;
+
+    #[Assert\Length(max: 12)]
+    #[Assert\Regex(
+        pattern: '/^\d{4,6}$/',
+        message: 'Le code PIN doit contenir entre 4 et 6 chiffres.'
+    )]
+    public ?string $currentPin = null;
+
+    #[Assert\Length(max: 12)]
+    #[Assert\Regex(
+        pattern: '/^\d{4,6}$/',
+        message: 'Le code PIN doit contenir entre 4 et 6 chiffres.'
+    )]
+    public ?string $newPin = null;
 }

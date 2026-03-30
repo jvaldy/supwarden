@@ -1,31 +1,38 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { useAuth } from '../../context/authContext.js'
 
 export function ProfilePage({ navigate = () => {} }) {
   const { authenticatedUser, updateProfile, deleteAccount } = useAuth()
   const [firstname, setFirstname] = useState(authenticatedUser?.firstname ?? '')
   const [lastname, setLastname] = useState(authenticatedUser?.lastname ?? '')
-  const [email, setEmail] = useState(authenticatedUser?.email ?? '')
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
+  const [newPasswordConfirmation, setNewPasswordConfirmation] = useState('')
+  const [newPin, setNewPin] = useState('')
+  const [newPinConfirmation, setNewPinConfirmation] = useState('')
   const [deleteCurrentPassword, setDeleteCurrentPassword] = useState('')
   const [deleteConfirmation, setDeleteConfirmation] = useState(false)
   const [profileMessage, setProfileMessage] = useState('')
   const [profileError, setProfileError] = useState('')
   const [passwordMessage, setPasswordMessage] = useState('')
   const [passwordError, setPasswordError] = useState('')
+  const [pinMessage, setPinMessage] = useState('')
+  const [pinError, setPinError] = useState('')
   const [deleteMessage, setDeleteMessage] = useState('')
   const [deleteError, setDeleteError] = useState('')
   const [isProfileSubmitting, setIsProfileSubmitting] = useState(false)
   const [isPasswordSubmitting, setIsPasswordSubmitting] = useState(false)
+  const [isPinSubmitting, setIsPinSubmitting] = useState(false)
   const [isDeleteSubmitting, setIsDeleteSubmitting] = useState(false)
+
+  const canChangeExistingPassword = authenticatedUser?.hasLocalPassword !== false
+  const hasPin = authenticatedUser?.hasPin === true
 
   useEffect(() => {
     // Réaligne le formulaire quand le profil est restauré ou mis à jour.
     setFirstname(authenticatedUser?.firstname ?? '')
     setLastname(authenticatedUser?.lastname ?? '')
-    setEmail(authenticatedUser?.email ?? '')
-  }, [authenticatedUser?.email, authenticatedUser?.firstname, authenticatedUser?.lastname])
+  }, [authenticatedUser?.firstname, authenticatedUser?.lastname])
 
   async function handleProfileSubmit(event) {
     event.preventDefault()
@@ -37,7 +44,6 @@ export function ProfilePage({ navigate = () => {} }) {
       await updateProfile({
         firstname,
         lastname,
-        email,
       })
 
       setProfileMessage('Vos informations ont bien été mises à jour.')
@@ -52,21 +58,65 @@ export function ProfilePage({ navigate = () => {} }) {
     event.preventDefault()
     setPasswordMessage('')
     setPasswordError('')
+
+    if (newPassword !== newPasswordConfirmation) {
+      setPasswordError('Les nouveaux mots de passe doivent être identiques.')
+      return
+    }
+
     setIsPasswordSubmitting(true)
 
     try {
-      await updateProfile({
-        currentPassword,
-        newPassword,
-      })
+      const passwordPayload = canChangeExistingPassword
+        ? {
+            currentPassword,
+            newPassword,
+          }
+        : {
+            newPassword,
+          }
+
+      await updateProfile(passwordPayload)
 
       setCurrentPassword('')
       setNewPassword('')
-      setPasswordMessage('Votre mot de passe a bien été modifié.')
+      setNewPasswordConfirmation('')
+      setPasswordMessage(
+        canChangeExistingPassword
+          ? 'Votre mot de passe a bien été modifié.'
+          : 'Votre mot de passe local a bien été défini.'
+      )
     } catch (error) {
       setPasswordError(readFormError(error, 'Impossible de modifier votre mot de passe.'))
     } finally {
       setIsPasswordSubmitting(false)
+    }
+  }
+
+  async function handlePinSubmit(event) {
+    event.preventDefault()
+    setPinMessage('')
+    setPinError('')
+
+    if (newPin !== newPinConfirmation) {
+      setPinError('Les codes PIN doivent être identiques.')
+      return
+    }
+
+    setIsPinSubmitting(true)
+
+    try {
+      await updateProfile({
+        newPin,
+      })
+
+      setNewPin('')
+      setNewPinConfirmation('')
+      setPinMessage(hasPin ? 'Votre code PIN a bien été modifié.' : 'Votre code PIN a bien été défini.')
+    } catch (error) {
+      setPinError(readFormError(error, 'Impossible de mettre à jour votre code PIN.'))
+    } finally {
+      setIsPinSubmitting(false)
     }
   }
 
@@ -112,7 +162,7 @@ export function ProfilePage({ navigate = () => {} }) {
         <p className="eyebrow">Profil</p>
         <h1 className="auth-title">Gérez vos informations personnelles et votre sécurité.</h1>
         <p className="lede">
-          Mettez à jour votre identité, votre adresse e-mail et vos accès depuis un seul endroit,
+          Mettez à jour votre identité et vos accès depuis un seul endroit,
           avec des confirmations claires pour les actions sensibles.
         </p>
 
@@ -130,7 +180,7 @@ export function ProfilePage({ navigate = () => {} }) {
         <section className="profile-section">
           <div className="profile-section-header">
             <h2>Informations personnelles</h2>
-            <p>Modifiez votre prénom, votre nom et votre adresse e-mail.</p>
+            <p>Modifiez votre prénom et votre nom.</p>
           </div>
 
           <form className="auth-form profile-form" onSubmit={handleProfileSubmit}>
@@ -142,11 +192,6 @@ export function ProfilePage({ navigate = () => {} }) {
             <label className="field">
               <span>Nom</span>
               <input onChange={(event) => setLastname(event.target.value)} type="text" value={lastname} />
-            </label>
-
-            <label className="field profile-form-wide">
-              <span>Adresse e-mail</span>
-              <input onChange={(event) => setEmail(event.target.value)} type="email" value={email} />
             </label>
 
             {profileMessage ? <p className="field-feedback field-feedback-success profile-form-wide">{profileMessage}</p> : null}
@@ -161,19 +206,25 @@ export function ProfilePage({ navigate = () => {} }) {
         <section className="profile-section">
           <div className="profile-section-header">
             <h2>Sécurité</h2>
-            <p>Pour modifier votre mot de passe, indiquez toujours votre mot de passe actuel.</p>
+            <p>
+              {canChangeExistingPassword
+                ? 'Pour modifier votre mot de passe, indiquez toujours votre mot de passe actuel.'
+                : 'Définissez un mot de passe local pour pouvoir aussi vous connecter sans passer par Google.'}
+            </p>
           </div>
 
           <form className="auth-form profile-form" onSubmit={handlePasswordSubmit}>
-            <label className="field profile-form-wide">
-              <span>Mot de passe actuel</span>
-              <input
-                autoComplete="current-password"
-                onChange={(event) => setCurrentPassword(event.target.value)}
-                type="password"
-                value={currentPassword}
-              />
-            </label>
+            {canChangeExistingPassword ? (
+              <label className="field profile-form-wide">
+                <span>Mot de passe actuel</span>
+                <input
+                  autoComplete="current-password"
+                  onChange={(event) => setCurrentPassword(event.target.value)}
+                  type="password"
+                  value={currentPassword}
+                />
+              </label>
+            ) : null}
 
             <label className="field profile-form-wide">
               <span>Nouveau mot de passe</span>
@@ -185,11 +236,75 @@ export function ProfilePage({ navigate = () => {} }) {
               />
             </label>
 
+            <label className="field profile-form-wide">
+              <span>Confirmer le nouveau mot de passe</span>
+              <input
+                autoComplete="new-password"
+                onChange={(event) => setNewPasswordConfirmation(event.target.value)}
+                type="password"
+                value={newPasswordConfirmation}
+              />
+            </label>
+
             {passwordMessage ? <p className="field-feedback field-feedback-success profile-form-wide">{passwordMessage}</p> : null}
             {passwordError ? <p className="field-feedback field-feedback-error profile-form-wide">{passwordError}</p> : null}
 
             <button className="button-link button-link-primary auth-submit profile-form-wide" disabled={isPasswordSubmitting} type="submit">
-              {isPasswordSubmitting ? 'Modification en cours...' : 'Modifier mon mot de passe'}
+              {isPasswordSubmitting
+                ? canChangeExistingPassword
+                  ? 'Modification en cours...'
+                  : 'Définition en cours...'
+                : canChangeExistingPassword
+                  ? 'Modifier mon mot de passe'
+                  : 'Définir un mot de passe'}
+            </button>
+          </form>
+        </section>
+
+        <section className="profile-section">
+          <div className="profile-section-header">
+            <h2>Code PIN</h2>
+            <p>
+              {hasPin
+                ? 'Le code PIN sert aux validations rapides sur les actions sensibles.'
+                : 'Définissez un code PIN pour sécuriser vos validations rapides.'}
+            </p>
+          </div>
+
+          <form className="auth-form profile-form" onSubmit={handlePinSubmit}>
+            <label className="field profile-form-wide">
+              <span>Nouveau code PIN</span>
+              <input
+                inputMode="numeric"
+                onChange={(event) => setNewPin(event.target.value)}
+                pattern="[0-9]*"
+                type="password"
+                value={newPin}
+              />
+            </label>
+
+            <label className="field profile-form-wide">
+              <span>Confirmer le nouveau code PIN</span>
+              <input
+                inputMode="numeric"
+                onChange={(event) => setNewPinConfirmation(event.target.value)}
+                pattern="[0-9]*"
+                type="password"
+                value={newPinConfirmation}
+              />
+            </label>
+
+            {pinMessage ? <p className="field-feedback field-feedback-success profile-form-wide">{pinMessage}</p> : null}
+            {pinError ? <p className="field-feedback field-feedback-error profile-form-wide">{pinError}</p> : null}
+
+            <button className="button-link button-link-primary auth-submit profile-form-wide" disabled={isPinSubmitting} type="submit">
+              {isPinSubmitting
+                ? hasPin
+                  ? 'Modification en cours...'
+                  : 'Définition en cours...'
+                : hasPin
+                  ? 'Modifier mon code PIN'
+                  : 'Définir un code PIN'}
             </button>
           </form>
         </section>

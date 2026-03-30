@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
+﻿import { useEffect, useRef, useState } from 'react'
 import { AuthContext } from './authContext.js'
 import {
+  confirmGoogleOAuthRegistration,
   deleteAuthenticatedUser,
   fetchAuthenticatedUser,
   loginUser,
@@ -12,6 +13,7 @@ import {
 
 const sessionStorageKey = 'supwarden.session'
 
+// Lit la session locale sans bloquer le chargement si le stockage est corrompu.
 function readStoredSession() {
   const storedValue = window.localStorage.getItem(sessionStorageKey)
 
@@ -34,6 +36,7 @@ function readStoredSession() {
   }
 }
 
+// Extrait l'échéance du jeton pour couper la session côté interface au bon moment.
 function readTokenExpiration(token) {
   if (!token) {
     return null
@@ -61,6 +64,7 @@ export function AuthProvider({ children }) {
   const [isSessionLoading, setIsSessionLoading] = useState(() => readStoredSession().token !== null)
   const logoutTimerReference = useRef(null)
 
+  // Réinitialise l'état mémoire sans dépendre d'un aller-retour réseau.
   function clearStoredSession() {
     setSession({
       token: null,
@@ -120,6 +124,7 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     let isCancelled = false
 
+    // Revalide la session restaurée avant de réafficher l'utilisateur courant.
     async function restoreUserSession() {
       if (!session.token) {
         setIsSessionLoading(false)
@@ -154,6 +159,7 @@ export function AuthProvider({ children }) {
     }
   }, [session.token])
 
+  // Ouvre une session classique et conserve le jeton interne de l'application.
   async function authenticateWithCredentials(credentials) {
     setIsSessionLoading(true)
 
@@ -170,6 +176,7 @@ export function AuthProvider({ children }) {
     }
   }
 
+  // Termine l'inscription classique puis aligne immédiatement l'état de session.
   async function createAccount(accountData) {
     setIsSessionLoading(true)
 
@@ -186,6 +193,7 @@ export function AuthProvider({ children }) {
     }
   }
 
+  // Centralise les mises à jour de profil qui peuvent aussi renouveler le jeton.
   async function saveProfile(profileData) {
     if (!session.token) {
       throw new Error('Aucune session active.')
@@ -203,6 +211,7 @@ export function AuthProvider({ children }) {
     return responseData
   }
 
+  // Supprime le compte courant puis vide la session locale dans la foulée.
   async function removeAccount(deletionData) {
     if (!session.token) {
       throw new Error('Aucune session active.')
@@ -215,6 +224,7 @@ export function AuthProvider({ children }) {
     return responseData
   }
 
+  // Tente la déconnexion serveur, mais donne toujours priorité au nettoyage local.
   async function clearSession() {
     if (session.token) {
       try {
@@ -228,6 +238,32 @@ export function AuthProvider({ children }) {
     setIsSessionLoading(false)
   }
 
+  // Réinjecte un jeton obtenu depuis un flux externe avant restauration du profil.
+  async function restoreSessionFromExternalToken(token) {
+    setSession({
+      token,
+      user: null,
+    })
+    setIsSessionLoading(true)
+  }
+
+  // Finalise le premier retour OAuth après confirmation explicite de l'utilisateur.
+  async function confirmOAuthRegistration() {
+    setIsSessionLoading(true)
+
+    try {
+      const responseData = await confirmGoogleOAuthRegistration()
+      setSession({
+        token: responseData.token,
+        user: responseData.user,
+      })
+
+      return responseData
+    } finally {
+      setIsSessionLoading(false)
+    }
+  }
+
   const contextValue = {
     authenticatedUser: session.user,
     token: session.token,
@@ -238,6 +274,8 @@ export function AuthProvider({ children }) {
     updateProfile: saveProfile,
     deleteAccount: removeAccount,
     logout: clearSession,
+    completeOAuthSession: restoreSessionFromExternalToken,
+    confirmOAuthRegistration,
   }
 
   return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>

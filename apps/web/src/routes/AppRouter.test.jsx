@@ -34,6 +34,7 @@ describe('AppRouter', () => {
   test('redirige vers la connexion quand un visiteur tente d’ouvrir le tableau de bord', async () => {
     window.history.pushState({}, '', '/dashboard')
 
+    // La garde d'accès doit corriger l'URL sans interaction utilisateur.
     renderRouter()
 
     expect(await screen.findByText('Retrouvez vos trousseaux en quelques secondes.')).toBeInTheDocument()
@@ -45,6 +46,7 @@ describe('AppRouter', () => {
   test('redirige vers le tableau de bord quand un utilisateur connecté ouvre la connexion', async () => {
     window.history.pushState({}, '', '/connexion')
 
+    // Une session déjà restaurée ne doit pas laisser l'utilisateur sur la page publique.
     renderRouter({
       authenticatedUser: {
         email: 'camille@example.com',

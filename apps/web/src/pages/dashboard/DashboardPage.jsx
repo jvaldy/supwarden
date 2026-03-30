@@ -13,6 +13,7 @@ export function DashboardPage() {
   useEffect(() => {
     let isCancelled = false
 
+    // Ne charge la liste admin que pour les comptes autorisés et encore actifs.
     async function loadAdminUsers() {
       if (!isAdmin || !token) {
         setAdminUsers([])
@@ -107,6 +108,7 @@ export function DashboardPage() {
   )
 }
 
+// Uniformise l'affichage des dates du tableau de bord en français.
 function formatDate(dateValue) {
   if (!dateValue) {
     return 'Indisponible'

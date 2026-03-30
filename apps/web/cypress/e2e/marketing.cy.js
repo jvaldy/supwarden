@@ -2,13 +2,13 @@ describe('Parcours publics', () => {
   it('affiche la landing page', () => {
     cy.visit('/')
 
-    cy.contains('Simplifiez le partage des accÃ¨s dans votre Ã©quipe.').should('be.visible')
-    cy.contains('button', 'DÃ©couvrir').should('be.visible')
+    cy.contains("Simplifiez le partage des accès dans votre équipe.").should('be.visible')
+    cy.contains('button', 'Découvrir').should('be.visible')
   })
 
   it('ouvre la page connexion depuis la landing', () => {
     cy.visit('/')
-    cy.contains('button', 'DÃ©couvrir').click()
+    cy.contains('button', 'Découvrir').click()
 
     cy.location('pathname').should('eq', '/connexion')
     cy.contains('Retrouvez vos trousseaux en quelques secondes.').should('be.visible')

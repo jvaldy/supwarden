@@ -8,6 +8,7 @@ export function PublicLayout({ children, navigate, path }) {
   const accountMenuRef = useRef(null)
 
   useEffect(() => {
+    // Referme le menu si l'utilisateur clique ailleurs dans la page.
     function handleOutsideClick(event) {
       if (accountMenuRef.current && !accountMenuRef.current.contains(event.target)) {
         setIsAccountMenuOpen(false)
@@ -29,11 +30,13 @@ export function PublicLayout({ children, navigate, path }) {
     }
   }, [])
 
+  // Ferme le menu avant toute navigation déclenchée depuis le header ou le footer.
   function navigateAndClose(targetPath) {
     setIsAccountMenuOpen(false)
     navigate(targetPath)
   }
 
+  // Coupe la session depuis la navigation puis revient sur l'accueil public.
   async function handleLogout() {
     await logout()
     setIsAccountMenuOpen(false)

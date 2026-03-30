@@ -2,6 +2,7 @@
 
 export const AuthContext = createContext(null)
 
+// Garantit que les écrans consomment bien le contexte d'authentification du projet.
 export function useAuth() {
   const contextValue = useContext(AuthContext)
 

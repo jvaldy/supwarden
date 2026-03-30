@@ -1,4 +1,4 @@
-export const colorGroups = [
+﻿export const colorGroups = [
   {
     title: 'Couleurs principales',
     items: [
