@@ -80,11 +80,25 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: OAuthAccount::class, orphanRemoval: true)]
     private Collection $oauthAccounts;
 
+    /**
+     * @var Collection<int, Vault>
+     */
+    #[ORM\OneToMany(mappedBy: 'owner', targetEntity: Vault::class, orphanRemoval: true)]
+    private Collection $ownedVaults;
+
+    /**
+     * @var Collection<int, VaultMember>
+     */
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: VaultMember::class, orphanRemoval: true)]
+    private Collection $vaultMemberships;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
         $this->roles = ['ROLE_USER'];
         $this->oauthAccounts = new ArrayCollection();
+        $this->ownedVaults = new ArrayCollection();
+        $this->vaultMemberships = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -281,6 +295,22 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         }
 
         return $this;
+    }
+
+    /**
+     * @return Collection<int, Vault>
+     */
+    public function getOwnedVaults(): Collection
+    {
+        return $this->ownedVaults;
+    }
+
+    /**
+     * @return Collection<int, VaultMember>
+     */
+    public function getVaultMemberships(): Collection
+    {
+        return $this->vaultMemberships;
     }
 
     private function normalizeName(?string $value): ?string

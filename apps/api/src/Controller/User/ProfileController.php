@@ -6,7 +6,7 @@ use App\Dto\User\DeleteAccountInput;
 use App\Dto\User\UpdateProfileInput;
 use App\Entity\User;
 use App\Repository\UserRepository;
-use App\Security\BearerTokenManager;
+use App\Security\Token\BearerTokenManager;
 use Doctrine\ORM\EntityManagerInterface;
 use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;

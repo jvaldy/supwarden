@@ -171,7 +171,8 @@
 }
 
 .field input,
-.field select {
+.field select,
+.field textarea {
   width: 100%;
   border-radius: var(--radius-md);
   border: 1px solid rgba(173, 216, 255, 0.18);
@@ -183,9 +184,20 @@
 }
 
 .field input:focus,
-.field select:focus {
+.field select:focus,
+.field textarea:focus {
   border-color: rgba(143, 211, 255, 0.45);
   box-shadow: 0 0 0 4px rgba(143, 211, 255, 0.12);
+}
+
+.field textarea {
+  min-height: 9rem;
+  resize: vertical;
+  line-height: 1.6;
+}
+
+.field textarea::placeholder {
+  color: var(--color-text-muted);
 }
 
 .field-feedback-success {

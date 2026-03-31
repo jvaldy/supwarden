@@ -43,6 +43,8 @@ export function PublicLayout({ children, navigate, path }) {
     navigate('/')
   }
 
+  const isVaultArea = path === '/vaults' || path.startsWith('/vaults/')
+
   return (
     <main className="app-shell">
       <header className="topbar">
@@ -61,6 +63,12 @@ export function PublicLayout({ children, navigate, path }) {
           >
             Tableau de bord
           </NavLink>
+
+          {isAuthenticated ? (
+            <NavLink className={isVaultArea ? 'nav-link active' : 'nav-link'} onNavigate={navigateAndClose} to="/vaults">
+              Trousseaux
+            </NavLink>
+          ) : null}
 
           {isAuthenticated ? (
             <div className="account-menu" ref={accountMenuRef}>
@@ -97,7 +105,7 @@ export function PublicLayout({ children, navigate, path }) {
         </nav>
       </header>
 
-      {children}
+      <div className="app-content">{children}</div>
 
       <footer className="site-footer">
         <p className="footer-copy">© 2026 Supwarden</p>

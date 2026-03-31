@@ -4,7 +4,7 @@ namespace App\Tests\Functional;
 
 use App\Repository\OAuthAccountRepository;
 use App\Repository\UserRepository;
-use App\Security\BearerTokenManager;
+use App\Security\Token\BearerTokenManager;
 use Symfony\Component\BrowserKit\Cookie;
 
 final class AuthFlowTest extends ApiTestCase

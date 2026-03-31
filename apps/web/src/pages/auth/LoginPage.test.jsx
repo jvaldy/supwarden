@@ -1,7 +1,7 @@
-﻿import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { vi } from 'vitest'
 import { AuthContext } from '../../context/authContext.js'
-import * as authApi from '../../services/authApi.js'
+import * as authApi from '../../services/api/authApi.js'
 import { LoginPage } from './LoginPage.jsx'
 
 function renderLoginPage(overrides = {}) {

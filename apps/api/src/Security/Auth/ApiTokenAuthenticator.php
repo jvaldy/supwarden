@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Security;
+namespace App\Security\Auth;
 
 use App\Repository\UserRepository;
+use App\Security\Token\BearerTokenManager;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -23,16 +24,16 @@ class ApiTokenAuthenticator extends AbstractAuthenticator implements Authenticat
     ) {
     }
 
-    // Active l'authenticator seulement sur les requêtes qui portent déjà un Bearer token.
+    // Active l’authenticator seulement sur les requêtes qui portent déjà un Bearer token.
     public function supports(Request $request): ?bool
     {
         $authorizationHeader = $request->headers->get('Authorization');
 
-        // N'intercepte que les requêtes API portant un Bearer token.
+        // N’intercepte que les requêtes API portant un Bearer token.
         return is_string($authorizationHeader) && str_starts_with($authorizationHeader, 'Bearer ');
     }
 
-    // Valide le jeton puis rattache l'utilisateur actif correspondant.
+    // Valide le jeton puis rattache l’utilisateur actif correspondant.
     public function authenticate(Request $request): Passport
     {
         $authorizationHeader = $request->headers->get('Authorization', '');
@@ -40,12 +41,12 @@ class ApiTokenAuthenticator extends AbstractAuthenticator implements Authenticat
         $tokenPayload = $this->bearerTokenManager->parse($bearerToken);
 
         if ($tokenPayload === null || $tokenPayload['sub'] <= 0) {
-            throw new CustomUserMessageAuthenticationException('Le jeton d\'authentification est invalide ou expiré.');
+            throw new CustomUserMessageAuthenticationException('Le jeton d\'authentification est invalide ou expirÃ©.');
         }
 
         return new SelfValidatingPassport(
             new UserBadge((string) $tokenPayload['sub'], function (string $userIdentifier) use ($tokenPayload) {
-                // Refuse l'accès si l'utilisateur n'existe plus, est inactif ou a invalidé ses anciens jetons.
+                // Refuse l’accès si l’utilisateur n’existe plus, est inactif ou a invalidé ses anciens jetons.
                 $authenticatedUser = $this->userRepository->findActiveById((int) $userIdentifier);
 
                 if ($authenticatedUser === null) {

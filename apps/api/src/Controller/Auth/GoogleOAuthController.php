@@ -6,7 +6,7 @@ use App\Entity\OAuthAccount;
 use App\Entity\User;
 use App\Repository\OAuthAccountRepository;
 use App\Repository\UserRepository;
-use App\Security\BearerTokenManager;
+use App\Security\Token\BearerTokenManager;
 use App\Security\OAuth\GoogleOAuthClientInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use OpenApi\Attributes as OA;

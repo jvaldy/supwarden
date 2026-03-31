@@ -1,5 +1,5 @@
-﻿import { useEffect, useState } from 'react'
-import { fetchAdminUsers } from '../../services/authApi.js'
+import { useEffect, useState } from 'react'
+import { fetchAdminUsers } from '../../services/api/authApi.js'
 import { useAuth } from '../../context/authContext.js'
 
 export function DashboardPage() {

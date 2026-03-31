@@ -1,8 +1,16 @@
 .app-shell {
+  display: flex;
+  flex-direction: column;
   min-height: 100vh;
   padding: var(--space-4);
   background: var(--bg-canvas);
   color: var(--color-text-strong);
+}
+
+.app-content {
+  flex: 1;
+  display: grid;
+  align-content: start;
 }
 
 .topbar,
