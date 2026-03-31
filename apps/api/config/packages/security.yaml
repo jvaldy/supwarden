@@ -15,9 +15,9 @@ security:
             stateless: true
             lazy: true
             provider: app_user_provider
-            entry_point: App\Security\ApiTokenAuthenticator
+            entry_point: App\Security\Auth\ApiTokenAuthenticator
             custom_authenticators:
-                - App\Security\ApiTokenAuthenticator
+                - App\Security\Auth\ApiTokenAuthenticator
     access_control:
         - { path: ^/api/doc, roles: PUBLIC_ACCESS }
         - { path: ^/api/doc/openapi, roles: PUBLIC_ACCESS }

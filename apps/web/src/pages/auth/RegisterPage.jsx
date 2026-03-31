@@ -1,6 +1,6 @@
-﻿import { useState } from 'react'
+import { useState } from 'react'
 import { useAuth } from '../../context/authContext.js'
-import { redirectToGoogleOAuth } from '../../services/authApi.js'
+import { redirectToGoogleOAuth } from '../../services/api/authApi.js'
 
 export function RegisterPage({ navigate }) {
   const { register } = useAuth()

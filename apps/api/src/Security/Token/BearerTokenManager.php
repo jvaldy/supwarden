@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Security;
+namespace App\Security\Token;
 
 use App\Entity\User;
 
@@ -12,10 +12,10 @@ class BearerTokenManager
     ) {
     }
 
-    // Construit un jeton signé léger à partir de l'utilisateur courant.
+    // Construit un jeton signé léger à partir de l’utilisateur courant.
     public function create(User $user): string
     {
-        // Jeton signé simple, suffisant pour l'API sans dépendance JWT supplémentaire.
+        // Jeton signé simple, suffisant pour l’API sans dépendance JWT supplémentaire.
         $tokenPayload = [
             'sub' => $user->getId(),
             'iat' => time(),
@@ -32,7 +32,7 @@ class BearerTokenManager
     /**
      * @return array{sub:int,iat:int,exp:int,version:int}|null
      */
-    // Valide le format, la signature et l'échéance avant de renvoyer le payload utile.
+    // Valide le format, la signature et l’échéance avant de renvoyer le payload utile.
     public function parse(string $token): ?array
     {
         $tokenParts = explode('.', $token);

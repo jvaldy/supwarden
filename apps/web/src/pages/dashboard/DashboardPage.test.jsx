@@ -1,13 +1,13 @@
-﻿import { render, screen } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import { vi } from 'vitest'
 import { AuthContext } from '../../context/authContext.js'
 import { DashboardPage } from './DashboardPage.jsx'
 
-vi.mock('../../services/authApi.js', () => ({
+vi.mock('../../services/api/authApi.js', () => ({
   fetchAdminUsers: vi.fn(),
 }))
 
-const { fetchAdminUsers } = await import('../../services/authApi.js')
+const { fetchAdminUsers } = await import('../../services/api/authApi.js')
 
 function renderDashboardPage(overrides = {}) {
   render(

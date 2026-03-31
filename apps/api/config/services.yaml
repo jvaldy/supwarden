@@ -25,12 +25,12 @@ services:
             - '../src/Entity/'
             - '../src/Kernel.php'
 
-    App\Security\BearerTokenManager:
+    App\Security\Token\BearerTokenManager:
         arguments:
             $appSecret: '%env(APP_SECRET)%'
             $tokenTtl: '%app.auth_token_ttl%'
 
-    App\Security\AuthRateLimiter:
+    App\Security\Auth\AuthRateLimiter:
         arguments:
             $loginLimiter: '@limiter.auth_login'
             $registerLimiter: '@limiter.auth_register'

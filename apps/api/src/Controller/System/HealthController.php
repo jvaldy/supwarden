@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controller;
+namespace App\Controller\System;
 
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
