@@ -8,7 +8,7 @@ final class ApiDocumentationController
 {
     public function __invoke(): Response
     {
-        // Swagger UI consomme le JSON OpenAPI gÃ©nÃ©rÃ© par Nelmio pour permettre les tests interactifs.
+        // Swagger UI consomme le JSON OpenAPI g?n?r? par Nelmio pour permettre les tests interactifs.
         $html = <<<'HTML'
 <!DOCTYPE html>
 <html lang="fr">

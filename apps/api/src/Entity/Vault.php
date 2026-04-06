@@ -25,11 +25,11 @@ class Vault
 
     #[ORM\Column(length: 160)]
     #[Assert\NotBlank(message: 'Le nom du trousseau est obligatoire.')]
-    #[Assert\Length(max: 160, maxMessage: 'Le nom du trousseau ne peut pas dÃ©passer 160 caractÃ¨res.')]
+    #[Assert\Length(max: 160, maxMessage: 'Le nom du trousseau ne peut pas d?passer 160 caract?res.')]
     private string $name = '';
 
     #[ORM\Column(type: 'text', nullable: true)]
-    #[Assert\Length(max: 1000, maxMessage: 'La description du trousseau ne peut pas dÃ©passer 1000 caractÃ¨res.')]
+    #[Assert\Length(max: 1000, maxMessage: 'La description du trousseau ne peut pas d?passer 1000 caract?res.')]
     private ?string $description = null;
 
     #[ORM\Column(enumType: VaultType::class)]

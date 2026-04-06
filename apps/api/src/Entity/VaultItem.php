@@ -28,15 +28,15 @@ class VaultItem
     private ?Vault $vault = null;
 
     #[ORM\Column(length: 160)]
-    #[Assert\NotBlank(message: 'Le nom de lâ€™Ã©lÃ©ment est obligatoire.')]
-    #[Assert\Length(max: 160, maxMessage: 'Le nom de lâ€™Ã©lÃ©ment ne peut pas dÃ©passer 160 caractÃ¨res.')]
+    #[Assert\NotBlank(message: 'Le nom de l??l?ment est obligatoire.')]
+    #[Assert\Length(max: 160, maxMessage: 'Le nom de l??l?ment ne peut pas d?passer 160 caract?res.')]
     private string $name = '';
 
     #[ORM\Column(enumType: ItemType::class)]
     private ItemType $type = ItemType::LOGIN;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Assert\Length(max: 255, maxMessage: 'Le nom dâ€™utilisateur ne peut pas dÃ©passer 255 caractÃ¨res.')]
+    #[Assert\Length(max: 255, maxMessage: 'Le nom d?utilisateur ne peut pas d?passer 255 caract?res.')]
     private ?string $username = null;
 
     #[ORM\Column(type: 'text', nullable: true)]
@@ -46,7 +46,7 @@ class VaultItem
     private bool $isSensitive = false;
 
     #[ORM\Column(type: 'text', nullable: true)]
-    #[Assert\Length(max: 5000, maxMessage: 'Les notes ne peuvent pas dÃ©passer 5000 caractÃ¨res.')]
+    #[Assert\Length(max: 5000, maxMessage: 'Les notes ne peuvent pas d?passer 5000 caract?res.')]
     private ?string $notes = null;
 
     #[ORM\Column]

@@ -25,7 +25,7 @@ final class ItemAttachmentController extends AbstractController
 {
     private const MAX_FILE_SIZE = 5242880;
 
-    // Liste volontairement restreinte pour limiter les formats exÃ©cutables ou difficiles Ã  contrÃ´ler.
+    // Liste volontairement restreinte pour limiter les formats ex?cutables ou difficiles ? contr?ler.
     private const ALLOWED_MIME_TYPES = [
         'application/pdf',
         'image/png',
@@ -37,9 +37,9 @@ final class ItemAttachmentController extends AbstractController
 
     #[OA\Post(
         path: '/api/items/{itemId}/attachments',
-        summary: 'Ajoute une piÃ¨ce jointe Ã  un Ã©lÃ©ment.',
+        summary: 'Ajoute une pi?ce jointe ? un ?l?ment.',
         security: [['Bearer' => []]],
-        tags: ['PiÃ¨ces jointes'],
+        tags: ['Pi?ces jointes'],
         parameters: [
             new OA\Parameter(name: 'itemId', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
         ],
@@ -57,11 +57,11 @@ final class ItemAttachmentController extends AbstractController
             )
         )
     )]
-    #[OA\Response(response: 201, description: 'PiÃ¨ce jointe ajoutÃ©e.')]
+    #[OA\Response(response: 201, description: 'Pi?ce jointe ajout?e.')]
     #[OA\Response(response: 401, description: 'Authentification requise.')]
-    #[OA\Response(response: 403, description: 'AccÃ¨s interdit.')]
-    #[OA\Response(response: 404, description: 'Ã‰lÃ©ment introuvable.')]
-    #[OA\Response(response: 422, description: 'Fichier invalide, trop volumineux ou non autorisÃ©.')]
+    #[OA\Response(response: 403, description: 'Acc?s interdit.')]
+    #[OA\Response(response: 404, description: 'Ã‰l?ment introuvable.')]
+    #[OA\Response(response: 422, description: 'Fichier invalide, trop volumineux ou non autoris?.')]
     #[Route('/items/{itemId}/attachments', name: 'create', methods: ['POST'], requirements: ['itemId' => '\\d+'])]
     public function create(
         int $itemId,
@@ -78,28 +78,28 @@ final class ItemAttachmentController extends AbstractController
         $item = $vaultItemRepository->find($itemId);
 
         if ($item === null) {
-            return $this->json(['message' => 'Ã‰lÃ©ment introuvable.'], Response::HTTP_NOT_FOUND);
+            return $this->json(['message' => 'Ã‰l?ment introuvable.'], Response::HTTP_NOT_FOUND);
         }
 
         if (!$this->isGranted(ItemVoter::MANAGE_ATTACHMENTS, $item)) {
-            return $this->json(['message' => 'AccÃ¨s interdit.'], Response::HTTP_FORBIDDEN);
+            return $this->json(['message' => 'Acc?s interdit.'], Response::HTTP_FORBIDDEN);
         }
 
         $uploadedFile = $request->files->get('file');
 
         if (!$uploadedFile instanceof \Symfony\Component\HttpFoundation\File\UploadedFile) {
-            return $this->json(['message' => 'Aucun fichier valide nâ€™a Ã©tÃ© envoyÃ©.'], Response::HTTP_UNPROCESSABLE_ENTITY);
+            return $this->json(['message' => 'Aucun fichier valide n?a ?t? envoy?.'], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         if ($uploadedFile->getSize() > self::MAX_FILE_SIZE) {
-            return $this->json(['message' => 'Le fichier dÃ©passe la taille maximale autorisÃ©e.'], Response::HTTP_UNPROCESSABLE_ENTITY);
+            return $this->json(['message' => 'Le fichier d?passe la taille maximale autoris?e.'], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         if (!in_array($uploadedFile->getClientMimeType(), self::ALLOWED_MIME_TYPES, true)) {
-            return $this->json(['message' => 'Le type de fichier envoyÃ© nâ€™est pas autorisÃ©.'], Response::HTTP_UNPROCESSABLE_ENTITY);
+            return $this->json(['message' => 'Le type de fichier envoy? n?est pas autoris?.'], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        // Le binaire est stockÃ© via le service dÃ©diÃ© avant dâ€™Ãªtre rattachÃ© Ã  lâ€™Ã©lÃ©ment.
+        // Le binaire est stock? via le service d?di? avant d?tre rattach? ? l??l?ment.
         $attachment = $attachmentStorage->store($uploadedFile);
         $item->addAttachment($attachment);
         $entityManager->persist($attachment);
@@ -119,17 +119,17 @@ final class ItemAttachmentController extends AbstractController
 
     #[OA\Get(
         path: '/api/attachments/{attachmentId}/download',
-        summary: 'TÃ©lÃ©charge une piÃ¨ce jointe.',
+        summary: 'T?l?charge une pi?ce jointe.',
         security: [['Bearer' => []]],
-        tags: ['PiÃ¨ces jointes'],
+        tags: ['Pi?ces jointes'],
         parameters: [
             new OA\Parameter(name: 'attachmentId', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
         ]
     )]
     #[OA\Response(response: 200, description: 'Contenu du fichier.')]
     #[OA\Response(response: 401, description: 'Authentification requise.')]
-    #[OA\Response(response: 403, description: 'AccÃ¨s interdit.')]
-    #[OA\Response(response: 404, description: 'PiÃ¨ce jointe introuvable.')]
+    #[OA\Response(response: 403, description: 'Acc?s interdit.')]
+    #[OA\Response(response: 404, description: 'Pi?ce jointe introuvable.')]
     #[Route('/attachments/{attachmentId}/download', name: 'download', methods: ['GET'], requirements: ['attachmentId' => '\\d+'])]
     public function download(
         int $attachmentId,
@@ -144,13 +144,13 @@ final class ItemAttachmentController extends AbstractController
         $attachment = $attachmentRepository->find($attachmentId);
 
         if (!$attachment instanceof Attachment) {
-            return $this->json(['message' => 'PiÃ¨ce jointe introuvable.'], Response::HTTP_NOT_FOUND);
+            return $this->json(['message' => 'Pi?ce jointe introuvable.'], Response::HTTP_NOT_FOUND);
         }
 
         $item = $attachment->getItem();
 
         if ($item === null || !$this->isGranted(ItemVoter::VIEW, $item)) {
-            return $this->json(['message' => 'AccÃ¨s interdit.'], Response::HTTP_FORBIDDEN);
+            return $this->json(['message' => 'Acc?s interdit.'], Response::HTTP_FORBIDDEN);
         }
 
         $path = $attachmentStorage->resolvePath($attachment);
@@ -168,17 +168,17 @@ final class ItemAttachmentController extends AbstractController
 
     #[OA\Delete(
         path: '/api/attachments/{attachmentId}',
-        summary: 'Supprime une piÃ¨ce jointe.',
+        summary: 'Supprime une pi?ce jointe.',
         security: [['Bearer' => []]],
-        tags: ['PiÃ¨ces jointes'],
+        tags: ['Pi?ces jointes'],
         parameters: [
             new OA\Parameter(name: 'attachmentId', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
         ]
     )]
-    #[OA\Response(response: 200, description: 'PiÃ¨ce jointe supprimÃ©e.')]
+    #[OA\Response(response: 200, description: 'Pi?ce jointe supprim?e.')]
     #[OA\Response(response: 401, description: 'Authentification requise.')]
-    #[OA\Response(response: 403, description: 'AccÃ¨s interdit.')]
-    #[OA\Response(response: 404, description: 'PiÃ¨ce jointe introuvable.')]
+    #[OA\Response(response: 403, description: 'Acc?s interdit.')]
+    #[OA\Response(response: 404, description: 'Pi?ce jointe introuvable.')]
     #[Route('/attachments/{attachmentId}', name: 'delete', methods: ['DELETE'], requirements: ['attachmentId' => '\\d+'])]
     public function delete(
         int $attachmentId,
@@ -194,19 +194,19 @@ final class ItemAttachmentController extends AbstractController
         $attachment = $attachmentRepository->find($attachmentId);
 
         if (!$attachment instanceof Attachment) {
-            return $this->json(['message' => 'PiÃ¨ce jointe introuvable.'], Response::HTTP_NOT_FOUND);
+            return $this->json(['message' => 'Pi?ce jointe introuvable.'], Response::HTTP_NOT_FOUND);
         }
 
         $item = $attachment->getItem();
 
         if ($item === null || !$this->isGranted(ItemVoter::MANAGE_ATTACHMENTS, $item)) {
-            return $this->json(['message' => 'AccÃ¨s interdit.'], Response::HTTP_FORBIDDEN);
+            return $this->json(['message' => 'Acc?s interdit.'], Response::HTTP_FORBIDDEN);
         }
 
         $attachmentStorage->remove($attachment);
         $entityManager->remove($attachment);
         $entityManager->flush();
 
-        return $this->json(['message' => 'La piÃ¨ce jointe a bien Ã©tÃ© supprimÃ©e.']);
+        return $this->json(['message' => 'La pi?ce jointe a bien ?t? supprim?e.']);
     }
 }

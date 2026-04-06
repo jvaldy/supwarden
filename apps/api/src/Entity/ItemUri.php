@@ -23,13 +23,13 @@ class ItemUri
     private ?VaultItem $item = null;
 
     #[ORM\Column(length: 120, nullable: true)]
-    #[Assert\Length(max: 120, maxMessage: 'Le libellÃ© de lâ€™URI ne peut pas dÃ©passer 120 caractÃ¨res.')]
+    #[Assert\Length(max: 120, maxMessage: 'Le libell? de l?URI ne peut pas d?passer 120 caract?res.')]
     private ?string $label = null;
 
     #[ORM\Column(length: 2048)]
-    #[Assert\NotBlank(message: 'Lâ€™URL est obligatoire.')]
-    #[Assert\Url(message: 'Lâ€™URL saisie est invalide.')]
-    #[Assert\Length(max: 2048, maxMessage: 'Lâ€™URL ne peut pas dÃ©passer 2048 caractÃ¨res.')]
+    #[Assert\NotBlank(message: 'L?URL est obligatoire.')]
+    #[Assert\Url(message: 'L?URL saisie est invalide.')]
+    #[Assert\Length(max: 2048, maxMessage: 'L?URL ne peut pas d?passer 2048 caract?res.')]
     private string $uri = '';
 
     #[ORM\Column]

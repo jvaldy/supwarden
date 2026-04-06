@@ -55,7 +55,7 @@ final class AuthRateLimiter
         }
 
         return new JsonResponse([
-            'message' => 'Trop de tentatives. RÃ©essayez dans un instant.',
+            'message' => 'Trop de tentatives. R?essayez dans un instant.',
         ], Response::HTTP_TOO_MANY_REQUESTS, $headers);
     }
 

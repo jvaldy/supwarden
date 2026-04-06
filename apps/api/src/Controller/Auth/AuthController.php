@@ -42,10 +42,10 @@ final class AuthController extends AbstractController
             )
         )
     )]
-    #[OA\Response(response: 201, description: 'Utilisateur crÃ©Ã© et jeton dâ€™authentification retournÃ©.')]
-    #[OA\Response(response: 422, description: 'Les donnÃ©es envoyÃ©es sont invalides.')]
+    #[OA\Response(response: 201, description: 'Utilisateur cr?? et jeton d?authentification retourn?.')]
+    #[OA\Response(response: 422, description: 'Les donn?es envoy?es sont invalides.')]
     #[Route('/register', name: 'register', methods: ['POST'])]
-    // GÃ¨re l'inscription classique puis ouvre immÃ©diatement une session API.
+    // G?re l'inscription classique puis ouvre imm?diatement une session API.
     public function register(
         Request $request,
         ValidatorInterface $validator,
@@ -71,17 +71,17 @@ final class AuthController extends AbstractController
         $validationErrors = $this->formatViolations($validator->validate($registerInput));
 
         if ($userRepository->findOneByEmail($registerInput->email) !== null) {
-            $validationErrors['email'][] = 'Cette adresse e-mail est dÃ©jÃ  utilisÃ©e.';
+            $validationErrors['email'][] = 'Cette adresse e-mail est d?j? utilis?e.';
         }
 
         if ($validationErrors !== []) {
             return $this->json([
-                'message' => 'Les donnÃ©es fournies sont invalides.',
+                'message' => 'Les donn?es fournies sont invalides.',
                 'errors' => $validationErrors,
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        // Le mot de passe n'est jamais persistÃ© en clair.
+        // Le mot de passe n'est jamais persist? en clair.
         $user = (new User())
             ->setEmail($registerInput->email)
             ->setFirstname($registerInput->firstname)
@@ -122,9 +122,9 @@ final class AuthController extends AbstractController
             )
         )
     )]
-    #[OA\Response(response: 200, description: 'Jeton dâ€™authentification et utilisateur courant.')]
+    #[OA\Response(response: 200, description: 'Jeton d?authentification et utilisateur courant.')]
     #[OA\Response(response: 401, description: 'Identifiants invalides.')]
-    #[OA\Response(response: 422, description: 'Les donnÃ©es envoyÃ©es sont invalides.')]
+    #[OA\Response(response: 422, description: 'Les donn?es envoy?es sont invalides.')]
     #[Route('/login', name: 'login', methods: ['POST'])]
     // Authentifie un utilisateur local et applique la protection anti-bruteforce.
     public function login(
@@ -150,7 +150,7 @@ final class AuthController extends AbstractController
 
         if ($validationErrors !== []) {
             return $this->json([
-                'message' => 'Les donnÃ©es fournies sont invalides.',
+                'message' => 'Les donn?es fournies sont invalides.',
                 'errors' => $validationErrors,
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
@@ -180,11 +180,11 @@ final class AuthController extends AbstractController
 
     #[OA\Post(
         path: '/api/auth/logout',
-        summary: 'Invalide le jeton courant cÃ´tÃ© serveur.',
+        summary: 'Invalide le jeton courant c?t? serveur.',
         security: [['Bearer' => []]],
         tags: ['Authentification']
     )]
-    #[OA\Response(response: 200, description: 'Session invalidÃ©e cÃ´tÃ© serveur.')]
+    #[OA\Response(response: 200, description: 'Session invalid?e c?t? serveur.')]
     #[OA\Response(response: 401, description: 'Authentification requise.')]
     #[Route('/logout', name: 'logout', methods: ['POST'])]
     // Invalide les jetons encore en circulation pour ce compte.
@@ -198,26 +198,26 @@ final class AuthController extends AbstractController
             ], Response::HTTP_UNAUTHORIZED);
         }
 
-        // IncrÃ©mente la version attendue pour invalider tous les jetons plus anciens.
+        // Incr?mente la version attendue pour invalider tous les jetons plus anciens.
         $authenticatedUser->incrementAuthTokenVersion();
         $entityManager->flush();
 
         return $this->json([
-            'message' => 'DÃ©connexion prise en compte cÃ´tÃ© serveur.',
+            'message' => 'D?connexion prise en compte c?t? serveur.',
         ]);
     }
 
     /**
      * @return array<string, mixed>|JsonResponse
      */
-    // Refuse les requÃªtes vides ou non JSON avant d'entrer dans la logique mÃ©tier.
+    // Refuse les requ?tes vides ou non JSON avant d'entrer dans la logique m?tier.
     private function decodeJsonRequest(Request $request): array|JsonResponse
     {
         $requestContent = $request->getContent();
 
         if ($requestContent === '') {
             return new JsonResponse([
-                'message' => 'Le corps de la requÃªte JSON est requis.',
+                'message' => 'Le corps de la requ?te JSON est requis.',
             ], Response::HTTP_BAD_REQUEST);
         }
 
@@ -231,7 +231,7 @@ final class AuthController extends AbstractController
 
         if (!is_array($decodedRequestData)) {
             return new JsonResponse([
-                'message' => 'Le corps de la requÃªte doit Ãªtre un objet JSON.',
+                'message' => 'Le corps de la requ?te doit ?tre un objet JSON.',
             ], Response::HTTP_BAD_REQUEST);
         }
 
@@ -242,10 +242,10 @@ final class AuthController extends AbstractController
      * @param iterable<ConstraintViolationInterface> $constraintViolations
      * @return array<string, list<string>>
      */
-    // RamÃ¨ne les violations Symfony dans un format directement exploitable cÃ´tÃ© interface.
+    // Ram?ne les violations Symfony dans un format directement exploitable c?t? interface.
     private function formatViolations(iterable $constraintViolations): array
     {
-        // Regroupe les erreurs par champ pour simplifier l'exploitation cÃ´tÃ© frontend.
+        // Regroupe les erreurs par champ pour simplifier l'exploitation c?t? frontend.
         $validationErrors = [];
 
         foreach ($constraintViolations as $constraintViolation) {

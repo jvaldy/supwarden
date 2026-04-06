@@ -14,7 +14,7 @@ final class MeController extends AbstractController
 {
     #[OA\Get(
         path: '/api/me',
-        summary: 'Retourne lâ€™utilisateur authentifiÃ©.',
+        summary: 'Retourne l?utilisateur authentifi?.',
         security: [['Bearer' => []]],
         tags: ['Utilisateur']
     )]
@@ -41,7 +41,7 @@ final class MeController extends AbstractController
     )]
     #[OA\Response(response: 401, description: 'Authentification requise.')]
     #[Route('/api/me', name: 'api_me', methods: ['GET'])]
-    // Retourne le profil courant avec les seuls champs autorisÃ©s cÃ´tÃ© API.
+    // Retourne le profil courant avec les seuls champs autoris?s c?t? API.
     public function __invoke(
         #[CurrentUser] ?User $authenticatedUser,
         NormalizerInterface $normalizer
@@ -52,7 +52,7 @@ final class MeController extends AbstractController
             ], JsonResponse::HTTP_UNAUTHORIZED);
         }
 
-        // Retourne uniquement les champs exposables dÃ©finis dans le groupe user:read.
+        // Retourne uniquement les champs exposables d?finis dans le groupe user:read.
         return $this->json([
             'user' => $normalizer->normalize($authenticatedUser, null, ['groups' => ['user:read']]),
         ]);

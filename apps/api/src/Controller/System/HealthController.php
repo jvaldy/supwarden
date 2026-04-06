@@ -10,12 +10,12 @@ final class HealthController
 {
     #[OA\Get(
         path: '/api/health',
-        summary: 'VÃ©rifie que lâ€™API rÃ©pond.',
-        tags: ['SantÃ©']
+        summary: 'V?rifie que l?API r?pond.',
+        tags: ['Sant?']
     )]
     #[OA\Response(
         response: 200,
-        description: 'Ã‰tat courant de lâ€™API et de ses services principaux.',
+        description: 'Ã‰tat courant de l?API et de ses services principaux.',
         content: new OA\JsonContent(
             properties: [
                 new OA\Property(property: 'application', type: 'string', example: 'supwarden'),
