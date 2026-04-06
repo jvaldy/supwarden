@@ -18,8 +18,8 @@ final class UserAdminController extends AbstractController
         security: [['Bearer' => []]],
         tags: ['Administration']
     )]
-    #[OA\Response(response: 200, description: 'Liste des utilisateurs disponibles pour l’administration.')]
-    #[OA\Response(response: 403, description: 'Accès réservé aux administrateurs.')]
+    #[OA\Response(response: 200, description: 'Liste des utilisateurs disponibles pour lâ€™administration.')]
+    #[OA\Response(response: 403, description: 'AccÃ¨s rÃ©servÃ© aux administrateurs.')]
     #[IsGranted('ROLE_ADMIN')]
     #[Route('/api/admin/users', name: 'api_admin_users', methods: ['GET'])]
     public function __invoke(UserRepository $userRepository, NormalizerInterface $normalizer): JsonResponse

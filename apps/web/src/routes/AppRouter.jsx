@@ -1,4 +1,4 @@
-ï»¿import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { PublicLayout } from '../layouts/PublicLayout.jsx'
 import { useAuth } from '../context/authContext.js'
 import { LoginPage } from '../pages/auth/LoginPage.jsx'
@@ -7,6 +7,8 @@ import { RegisterPage } from '../pages/auth/RegisterPage.jsx'
 import { DashboardPage } from '../pages/dashboard/DashboardPage.jsx'
 import { BrandPage } from '../pages/marketing/BrandPage.jsx'
 import { LandingPage } from '../pages/marketing/LandingPage.jsx'
+import { ItemDetailPage } from '../pages/items/ItemDetailPage.jsx'
+import { ItemFormPage } from '../pages/items/ItemFormPage.jsx'
 import { ProfilePage } from '../pages/settings/ProfilePage.jsx'
 import { VaultCreatePage } from '../pages/vaults/VaultCreatePage.jsx'
 import { VaultDetailPage } from '../pages/vaults/VaultDetailPage.jsx'
@@ -33,13 +35,13 @@ export function AppRouter() {
       return
     }
 
-    // Bloque l'accÃ¨s direct aux pages privÃ©es sans session valide.
+    // Bloque l'accès direct aux pages privées sans session valide.
     if (isPrivatePath(path) && !isAuthenticated) {
       navigateToPath('/connexion', setPath)
       return
     }
 
-    // Ã‰vite de laisser un utilisateur connectÃ© sur les pages d'entrÃ©e.
+    // Évite de laisser un utilisateur connecté sur les pages d'entrée.
     if (guestOnlyPaths.has(path) && isAuthenticated) {
       navigateToPath('/dashboard', setPath)
     }
@@ -48,7 +50,7 @@ export function AppRouter() {
   const navigate = (targetPath) => {
     const nextPath = normalizePath(targetPath)
 
-    // Garde les mÃªmes rÃ¨gles d'accÃ¨s sur navigation interne et URL saisie Ã  la main.
+    // Garde les mêmes règles d'accès sur navigation interne et URL saisie à la main.
     if (isPrivatePath(nextPath) && !isAuthenticated && !isSessionLoading) {
       navigateToPath('/connexion', setPath)
       return
@@ -74,9 +76,10 @@ export function AppRouter() {
   )
 }
 
-// Rend la bonne page en fonction de l'URL courante et de l'Ã©tat de session.
+// Rend la bonne page en fonction de l'URL courante et de l'état de session.
 function renderPage({ path, navigate, isAuthenticated, isSessionLoading }) {
   const vaultRoute = matchVaultRoute(path)
+  const itemRoute = matchItemRoute(path)
 
   if (vaultRoute !== null) {
     if (isSessionLoading) {
@@ -99,6 +102,28 @@ function renderPage({ path, navigate, isAuthenticated, isSessionLoading }) {
       return <VaultDetailPage navigate={navigate} vaultId={vaultRoute.vaultId} />
     }
 
+  }
+
+  if (itemRoute !== null) {
+    if (isSessionLoading) {
+      return <PageStatus message="Restauration de votre session en cours..." />
+    }
+
+    if (!isAuthenticated) {
+      return <PageStatus message="Redirection vers la connexion..." />
+    }
+
+    if (itemRoute.kind === 'create') {
+      return <ItemFormPage itemId={null} navigate={navigate} vaultId={itemRoute.vaultId} />
+    }
+
+    if (itemRoute.kind === 'detail') {
+      return <ItemDetailPage itemId={itemRoute.itemId} navigate={navigate} vaultId={itemRoute.vaultId} />
+    }
+
+    if (itemRoute.kind === 'edit') {
+      return <ItemFormPage itemId={itemRoute.itemId} navigate={navigate} vaultId={itemRoute.vaultId} />
+    }
   }
 
   switch (path) {
@@ -135,7 +160,7 @@ function renderPage({ path, navigate, isAuthenticated, isSessionLoading }) {
   }
 }
 
-// Affiche un Ã©tat transitoire simple pendant les redirections ou restaurations.
+// Affiche un état transitoire simple pendant les redirections ou restaurations.
 function PageStatus({ message }) {
   return (
     <section className="auth-shell">
@@ -146,7 +171,7 @@ function PageStatus({ message }) {
   )
 }
 
-// DÃ©tecte les routes vault sans dÃ©pendre d'une librairie de routing externe.
+// Détecte les routes vault sans dépendre d'une librairie de routing externe.
 function matchVaultRoute(path) {
   if (path === '/vaults') {
     return { kind: 'list' }
@@ -168,7 +193,40 @@ function matchVaultRoute(path) {
   return null
 }
 
-// Synchronise l'URL du navigateur avec l'Ã©tat interne du routeur.
+function matchItemRoute(path) {
+  const createMatch = path.match(/^\/vaults\/(\d+)\/items\/nouveau$/)
+
+  if (createMatch) {
+    return {
+      kind: 'create',
+      vaultId: Number(createMatch[1]),
+    }
+  }
+
+  const editMatch = path.match(/^\/vaults\/(\d+)\/items\/(\d+)\/modifier$/)
+
+  if (editMatch) {
+    return {
+      kind: 'edit',
+      vaultId: Number(editMatch[1]),
+      itemId: Number(editMatch[2]),
+    }
+  }
+
+  const detailMatch = path.match(/^\/vaults\/(\d+)\/items\/(\d+)$/)
+
+  if (detailMatch) {
+    return {
+      kind: 'detail',
+      vaultId: Number(detailMatch[1]),
+      itemId: Number(detailMatch[2]),
+    }
+  }
+
+  return null
+}
+
+// Synchronise l'URL du navigateur avec l'état interne du routeur.
 function navigateToPath(path, setPath) {
   if (path !== window.location.pathname) {
     window.history.pushState({}, '', path)
@@ -177,7 +235,7 @@ function navigateToPath(path, setPath) {
   setPath(path)
 }
 
-// Ã‰vite les variations d'URL qui casseraient les comparaisons de routes.
+// Évite les variations d'URL qui casseraient les comparaisons de routes.
 function normalizePath(value) {
   const trimmed = value.replace(/\/+$/, '')
   return trimmed || '/'
@@ -186,3 +244,4 @@ function normalizePath(value) {
 function isPrivatePath(path) {
   return privatePaths.some((privatePath) => path === privatePath || path.startsWith(`${privatePath}/`))
 }
+

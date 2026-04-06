@@ -1,14 +1,17 @@
 .dashboard-shell {
+  width: min(100%, 1200px);
+  margin: 0 auto;
   display: grid;
   gap: var(--space-5);
 }
 
 .dashboard-title {
   margin: 0;
-  max-width: 18ch;
+  max-width: none;
   font-size: clamp(2rem, 4vw, 2.9rem);
   line-height: 1.08;
 }
+
 
 .dashboard-card,
 .dashboard-summary {

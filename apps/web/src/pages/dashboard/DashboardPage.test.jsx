@@ -31,13 +31,12 @@ function renderDashboardPage(overrides = {}) {
 }
 
 describe('DashboardPage', () => {
-  test('affiche les informations principales du compte connecté', async () => {
+  test('affiche le message d’accueil du compte connecté', async () => {
     fetchAdminUsers.mockResolvedValue({ users: [] })
     renderDashboardPage()
 
     expect(screen.getByText('Bienvenue dans votre espace Supwarden.')).toBeInTheDocument()
-    expect(screen.getByText('camille@example.com')).toBeInTheDocument()
-    expect(screen.getByText('Actif')).toBeInTheDocument()
+    expect(screen.getByText('Camille Martin')).toBeInTheDocument()
   })
 
   test('affiche la section administrateur pour un compte admin', async () => {

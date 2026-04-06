@@ -26,12 +26,12 @@ final class GoogleOAuthController extends AbstractController
 
     #[OA\Get(
         path: '/api/auth/oauth/google/redirect',
-        summary: 'Redirige vers Google pour démarrer l’authentification OAuth2.',
+        summary: 'Redirige vers Google pour dÃ©marrer lâ€™authentification OAuth2.',
         tags: ['Authentification']
     )]
     #[OA\Response(response: 302, description: 'Redirection vers Google.')]
     #[Route('/redirect', name: 'redirect', methods: ['GET'])]
-    // Prépare l'état OAuth puis délègue l'authentification à Google.
+    // PrÃ©pare l'Ã©tat OAuth puis dÃ©lÃ¨gue l'authentification Ã  Google.
     public function redirectToGoogle(Request $request, GoogleOAuthClientInterface $googleOAuthClient): RedirectResponse
     {
         $session = $request->getSession();
@@ -48,9 +48,9 @@ final class GoogleOAuthController extends AbstractController
         summary: 'Finalise le retour Google et redirige le frontend.',
         tags: ['Authentification']
     )]
-    #[OA\Response(response: 302, description: 'Redirection vers le frontend avec le résultat OAuth.')]
+    #[OA\Response(response: 302, description: 'Redirection vers le frontend avec le rÃ©sultat OAuth.')]
     #[Route('/callback', name: 'callback', methods: ['GET'])]
-    // Traite le retour Google et décide entre connexion directe ou confirmation préalable.
+    // Traite le retour Google et dÃ©cide entre connexion directe ou confirmation prÃ©alable.
     public function handleGoogleCallback(
         Request $request,
         GoogleOAuthClientInterface $googleOAuthClient,
@@ -74,7 +74,7 @@ final class GoogleOAuthController extends AbstractController
 
         if ($request->query->has('error')) {
             return $this->redirect($googleOAuthClient->buildFrontendRedirectUrl([
-                'error' => 'Connexion Google annulée ou refusée.',
+                'error' => 'Connexion Google annulÃ©e ou refusÃ©e.',
             ]));
         }
 
@@ -96,7 +96,7 @@ final class GoogleOAuthController extends AbstractController
 
         if (!$providerIdentity->emailVerified) {
             return $this->redirect($googleOAuthClient->buildFrontendRedirectUrl([
-                'error' => 'Le compte Google doit avoir une adresse e-mail vérifiée.',
+                'error' => 'Le compte Google doit avoir une adresse e-mail vÃ©rifiÃ©e.',
             ]));
         }
 
@@ -146,13 +146,13 @@ final class GoogleOAuthController extends AbstractController
 
     #[OA\Post(
         path: '/api/auth/oauth/google/confirm',
-        summary: 'Confirme la création ou la liaison du compte local après retour Google.',
+        summary: 'Confirme la crÃ©ation ou la liaison du compte local aprÃ¨s retour Google.',
         tags: ['Authentification']
     )]
-    #[OA\Response(response: 200, description: 'Compte local confirmé et session ouverte.')]
+    #[OA\Response(response: 200, description: 'Compte local confirmÃ© et session ouverte.')]
     #[OA\Response(response: 400, description: 'Aucune confirmation OAuth en attente.')]
     #[Route('/confirm', name: 'confirm', methods: ['POST'])]
-    // Crée ou lie le compte local après validation explicite du retour OAuth.
+    // CrÃ©e ou lie le compte local aprÃ¨s validation explicite du retour OAuth.
     public function confirmGoogleAccount(
         Request $request,
         UserRepository $userRepository,
@@ -182,7 +182,7 @@ final class GoogleOAuthController extends AbstractController
 
         if ($provider === '' || $providerUserId === '' || $providerEmail === '') {
             return $this->json([
-                'message' => 'Les informations Google en attente sont incomplètes.',
+                'message' => 'Les informations Google en attente sont incomplÃ¨tes.',
             ], 400);
         }
 
@@ -211,7 +211,7 @@ final class GoogleOAuthController extends AbstractController
                 ->setIsActive(true)
                 ->setHasLocalPassword(false);
 
-            // Le mot de passe local reste inutilisable tant qu'aucun flux dédié ne l'a défini.
+            // Le mot de passe local reste inutilisable tant qu'aucun flux dÃ©diÃ© ne l'a dÃ©fini.
             $generatedPassword = bin2hex(random_bytes(32));
             $user->setPassword($passwordHasher->hashPassword($user, $generatedPassword));
             $entityManager->persist($user);

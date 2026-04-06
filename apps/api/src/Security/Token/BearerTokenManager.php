@@ -12,10 +12,10 @@ class BearerTokenManager
     ) {
     }
 
-    // Construit un jeton signé léger à partir de l’utilisateur courant.
+    // Construit un jeton signÃ© lÃ©ger Ã  partir de lâ€™utilisateur courant.
     public function create(User $user): string
     {
-        // Jeton signé simple, suffisant pour l’API sans dépendance JWT supplémentaire.
+        // Jeton signÃ© simple, suffisant pour lâ€™API sans dÃ©pendance JWT supplÃ©mentaire.
         $tokenPayload = [
             'sub' => $user->getId(),
             'iat' => time(),
@@ -32,7 +32,7 @@ class BearerTokenManager
     /**
      * @return array{sub:int,iat:int,exp:int,version:int}|null
      */
-    // Valide le format, la signature et l’échéance avant de renvoyer le payload utile.
+    // Valide le format, la signature et lâ€™Ã©chÃ©ance avant de renvoyer le payload utile.
     public function parse(string $token): ?array
     {
         $tokenParts = explode('.', $token);
@@ -48,7 +48,7 @@ class BearerTokenManager
             return null;
         }
 
-        // Refuse tout jeton incomplet, altéré ou expiré.
+        // Refuse tout jeton incomplet, altÃ©rÃ© ou expirÃ©.
         $decodedPayload = json_decode($this->base64UrlDecode($encodedPayload), true);
 
         if (
@@ -70,19 +70,19 @@ class BearerTokenManager
         ];
     }
 
-    // Signe le payload encodé avec le secret applicatif.
+    // Signe le payload encodÃ© avec le secret applicatif.
     private function sign(string $encodedPayload): string
     {
         return $this->base64UrlEncode(hash_hmac('sha256', $encodedPayload, $this->appSecret, true));
     }
 
-    // Produit une chaîne compatible URL pour le transport du jeton.
+    // Produit une chaÃ®ne compatible URL pour le transport du jeton.
     private function base64UrlEncode(string $value): string
     {
         return rtrim(strtr(base64_encode($value), '+/', '-_'), '=');
     }
 
-    // Restaure un contenu encodé en base64url vers sa forme décodable.
+    // Restaure un contenu encodÃ© en base64url vers sa forme dÃ©codable.
     private function base64UrlDecode(string $value): string
     {
         $missingPaddingLength = strlen($value) % 4;

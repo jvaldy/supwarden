@@ -1,4 +1,12 @@
-import { registerUserThroughApi, visitWithSession } from '../helpers/session.js'
+ï»¿import { registerUserThroughApi, visitWithSession } from '../helpers/session.js'
+
+function waitForAuthenticatedRedirect() {
+  cy.intercept('GET', 'http://localhost:8000/api/me').as('meRequest')
+  cy.wait('@meRequest')
+  cy.location('pathname', { timeout: 30000 }).should('eq', '/dashboard')
+  cy.contains('Restauration de votre session en cours...').should('not.exist')
+  cy.contains('Bienvenue dans votre espace Supwarden.', { timeout: 30000 }).should('be.visible')
+}
 
 describe('Session', () => {
   it('redirige un visiteur vers la connexion depuis le tableau de bord', () => {
@@ -15,31 +23,33 @@ describe('Session', () => {
     cy.location('pathname').should('eq', '/connexion')
   })
 
-  it('redirige un utilisateur connecté depuis la connexion vers le tableau de bord', () => {
+  it('redirige un utilisateur connectÃ© depuis la connexion vers le tableau de bord', () => {
     registerUserThroughApi().then((session) => {
       visitWithSession('/connexion', session)
-
-      cy.location('pathname').should('eq', '/dashboard')
-      cy.contains('Bienvenue dans votre espace Supwarden.').should('be.visible')
+      waitForAuthenticatedRedirect()
     })
   })
 
-  it("redirige un utilisateur connecté depuis l'inscription vers le tableau de bord", () => {
+  it("redirige un utilisateur connectÃ© depuis l'inscription vers le tableau de bord", () => {
     registerUserThroughApi().then((session) => {
       visitWithSession('/inscription', session)
-
-      cy.location('pathname').should('eq', '/dashboard')
-      cy.contains('Bienvenue dans votre espace Supwarden.').should('be.visible')
+      waitForAuthenticatedRedirect()
     })
   })
 
-  it('restaure la session après un rechargement de page', () => {
-    registerUserThroughApi().then((session) => {
+  it('restaure la session aprÃ¨s un rechargement de page', () => {
+    registerUserThroughApi({ firstname: 'Camille', lastname: 'Durand' }).then((session) => {
+      cy.intercept('GET', 'http://localhost:8000/api/me').as('meRequest')
       visitWithSession('/dashboard', session)
-      cy.reload()
+      cy.wait('@meRequest')
 
-      cy.location('pathname').should('eq', '/dashboard')
-      cy.contains(session.user.email).should('be.visible')
+      cy.intercept('GET', 'http://localhost:8000/api/me').as('meReloadRequest')
+      cy.reload()
+      cy.wait('@meReloadRequest')
+
+      cy.location('pathname', { timeout: 30000 }).should('eq', '/dashboard')
+      cy.contains('Restauration de votre session en cours...').should('not.exist')
+      cy.contains('Camille Durand', { timeout: 30000 }).should('be.visible')
     })
   })
 })

@@ -9,6 +9,7 @@ parameters:
     app.google_oauth_client_secret: '%env(GOOGLE_OAUTH_CLIENT_SECRET)%'
     app.google_oauth_redirect_uri: '%env(GOOGLE_OAUTH_REDIRECT_URI)%'
     app.google_oauth_frontend_callback_url: '%env(GOOGLE_OAUTH_FRONTEND_CALLBACK_URL)%'
+    app.item_attachment_directory: '%kernel.project_dir%/var/uploads/item-attachments'
 
 services:
     # default configuration for services in *this* file
@@ -43,6 +44,14 @@ services:
             $clientSecret: '%app.google_oauth_client_secret%'
             $redirectUri: '%app.google_oauth_redirect_uri%'
             $frontendCallbackUrl: '%app.google_oauth_frontend_callback_url%'
+
+    App\Service\ItemAttachmentStorage:
+        arguments:
+            $targetDirectory: '%app.item_attachment_directory%'
+
+    App\Service\VaultSecretCipher:
+        arguments:
+            $appSecret: '%env(APP_SECRET)%'
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

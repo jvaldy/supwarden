@@ -74,7 +74,6 @@ describe('ProfilePage', () => {
   test('modifie le mot de passe avec le mot de passe actuel', async () => {
     const { updateProfile } = renderProfilePage()
 
-    // Le profil et la suppression partagent le même libellé dans cette page.
     fireEvent.change(screen.getAllByLabelText('Mot de passe actuel')[0], {
       target: { value: 'motdepasse123' },
     })
@@ -118,7 +117,7 @@ describe('ProfilePage', () => {
     expect(await screen.findByText('Votre code PIN a bien été défini.')).toBeInTheDocument()
   })
 
-  test('modifie le code PIN sans demander l’ancien PIN', async () => {
+  test('modifie le code PIN en demandant le mot de passe actuel du compte', async () => {
     const { updateProfile } = renderProfilePage({
       authenticatedUser: {
         email: 'camille@example.com',
@@ -130,6 +129,9 @@ describe('ProfilePage', () => {
       },
     })
 
+    fireEvent.change(screen.getByLabelText('Mot de passe actuel du compte'), {
+      target: { value: 'motdepasse123' },
+    })
     fireEvent.change(screen.getByLabelText('Nouveau code PIN'), {
       target: { value: '4826' },
     })
@@ -140,6 +142,7 @@ describe('ProfilePage', () => {
 
     await waitFor(() => {
       expect(updateProfile).toHaveBeenCalledWith({
+        pinCurrentPassword: 'motdepasse123',
         newPin: '4826',
       })
     })
@@ -174,7 +177,6 @@ describe('ProfilePage', () => {
       },
     })
 
-    // Le seul champ restant avec ce libellé appartient au bloc de suppression.
     expect(screen.getAllByLabelText('Mot de passe actuel')).toHaveLength(1)
     expect(screen.getByRole('button', { name: 'Définir un mot de passe' })).toBeInTheDocument()
 
@@ -198,7 +200,6 @@ describe('ProfilePage', () => {
   test('bloque la modification si la confirmation du nouveau mot de passe ne correspond pas', async () => {
     const { updateProfile } = renderProfilePage()
 
-    // Le profil et la suppression partagent le même libellé dans cette page.
     fireEvent.change(screen.getAllByLabelText('Mot de passe actuel')[0], {
       target: { value: 'motdepasse123' },
     })
@@ -218,7 +219,6 @@ describe('ProfilePage', () => {
     const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true)
     const { deleteAccount, navigate } = renderProfilePage()
 
-    // Le second champ appartient au bloc de suppression.
     fireEvent.change(screen.getAllByLabelText('Mot de passe actuel')[1], {
       target: { value: 'motdepasse123' },
     })

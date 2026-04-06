@@ -50,7 +50,7 @@ class GoogleOAuthClient implements GoogleOAuthClientInterface
             $accessToken = (string) ($tokenResponse['access_token'] ?? '');
 
             if ($accessToken === '') {
-                throw new \RuntimeException('Google n’a pas retourné de jeton d’accès exploitable.');
+                throw new \RuntimeException('Google nâ€™a pas retournÃ© de jeton dâ€™accÃ¨s exploitable.');
             }
 
             $identityResponse = $this->httpClient->request('GET', self::USERINFO_URL, [
@@ -66,7 +66,7 @@ class GoogleOAuthClient implements GoogleOAuthClientInterface
         $email = (string) ($identityResponse['email'] ?? '');
 
         if ($providerUserId === '' || $email === '') {
-            throw new \RuntimeException('Google n’a pas retourné une identité suffisante.');
+            throw new \RuntimeException('Google nâ€™a pas retournÃ© une identitÃ© suffisante.');
         }
 
         return new OAuthProviderIdentity(

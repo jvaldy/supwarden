@@ -94,7 +94,7 @@ export function OAuthCallbackPage({ navigate }) {
           <button className="button-link button-link-primary" disabled={isSubmitting} onClick={handleConfirmation} type="button">
             {isSubmitting ? 'Confirmation en cours...' : 'Autoriser et continuer'}
           </button>
-          <button className="button-link button-link-ghost" onClick={handleCancellation} type="button">
+          <button className="button-link button-link-tertiary" onClick={handleCancellation} type="button">
             Annuler
           </button>
         </div>

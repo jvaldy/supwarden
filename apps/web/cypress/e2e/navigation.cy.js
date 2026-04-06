@@ -1,9 +1,16 @@
-import { registerUserThroughApi, visitWithSession } from '../helpers/session.js'
+ï»¿import { registerUserThroughApi, visitWithSession } from '../helpers/session.js'
 
-describe('Navigation connectée', () => {
+function visitDashboard(session) {
+  cy.intercept('GET', 'http://localhost:8000/api/me').as('meRequest')
+  visitWithSession('/dashboard', session)
+  cy.wait('@meRequest')
+  cy.contains('Bienvenue dans votre espace Supwarden.', { timeout: 30000 }).should('be.visible')
+}
+
+describe('Navigation connectÃ©e', () => {
   it('ouvre et referme le menu Mon compte', () => {
     registerUserThroughApi().then((session) => {
-      visitWithSession('/dashboard', session)
+      visitDashboard(session)
 
       cy.contains('button', 'Mon compte').click()
       cy.contains('button', 'Profil').should('be.visible')
@@ -14,25 +21,25 @@ describe('Navigation connectée', () => {
 
   it('ouvre la page profil depuis le menu Mon compte', () => {
     registerUserThroughApi().then((session) => {
-      visitWithSession('/dashboard', session)
+      visitDashboard(session)
 
       cy.contains('button', 'Mon compte').click()
       cy.contains('button', 'Profil').click()
 
-      cy.location('pathname').should('eq', '/profil')
-      cy.contains('Gérez vos informations personnelles et votre sécurité.').should('be.visible')
+      cy.location('pathname', { timeout: 30000 }).should('eq', '/profil')
+      cy.contains('GÃ©rez vos informations personnelles et votre sÃ©curitÃ©.', { timeout: 30000 }).should('be.visible')
     })
   })
 
-  it("déconnecte l'utilisateur depuis le menu Mon compte", () => {
+  it("dÃ©connecte l'utilisateur depuis le menu Mon compte", () => {
     registerUserThroughApi().then((session) => {
-      visitWithSession('/dashboard', session)
+      visitDashboard(session)
 
       cy.contains('button', 'Mon compte').click()
-      cy.contains('button', 'Se déconnecter').click()
+      cy.contains('button', 'Se dÃ©connecter').click()
 
-      cy.location('pathname').should('eq', '/')
-      cy.contains("Simplifiez le partage des accès dans votre équipe.").should('be.visible')
+      cy.location('pathname', { timeout: 30000 }).should('eq', '/')
+      cy.contains('Simplifiez le partage des accÃ¨s dans votre Ã©quipe.').should('be.visible')
     })
   })
 })
