@@ -8,7 +8,7 @@
 
 .hero-copy h1 {
   margin: 0;
-  max-width: 10ch;
+  max-width: none;
 }
 
 .landing-title {
@@ -168,9 +168,11 @@
   align-items: center;
 }
 
-.brand-title {
-  max-width: 12ch;
+.brand-page {
+  width: min(100%, 1200px);
+  margin: 0 auto;
 }
+
 
 .brand-signals {
   width: min(100%, 1200px);
@@ -212,6 +214,11 @@
   margin: 0;
   color: var(--color-text-soft);
   line-height: 1.65;
+}
+
+.brand-rule-value {
+  color: var(--color-cyan-400);
+  font-weight: 700;
 }
 
 .showcase-card {
@@ -294,6 +301,37 @@
   font-size: var(--step-0);
 }
 
+.type-scale-list {
+  display: grid;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+}
+
+.type-scale-card {
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(173, 216, 255, 0.08);
+}
+
+.type-scale-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: 0.4rem;
+}
+
+.type-scale-top strong {
+  color: var(--color-text-strong);
+}
+
+.type-scale-token {
+  margin-bottom: 0.35rem;
+  font-size: var(--step--1);
+  color: var(--color-text-muted);
+}
+
 .guideline {
   padding: var(--space-5);
   border-radius: var(--radius-md);
@@ -369,5 +407,9 @@
 
   .status-grid {
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+
+  .type-scale-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

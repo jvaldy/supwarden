@@ -58,21 +58,6 @@ export function DashboardPage() {
           <strong>{authenticatedUser?.firstname ? `${authenticatedUser.firstname} ${authenticatedUser.lastname ?? ''}`.trim() : authenticatedUser?.email}</strong>.
         </p>
 
-        <div className="dashboard-summary">
-          <article className="status-card">
-            <h2>Compte connecté</h2>
-            <p>{authenticatedUser?.email}</p>
-          </article>
-          <article className="status-card">
-            <h2>Statut</h2>
-            <p>{authenticatedUser?.isActive ? 'Actif' : 'Inactif'}</p>
-          </article>
-          <article className="status-card">
-            <h2>Créé le</h2>
-            <p>{formatDate(authenticatedUser?.createdAt)}</p>
-          </article>
-        </div>
-
         {isAdmin ? (
           <section className="status-card">
             <h2>Espace administrateur</h2>
@@ -106,16 +91,4 @@ export function DashboardPage() {
       </article>
     </section>
   )
-}
-
-// Uniformise l'affichage des dates du tableau de bord en français.
-function formatDate(dateValue) {
-  if (!dateValue) {
-    return 'Indisponible'
-  }
-
-  return new Intl.DateTimeFormat('fr-FR', {
-    dateStyle: 'long',
-    timeStyle: 'short',
-  }).format(new Date(dateValue))
 }

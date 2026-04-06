@@ -15,6 +15,7 @@ use App\Repository\VaultMemberRepository;
 use App\Repository\VaultRepository;
 use App\Security\Vault\VaultVoter;
 use Doctrine\ORM\EntityManagerInterface;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -27,6 +28,19 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 #[Route('/api/vaults/{vaultId}/members', name: 'api_vault_members_')]
 final class VaultMemberController extends AbstractController
 {
+    #[OA\Get(
+        path: '/api/vaults/{vaultId}/members',
+        summary: 'Liste les membres d’un trousseau.',
+        security: [['Bearer' => []]],
+        tags: ['Membres de trousseau'],
+        parameters: [
+            new OA\Parameter(name: 'vaultId', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ]
+    )]
+    #[OA\Response(response: 200, description: 'Liste des membres.')]
+    #[OA\Response(response: 401, description: 'Authentification requise.')]
+    #[OA\Response(response: 403, description: 'Accès interdit.')]
+    #[OA\Response(response: 404, description: 'Trousseau introuvable.')]
     #[Route('', name: 'list', methods: ['GET'], requirements: ['vaultId' => '\\d+'])]
     // Retourne la liste des membres pour un trousseau déjà accessible.
     public function list(
@@ -45,6 +59,32 @@ final class VaultMemberController extends AbstractController
         ]);
     }
 
+    #[OA\Post(
+        path: '/api/vaults/{vaultId}/members',
+        summary: 'Ajoute un membre à un trousseau.',
+        security: [['Bearer' => []]],
+        tags: ['Membres de trousseau'],
+        parameters: [
+            new OA\Parameter(name: 'vaultId', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['email', 'role'],
+                properties: [
+                    new OA\Property(property: 'email', type: 'string', example: 'elsie@example.com'),
+                    new OA\Property(property: 'role', type: 'string', enum: ['OWNER', 'EDITOR', 'VIEWER'], example: 'EDITOR'),
+                ],
+                type: 'object'
+            )
+        )
+    )]
+    #[OA\Response(response: 201, description: 'Membre ajouté.')]
+    #[OA\Response(response: 401, description: 'Authentification requise.')]
+    #[OA\Response(response: 403, description: 'Accès interdit.')]
+    #[OA\Response(response: 404, description: 'Utilisateur ou trousseau introuvable.')]
+    #[OA\Response(response: 409, description: 'L’utilisateur est déjà membre du trousseau.')]
+    #[OA\Response(response: 422, description: 'Données invalides.')]
     #[Route('', name: 'create', methods: ['POST'], requirements: ['vaultId' => '\\d+'])]
     // Ajoute un membre à un trousseau et laisse son type évoluer automatiquement.
     public function create(
@@ -78,14 +118,14 @@ final class VaultMemberController extends AbstractController
         $userToAdd = $userRepository->findOneByEmail($input->email);
 
         if (!$userToAdd instanceof User) {
-            $validationErrors['email'][] = 'Aucun utilisateur ne correspond Ã  cette adresse e-mail.';
+            $validationErrors['email'][] = 'Aucun utilisateur ne correspond à cette adresse e-mail.';
         } elseif ($vaultMemberRepository->findOneByVaultAndUser($vault, $userToAdd) instanceof VaultMember) {
-            $validationErrors['email'][] = 'Ce membre appartient dÃ©jÃ  Ã  ce trousseau.';
+            $validationErrors['email'][] = 'Ce membre appartient déjà à ce trousseau.';
         }
 
         if ($validationErrors !== []) {
             return $this->json([
-                'message' => 'Les donnÃ©es fournies sont invalides.',
+                'message' => 'Les données fournies sont invalides.',
                 'errors' => $validationErrors,
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
@@ -103,6 +143,31 @@ final class VaultMemberController extends AbstractController
         ], Response::HTTP_CREATED);
     }
 
+    #[OA\Patch(
+        path: '/api/vaults/{vaultId}/members/{memberId}',
+        summary: 'Met à jour le rôle d’un membre.',
+        security: [['Bearer' => []]],
+        tags: ['Membres de trousseau'],
+        parameters: [
+            new OA\Parameter(name: 'vaultId', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+            new OA\Parameter(name: 'memberId', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['role'],
+                properties: [
+                    new OA\Property(property: 'role', type: 'string', enum: ['OWNER', 'EDITOR', 'VIEWER'], example: 'VIEWER'),
+                ],
+                type: 'object'
+            )
+        )
+    )]
+    #[OA\Response(response: 200, description: 'Rôle mis à jour.')]
+    #[OA\Response(response: 401, description: 'Authentification requise.')]
+    #[OA\Response(response: 403, description: 'Accès interdit.')]
+    #[OA\Response(response: 404, description: 'Membre ou trousseau introuvable.')]
+    #[OA\Response(response: 422, description: 'Données invalides.')]
     #[Route('/{memberId}', name: 'update', methods: ['PATCH'], requirements: ['vaultId' => '\\d+', 'memberId' => '\\d+'])]
     // Met à jour le rôle d’un membre tant que le propriétaire garde la main sur le rôle OWNER.
     public function update(
@@ -139,12 +204,12 @@ final class VaultMemberController extends AbstractController
         $validationErrors = $this->formatViolations($validator->validate($input));
 
         if ($member->getRole() === VaultMemberRole::OWNER) {
-            $validationErrors['role'][] = 'Le rÃ´le OWNER ne peut pas Ãªtre modifiÃ© depuis la gestion des membres.';
+            $validationErrors['role'][] = 'Le rôle OWNER ne peut pas être modifié depuis la gestion des membres.';
         }
 
         if ($validationErrors !== []) {
             return $this->json([
-                'message' => 'Les donnÃ©es fournies sont invalides.',
+                'message' => 'Les données fournies sont invalides.',
                 'errors' => $validationErrors,
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
@@ -157,6 +222,20 @@ final class VaultMemberController extends AbstractController
         ]);
     }
 
+    #[OA\Delete(
+        path: '/api/vaults/{vaultId}/members/{memberId}',
+        summary: 'Retire un membre ou quitte un trousseau.',
+        security: [['Bearer' => []]],
+        tags: ['Membres de trousseau'],
+        parameters: [
+            new OA\Parameter(name: 'vaultId', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+            new OA\Parameter(name: 'memberId', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ]
+    )]
+    #[OA\Response(response: 200, description: 'Membre retiré.')]
+    #[OA\Response(response: 401, description: 'Authentification requise.')]
+    #[OA\Response(response: 403, description: 'Accès interdit.')]
+    #[OA\Response(response: 404, description: 'Membre ou trousseau introuvable.')]
     #[Route('/{memberId}', name: 'delete', methods: ['DELETE'], requirements: ['vaultId' => '\\d+', 'memberId' => '\\d+'])]
     // Retire un membre du trousseau ou permet à un membre non propriétaire de le quitter.
     public function delete(
@@ -185,18 +264,18 @@ final class VaultMemberController extends AbstractController
 
         if ($member->getRole() === VaultMemberRole::OWNER) {
             return $this->json([
-                'message' => 'Le propriÃ©taire ne peut pas Ãªtre retirÃ© depuis la gestion des membres.',
+                'message' => 'Le propriétaire ne peut pas être retiré depuis la gestion des membres.',
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         $isSelfRemoval = $member->getUser()?->getId() === $authenticatedUser->getId();
 
         if (!$isSelfRemoval && !$this->isGranted(VaultVoter::MANAGE_MEMBERS, $vault)) {
-            return $this->json(['message' => 'AccÃ¨s interdit.'], Response::HTTP_FORBIDDEN);
+            return $this->json(['message' => 'Accès interdit.'], Response::HTTP_FORBIDDEN);
         }
 
         if ($isSelfRemoval && !$this->isGranted(VaultVoter::VIEW, $vault)) {
-            return $this->json(['message' => 'AccÃ¨s interdit.'], Response::HTTP_FORBIDDEN);
+            return $this->json(['message' => 'Accès interdit.'], Response::HTTP_FORBIDDEN);
         }
 
         $vault->removeMember($member);
@@ -204,8 +283,8 @@ final class VaultMemberController extends AbstractController
 
         return $this->json([
             'message' => $isSelfRemoval
-                ? 'Vous avez bien quittÃ© ce trousseau.'
-                : 'Le membre a bien Ã©tÃ© retirÃ© du trousseau.',
+                ? 'Vous avez bien quitté ce trousseau.'
+                : 'Le membre a bien été retiré du trousseau.',
             'vaultType' => $vault->getType()->value,
         ]);
     }
@@ -230,7 +309,7 @@ final class VaultMemberController extends AbstractController
         }
 
         if (!$this->isGranted($requiredPermission, $vault)) {
-            return $this->json(['message' => 'AccÃ¨s interdit.'], Response::HTTP_FORBIDDEN);
+            return $this->json(['message' => 'Accès interdit.'], Response::HTTP_FORBIDDEN);
         }
 
         return $vault;
@@ -244,7 +323,7 @@ final class VaultMemberController extends AbstractController
         $requestContent = $request->getContent();
 
         if ($requestContent === '') {
-            return new JsonResponse(['message' => 'Le corps de la requÃªte JSON est requis.'], Response::HTTP_BAD_REQUEST);
+            return new JsonResponse(['message' => 'Le corps de la requête JSON est requis.'], Response::HTTP_BAD_REQUEST);
         }
 
         try {
@@ -254,7 +333,7 @@ final class VaultMemberController extends AbstractController
         }
 
         if (!is_array($decodedRequestData)) {
-            return new JsonResponse(['message' => 'Le corps de la requÃªte doit Ãªtre un objet JSON.'], Response::HTTP_BAD_REQUEST);
+            return new JsonResponse(['message' => 'Le corps de la requête doit être un objet JSON.'], Response::HTTP_BAD_REQUEST);
         }
 
         return $decodedRequestData;

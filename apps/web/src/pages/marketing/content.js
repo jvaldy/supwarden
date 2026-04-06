@@ -48,9 +48,27 @@ export const userSignals = [
 ]
 
 export const buttonExamples = [
-  { label: 'Créer un trousseau', className: 'button button-primary' },
-  { label: 'Inviter un membre', className: 'button button-secondary' },
-  { label: 'Révoquer un accès', className: 'button button-danger' },
+  { label: 'Découvrir', className: 'button-link button-link-primary button-link-cta' },
+  { label: 'Créer un trousseau', className: 'button-link button-link-primary' },
+  { label: 'Inviter un membre', className: 'button-link button-link-primary' },
+]
+
+export const buttonRules = [
+  {
+    title: 'Référence principale',
+    value: 'Bouton Découvrir',
+    description: 'Le bouton principal du produit reprend la teinte, le relief et la rondeur du CTA visible sur la page d’accueil.',
+  },
+  {
+    title: 'Couleur',
+    value: 'Bleu clair lumineux',
+    description: 'Les actions principales utilisent la même base cyan claire pour rester immédiatement identifiables.',
+  },
+  {
+    title: 'Hiérarchie',
+    value: 'Une seule action dominante',
+    description: 'Dans une même zone, un seul bouton doit vraiment porter l’attention et guider la prochaine étape.',
+  },
 ]
 
 export const statusCards = [
@@ -76,6 +94,86 @@ export const tableRows = [
   { pattern: 'Bouton principal', usage: 'Action dominante de la vue', example: 'Créer un trousseau' },
   { pattern: 'Badge de statut', usage: 'État système ou accès', example: 'Actif, en attente, critique' },
   { pattern: 'Carte de synthèse', usage: 'Résumé rapide', example: 'Derniers accès ou activité récente' },
+]
+
+export const typographyScale = [
+  {
+    token: '--step--2',
+    label: 'Micro-texte',
+    value: '12 px',
+    usage: 'Aides brèves, détails secondaires et petites mentions.',
+  },
+  {
+    token: '--step--1',
+    label: 'Texte discret',
+    value: '13 px',
+    usage: 'Labels, badges et informations de contexte.',
+  },
+  {
+    token: '--step-0',
+    label: 'Texte courant',
+    value: '14 px',
+    usage: 'Paragraphes, champs et contenu principal du parcours.',
+  },
+  {
+    token: '--step-1',
+    label: 'Texte renforcé',
+    value: '16 px',
+    usage: 'Actions visibles, informations clés et lecture confortable.',
+  },
+  {
+    token: '--step-2',
+    label: 'Titre de section',
+    value: '22 px',
+    usage: 'Titres intermédiaires et blocs structurants.',
+  },
+  {
+    token: '--step-3',
+    label: 'Titre principal',
+    value: '30 à 50 px',
+    usage: 'Titres de page et prises de parole fortes.',
+  },
+]
+
+export const layoutRules = [
+  {
+    title: 'Cadre commun',
+    value: '1200 px max',
+    description: 'Toutes les pages publiques et connectées partagent le même conteneur central.',
+  },
+  {
+    title: 'Alignement',
+    value: 'Centré',
+    description: 'Le header, le contenu principal et le footer suivent la même ligne visuelle.',
+  },
+  {
+    title: 'Comportement',
+    value: 'Mobile-first',
+    description: 'Le cadre reste identique, puis la mise en page interne s’adapte selon l’écran.',
+  },
+]
+
+export const headingRules = [
+  {
+    title: 'Titre principal',
+    value: 'Pas de retour anticipé',
+    description: 'Un h1 ne doit pas se casser trop tôt si le conteneur laisse encore de la place utile.',
+  },
+  {
+    title: 'Respiration',
+    value: 'Écart resserré',
+    description: 'Le paragraphe d’introduction reste proche du titre pour former un bloc compact et lisible.',
+  },
+  {
+    title: 'Largeur utile',
+    value: 'Pas de césure forcée',
+    description: 'Le texte sous le titre ne doit pas repartir à la ligne tant que le conteneur offre encore de l’espace.',
+  },
+  {
+    title: 'Cohérence',
+    value: 'Même logique partout',
+    description: 'La hiérarchie des titres doit rester stable sur l’accueil, l’authentification, les trousseaux et les items.',
+  },
 ]
 
 export const landingForces = [

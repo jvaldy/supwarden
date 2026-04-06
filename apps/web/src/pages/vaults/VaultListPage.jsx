@@ -98,23 +98,35 @@ export function VaultListPage({ navigate }) {
             {vaults.map((vault) => (
               <article className="status-card vault-list-item" key={vault.id} role="listitem">
                 <div className="vault-list-main">
-                  <div className="vault-list-copy">
-                    <div className="vault-list-heading">
-                      <h2>{vault.name}</h2>
-                      <span className="vault-member-count">{vault.memberCount} membre{vault.memberCount > 1 ? 's' : ''}</span>
-                    </div>
+                  <div className="vault-list-heading">
+                    <h2>{vault.name}</h2>
+                  </div>
+
+                  <div className="vault-list-summary" aria-label="résumé du trousseau">
+                    <span className="vault-list-summary-item">
+                      <span className="vault-meta-label">Propriétaire</span>
+                      <strong>{vault.owner.displayName}</strong>
+                    </span>
+                    <span className="vault-list-summary-separator" aria-hidden="true">
+                      •
+                    </span>
+                    <span className="vault-list-summary-item">
+                      <span className="vault-meta-label">Accès</span>
+                      <strong>{formatRole(vault.access?.role)}</strong>
+                    </span>
+                    <span className="vault-list-summary-separator" aria-hidden="true">
+                      •
+                    </span>
+                    <span className="vault-list-summary-item vault-list-summary-members" aria-label={`${vault.memberCount} membre${vault.memberCount > 1 ? 's' : ''}`}>
+                      <span className="vault-meta-label">Membres</span>
+                      <strong>
+                        {vault.memberCount} membre{vault.memberCount > 1 ? 's' : ''}
+                      </strong>
+                    </span>
                   </div>
                 </div>
 
                 <div className="vault-list-footer">
-                  <div className="vault-inline-meta">
-                    <span className="vault-meta-label">Propriétaire</span>
-                    <strong>{vault.owner.displayName}</strong>
-                  </div>
-                  <div className="vault-inline-meta">
-                    <span className="vault-meta-label">Votre rôle</span>
-                    <strong>{formatRole(vault.access?.role)}</strong>
-                  </div>
                   <button className="button-link button-link-ghost vault-list-action" onClick={() => navigate(`/vaults/${vault.id}`)} type="button">
                     Ouvrir
                   </button>

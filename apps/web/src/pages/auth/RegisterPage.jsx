@@ -1,4 +1,4 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import { useAuth } from '../../context/authContext.js'
 import { redirectToGoogleOAuth } from '../../services/api/authApi.js'
 
@@ -12,12 +12,10 @@ export function RegisterPage({ navigate }) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formError, setFormError] = useState('')
 
-  // Valide le formulaire minimum avant de déléguer la création du compte à l'API.
   async function handleSubmit(event) {
     event.preventDefault()
     setFormError('')
 
-    // Évite un appel API inutile si la confirmation ne correspond pas.
     if (password !== passwordConfirmation) {
       setFormError('Les mots de passe doivent être identiques.')
       return
@@ -49,7 +47,6 @@ export function RegisterPage({ navigate }) {
     }
   }
 
-  // Réutilise le même point d'entrée Google que la page de connexion.
   function handleGoogleRegister() {
     redirectToGoogleOAuth()
   }

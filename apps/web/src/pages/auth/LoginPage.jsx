@@ -1,4 +1,4 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import { useAuth } from '../../context/authContext.js'
 import { redirectToGoogleOAuth } from '../../services/api/authApi.js'
 
@@ -9,14 +9,12 @@ export function LoginPage({ navigate }) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formError, setFormError] = useState('')
 
-  // Lance l'authentification classique puis bascule sur l'espace privé.
   async function handleSubmit(event) {
     event.preventDefault()
     setFormError('')
     setIsSubmitting(true)
 
     try {
-      // Attend la création effective de la session avant de basculer sur l'espace privé.
       await login({
         email,
         password,
@@ -30,7 +28,6 @@ export function LoginPage({ navigate }) {
     }
   }
 
-  // Démarre le flux OAuth Google sans dupliquer la logique d'URL ici.
   function handleGoogleLogin() {
     redirectToGoogleOAuth()
   }

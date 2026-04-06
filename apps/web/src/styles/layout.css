@@ -31,7 +31,7 @@
 
 .brandmark {
   font-family: var(--font-heading);
-  font-size: 1.1rem;
+  font-size: var(--step-1);
   font-weight: 700;
   text-decoration: none;
   color: var(--color-text-strong);
@@ -56,6 +56,8 @@
   color: var(--color-text-soft);
   text-decoration: none;
   font: inherit;
+  font-size: var(--step-0);
+  font-weight: 700;
   cursor: pointer;
 }
 
@@ -78,7 +80,7 @@
 }
 
 .account-menu-caret {
-  font-size: 0.85rem;
+  font-size: var(--step--2);
 }
 
 .account-dropdown {
@@ -102,6 +104,8 @@
   background: transparent;
   color: var(--color-text-strong);
   font: inherit;
+  font-size: var(--step-0);
+  font-weight: 700;
   text-align: left;
   white-space: nowrap;
   cursor: pointer;

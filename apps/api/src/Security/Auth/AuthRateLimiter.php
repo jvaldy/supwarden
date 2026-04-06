@@ -17,11 +17,19 @@ final class AuthRateLimiter
 
     public function consumeFailedLoginAttempt(Request $request): ?JsonResponse
     {
+        if ($this->shouldBypassForE2e($request)) {
+            return null;
+        }
+
         return $this->consume($this->loginLimiter, $request, 'auth_login_failed');
     }
 
     public function consumeRegistrationAttempt(Request $request): ?JsonResponse
     {
+        if ($this->shouldBypassForE2e($request)) {
+            return null;
+        }
+
         return $this->consume($this->registerLimiter, $request, 'auth_register_attempt');
     }
 
@@ -47,8 +55,15 @@ final class AuthRateLimiter
         }
 
         return new JsonResponse([
-            'message' => 'Trop de tentatives. Réessayez dans un instant.',
+            'message' => 'Trop de tentatives. R?essayez dans un instant.',
         ], Response::HTTP_TOO_MANY_REQUESTS, $headers);
+    }
+
+    private function shouldBypassForE2e(Request $request): bool
+    {
+        $isLocalhost = in_array($request->getHost(), ['localhost', '127.0.0.1'], true);
+
+        return $isLocalhost && $request->headers->get('X-E2E-Test') === '1';
     }
 
     private function buildKey(Request $request, string $scope): string

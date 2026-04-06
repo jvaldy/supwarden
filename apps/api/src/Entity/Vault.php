@@ -25,11 +25,11 @@ class Vault
 
     #[ORM\Column(length: 160)]
     #[Assert\NotBlank(message: 'Le nom du trousseau est obligatoire.')]
-    #[Assert\Length(max: 160, maxMessage: 'Le nom du trousseau ne peut pas dépasser 160 caractères.')]
+    #[Assert\Length(max: 160, maxMessage: 'Le nom du trousseau ne peut pas d?passer 160 caract?res.')]
     private string $name = '';
 
     #[ORM\Column(type: 'text', nullable: true)]
-    #[Assert\Length(max: 1000, maxMessage: 'La description du trousseau ne peut pas dépasser 1000 caractères.')]
+    #[Assert\Length(max: 1000, maxMessage: 'La description du trousseau ne peut pas d?passer 1000 caract?res.')]
     private ?string $description = null;
 
     #[ORM\Column(enumType: VaultType::class)]
@@ -52,11 +52,19 @@ class Vault
     #[ORM\OrderBy(['createdAt' => 'ASC'])]
     private Collection $members;
 
+    /**
+     * @var Collection<int, VaultItem>
+     */
+    #[ORM\OneToMany(mappedBy: 'vault', targetEntity: VaultItem::class, orphanRemoval: true, cascade: ['persist'])]
+    #[ORM\OrderBy(['updatedAt' => 'DESC'])]
+    private Collection $items;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
         $this->updatedAt = $this->createdAt;
         $this->members = new ArrayCollection();
+        $this->items = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -149,6 +157,35 @@ class Vault
         }
 
         $this->refreshTypeFromMembers();
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, VaultItem>
+     */
+    public function getItems(): Collection
+    {
+        return $this->items;
+    }
+
+    public function addItem(VaultItem $item): self
+    {
+        if (!$this->items->contains($item)) {
+            $this->items->add($item);
+            $item->setVault($this);
+            $this->touch();
+        }
+
+        return $this;
+    }
+
+    public function removeItem(VaultItem $item): self
+    {
+        if ($this->items->removeElement($item) && $item->getVault() === $this) {
+            $item->setVault(null);
+            $this->touch();
+        }
 
         return $this;
     }

@@ -1,5 +1,5 @@
 .auth-shell {
-  width: min(100%, 860px);
+  width: min(100%, 1200px);
   margin: 0 auto;
 }
 
@@ -11,9 +11,10 @@
 .auth-title {
   margin: 0;
   max-width: none;
-  font-size: clamp(2rem, 5vw, 3.3rem);
-  line-height: 1.05;
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  line-height: 1.1;
 }
+
 
 .auth-form {
   display: grid;

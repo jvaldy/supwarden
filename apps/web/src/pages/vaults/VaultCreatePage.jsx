@@ -32,7 +32,7 @@ export function VaultCreatePage({ navigate }) {
     <section className="auth-shell vault-form-shell">
       <article className="auth-card vault-card">
         <p className="eyebrow">Nouveau trousseau</p>
-        <h1 className="auth-title">Créez un trousseau</h1>
+        <h1 className="dashboard-title vault-title">Créez un trousseau</h1>
         <p className="lede">Donnez un nom clair à votre trousseau et ajoutez une description utile pour le retrouver facilement.</p>
 
         <form className="auth-form vault-form" onSubmit={handleSubmit}>

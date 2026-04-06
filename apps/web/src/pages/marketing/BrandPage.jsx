@@ -1,10 +1,14 @@
 ﻿import {
   buttonExamples,
+  buttonRules,
   colorGroups,
   experiencePillars,
+  headingRules,
+  layoutRules,
   principles,
   statusCards,
   tableRows,
+  typographyScale,
   userSignals,
 } from './content.js'
 import supwardenLogoMark from '../../assets/supwarden-logo-mark.svg'
@@ -97,19 +101,46 @@ export function BrandPage() {
         <article className="showcase-card">
           <div className="section-heading">
             <p className="panel-label">Typographie</p>
-            <h2>Une lecture plus simple et plus sûre</h2>
+            <h2>Une lecture plus compacte, plus claire et plus fiable</h2>
           </div>
 
           <div className="type-specimen">
-            <p className="type-overline">Sora pour les titres</p>
-            <p className="type-display">Accéder, partager, vérifier sans hésiter.</p>
+            <p className="type-overline">Arial / Helvetica pour tout le parcours</p>
+            <p className="type-display">Une hiérarchie dense, lisible et immédiatement utile.</p>
             <p className="type-body-large">
-              Inter rend les pages plus fluides à lire et aide l’utilisateur à comprendre plus vite.
+              La base du produit repose maintenant sur une taille de texte plus compacte, inspirée
+              d’interfaces très lisibles et très efficaces.
             </p>
             <p className="type-body">
-              La bonne hiérarchie éditoriale réduit la fatigue visuelle et rend les actions évidentes.
+              Le but est simple : afficher plus d’information utile sans alourdir la lecture ni
+              perdre la hiérarchie.
             </p>
-            <code>JetBrains Mono pour les identifiants, les valeurs et les données techniques</code>
+            <code>JetBrains Mono reste réservé aux identifiants, valeurs et données techniques</code>
+          </div>
+
+          <div className="type-scale-list" aria-label="échelle typographique">
+            {typographyScale.map((item) => (
+              <article className="type-scale-card" key={item.token}>
+                <div className="type-scale-top">
+                  <strong>{item.label}</strong>
+                  <code>{item.value}</code>
+                </div>
+                <p className="type-scale-token">{item.token}</p>
+                <p>{item.usage}</p>
+              </article>
+            ))}
+          </div>
+
+          <div className="type-scale-list" aria-label="règles de hiérarchie">
+            {headingRules.map((item) => (
+              <article className="type-scale-card" key={item.title}>
+                <div className="type-scale-top">
+                  <strong>{item.title}</strong>
+                  <code>{item.value}</code>
+                </div>
+                <p>{item.description}</p>
+              </article>
+            ))}
           </div>
         </article>
 
@@ -117,6 +148,18 @@ export function BrandPage() {
           <div className="section-heading">
             <p className="panel-label">Actions</p>
             <h2>Des interactions plus claires</h2>
+          </div>
+
+          <div className="type-scale-list" aria-label="règles des boutons principaux">
+            {buttonRules.map((item) => (
+              <article className="type-scale-card" key={item.title}>
+                <div className="type-scale-top">
+                  <strong>{item.title}</strong>
+                  <code>{item.value}</code>
+                </div>
+                <p>{item.description}</p>
+              </article>
+            ))}
           </div>
 
           <div className="button-stack">
@@ -169,6 +212,16 @@ export function BrandPage() {
           <div className="section-heading">
             <p className="panel-label">Parcours</p>
             <h2>Une expérience plus professionnelle d’un écran à l’autre</h2>
+          </div>
+
+          <div className="status-grid">
+            {layoutRules.map((item) => (
+              <article className="status-card" key={item.title}>
+                <h3>{item.title}</h3>
+                <p className="brand-rule-value">{item.value}</p>
+                <p>{item.description}</p>
+              </article>
+            ))}
           </div>
 
           <div className="status-grid">

@@ -9,9 +9,9 @@ use Symfony\Component\Validator\Constraints as Assert;
 class CreateVaultInput
 {
     #[Assert\NotBlank(message: 'Le nom du trousseau est obligatoire.')]
-    #[Assert\Length(max: 160, maxMessage: 'Le nom du trousseau ne peut pas dépasser 160 caractères.')]
+    #[Assert\Length(max: 160, maxMessage: 'Le nom du trousseau ne peut pas dÃ©passer 160 caractÃ¨res.')]
     public string $name = '';
 
-    #[Assert\Length(max: 1000, maxMessage: 'La description du trousseau ne peut pas dépasser 1000 caractères.')]
+    #[Assert\Length(max: 1000, maxMessage: 'La description du trousseau ne peut pas dÃ©passer 1000 caractÃ¨res.')]
     public ?string $description = null;
 }
