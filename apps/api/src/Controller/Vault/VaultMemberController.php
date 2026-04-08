@@ -30,7 +30,7 @@ final class VaultMemberController extends AbstractController
 {
     #[OA\Get(
         path: '/api/vaults/{vaultId}/members',
-        summary: 'Liste les membres d’un trousseau.',
+        summary: "Liste les membres d'un trousseau.",
         security: [['Bearer' => []]],
         tags: ['Membres de trousseau'],
         parameters: [
@@ -83,7 +83,7 @@ final class VaultMemberController extends AbstractController
     #[OA\Response(response: 401, description: 'Authentification requise.')]
     #[OA\Response(response: 403, description: 'Accès interdit.')]
     #[OA\Response(response: 404, description: 'Utilisateur ou trousseau introuvable.')]
-    #[OA\Response(response: 409, description: 'L’utilisateur est déjà membre du trousseau.')]
+    #[OA\Response(response: 409, description: "L'utilisateur est déjà membre du trousseau.")]
     #[OA\Response(response: 422, description: 'Données invalides.')]
     #[Route('', name: 'create', methods: ['POST'], requirements: ['vaultId' => '\\d+'])]
     // Ajoute un membre à un trousseau et laisse son type évoluer automatiquement.
@@ -145,7 +145,7 @@ final class VaultMemberController extends AbstractController
 
     #[OA\Patch(
         path: '/api/vaults/{vaultId}/members/{memberId}',
-        summary: 'Met à jour le rôle d’un membre.',
+        summary: "Met à jour le rôle d'un membre.",
         security: [['Bearer' => []]],
         tags: ['Membres de trousseau'],
         parameters: [
@@ -169,7 +169,7 @@ final class VaultMemberController extends AbstractController
     #[OA\Response(response: 404, description: 'Membre ou trousseau introuvable.')]
     #[OA\Response(response: 422, description: 'Données invalides.')]
     #[Route('/{memberId}', name: 'update', methods: ['PATCH'], requirements: ['vaultId' => '\\d+', 'memberId' => '\\d+'])]
-    // Met à jour le rôle d’un membre tant que le propriétaire garde la main sur le rôle OWNER.
+    // Met à jour le rôle d'un membre tant que le propriétaire garde la main sur le rôle OWNER.
     public function update(
         int $vaultId,
         int $memberId,
@@ -372,3 +372,4 @@ final class VaultMemberController extends AbstractController
         ];
     }
 }
+

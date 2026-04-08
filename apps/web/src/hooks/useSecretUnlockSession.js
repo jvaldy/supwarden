@@ -24,9 +24,10 @@ export function useSecretUnlockSession() {
     return nextPin
   }, [clearUnlock])
 
-  const requestPin = useCallback(async (promptMessage) => {
+  const requestPin = useCallback(async (promptMessage, options = {}) => {
+    const forcePrompt = options?.forcePrompt === true
     // Évite de redemander le PIN tant que la session de déverrouillage est encore valide.
-    if (pin !== '' && unlockStartedAt > 0 && unlockStartedAt + timeoutMs > Date.now()) {
+    if (!forcePrompt && pin !== '' && unlockStartedAt > 0 && unlockStartedAt + timeoutMs > Date.now()) {
       setUnlockStartedAt(Date.now())
       return pin
     }

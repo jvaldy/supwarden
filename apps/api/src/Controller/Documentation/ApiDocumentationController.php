@@ -8,7 +8,7 @@ final class ApiDocumentationController
 {
     public function __invoke(): Response
     {
-        // Swagger UI consomme le JSON OpenAPI g?n?r? par Nelmio pour permettre les tests interactifs.
+        // Swagger UI consomme le JSON OpenAPI genere par Nelmio pour permettre les tests interactifs.
         $html = <<<'HTML'
 <!DOCTYPE html>
 <html lang="fr">
@@ -54,12 +54,24 @@ final class ApiDocumentationController
     <div id="swagger-ui"></div>
     <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
     <script>
-      window.ui = SwaggerUIBundle({
-        url: '/api/doc/openapi',
-        dom_id: '#swagger-ui',
-        deepLinking: true,
-        persistAuthorization: true
-      });
+      fetch('/api/doc/openapi')
+        .then((response) => response.json())
+        .then((spec) => {
+          window.ui = SwaggerUIBundle({
+            spec,
+            dom_id: '#swagger-ui',
+            deepLinking: true,
+            persistAuthorization: true
+          });
+        })
+        .catch(() => {
+          window.ui = SwaggerUIBundle({
+            url: '/api/doc/openapi',
+            dom_id: '#swagger-ui',
+            deepLinking: true,
+            persistAuthorization: true
+          });
+        });
     </script>
   </body>
 </html>
@@ -68,3 +80,4 @@ HTML;
         return new Response($html);
     }
 }
+

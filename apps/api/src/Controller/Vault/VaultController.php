@@ -28,7 +28,7 @@ final class VaultController extends AbstractController
 {
     #[OA\Post(
         path: '/api/vaults',
-        summary: 'Cr?e un trousseau personnel.',
+        summary: 'Crée un trousseau personnel.',
         security: [['Bearer' => []]],
         tags: ['Trousseaux'],
         requestBody: new OA\RequestBody(
@@ -37,17 +37,17 @@ final class VaultController extends AbstractController
                 required: ['name'],
                 properties: [
                     new OA\Property(property: 'name', type: 'string', example: 'Streaming'),
-                    new OA\Property(property: 'description', type: 'string', nullable: true, example: 'Acc?s partag?s de l??quipe'),
+                    new OA\Property(property: 'description', type: 'string', nullable: true, example: "Accès partagés de l'équipe"),
                 ],
                 type: 'object'
             )
         )
     )]
-    #[OA\Response(response: 201, description: 'Trousseau cr??.')]
+    #[OA\Response(response: 201, description: 'Trousseau créé.')]
     #[OA\Response(response: 401, description: 'Authentification requise.')]
-    #[OA\Response(response: 422, description: 'Donn?es invalides.')]
+    #[OA\Response(response: 422, description: 'Données invalides.')]
     #[Route('', name: 'create', methods: ['POST'])]
-    // Cr?e un trousseau personnel puis y rattache imm?diatement son propri?taire comme OWNER.
+    // Crée un trousseau personnel puis y rattache immédiatement son propriétaire comme OWNER.
     public function create(
         Request $request,
         #[CurrentUser] ?User $authenticatedUser,
@@ -72,7 +72,7 @@ final class VaultController extends AbstractController
 
         if ($validationErrors !== []) {
             return $this->json([
-                'message' => 'Les donn?Â¿Â½es fournies sont invalides.',
+                'message' => 'Les données fournies sont invalides.',
                 'errors' => $validationErrors,
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
@@ -118,7 +118,7 @@ final class VaultController extends AbstractController
     #[OA\Response(response: 401, description: 'Authentification requise.')]
     #[Route('', name: 'list', methods: ['GET'])]
     #[Route('/search', name: 'search', methods: ['GET'])]
-    // Retourne uniquement les trousseaux que l?utilisateur poss?de ou auxquels il appartient.
+    // Retourne uniquement les trousseaux que l'utilisateur possède ou auxquels il appartient.
     public function list(
         Request $request,
         #[CurrentUser] ?User $authenticatedUser,
@@ -144,19 +144,19 @@ final class VaultController extends AbstractController
 
     #[OA\Get(
         path: '/api/vaults/{id}',
-        summary: 'Affiche le d?tail d?un trousseau.',
+        summary: "Affiche le détail d'un trousseau.",
         security: [['Bearer' => []]],
         tags: ['Trousseaux'],
         parameters: [
             new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
         ]
     )]
-    #[OA\Response(response: 200, description: 'D?tail du trousseau.')]
+    #[OA\Response(response: 200, description: 'Détail du trousseau.')]
     #[OA\Response(response: 401, description: 'Authentification requise.')]
-    #[OA\Response(response: 403, description: 'Acc?s interdit.')]
+    #[OA\Response(response: 403, description: 'Accès interdit.')]
     #[OA\Response(response: 404, description: 'Trousseau introuvable.')]
     #[Route('/{id}', name: 'show', methods: ['GET'], requirements: ['id' => '\\d+'])]
-    // Expose le d?tail complet d?un trousseau seulement ? ses membres.
+    // Expose le détail complet d'un trousseau seulement à ses membres.
     public function show(
         int $id,
         #[CurrentUser] ?User $authenticatedUser,
@@ -169,7 +169,7 @@ final class VaultController extends AbstractController
         }
 
         if (!$this->isGranted(VaultVoter::VIEW, $vault)) {
-            return $this->json(['message' => 'Acc?Â¿Â½s interdit.'], Response::HTTP_FORBIDDEN);
+            return $this->json(['message' => 'Accès interdit.'], Response::HTTP_FORBIDDEN);
         }
 
         return $this->json([
@@ -179,7 +179,7 @@ final class VaultController extends AbstractController
 
     #[OA\Patch(
         path: '/api/vaults/{id}',
-        summary: 'Met ? jour les m?tadonn?es d?un trousseau.',
+        summary: "Met à jour les métadonnées d'un trousseau.",
         security: [['Bearer' => []]],
         tags: ['Trousseaux'],
         parameters: [
@@ -190,19 +190,19 @@ final class VaultController extends AbstractController
             content: new OA\JsonContent(
                 properties: [
                     new OA\Property(property: 'name', type: 'string', example: 'Streaming 2026'),
-                    new OA\Property(property: 'description', type: 'string', nullable: true, example: 'Acc?s mis ? jour'),
+                    new OA\Property(property: 'description', type: 'string', nullable: true, example: 'Accès mis à jour'),
                 ],
                 type: 'object'
             )
         )
     )]
-    #[OA\Response(response: 200, description: 'Trousseau mis ? jour.')]
+    #[OA\Response(response: 200, description: 'Trousseau mis à jour.')]
     #[OA\Response(response: 401, description: 'Authentification requise.')]
-    #[OA\Response(response: 403, description: 'Acc?s interdit.')]
+    #[OA\Response(response: 403, description: 'Accès interdit.')]
     #[OA\Response(response: 404, description: 'Trousseau introuvable.')]
-    #[OA\Response(response: 422, description: 'Donn?es invalides.')]
+    #[OA\Response(response: 422, description: 'Données invalides.')]
     #[Route('/{id}', name: 'update', methods: ['PATCH'], requirements: ['id' => '\\d+'])]
-    // Met ? jour les m?tadonn?es du trousseau si le r?le le permet.
+    // Met à jour les métadonnées du trousseau si le rôle le permet.
     public function update(
         int $id,
         Request $request,
@@ -218,7 +218,7 @@ final class VaultController extends AbstractController
         }
 
         if (!$this->isGranted(VaultVoter::EDIT, $vault)) {
-            return $this->json(['message' => 'Acc?Â¿Â½s interdit.'], Response::HTTP_FORBIDDEN);
+            return $this->json(['message' => 'Accès interdit.'], Response::HTTP_FORBIDDEN);
         }
 
         $requestData = $this->decodeJsonRequest($request);
@@ -235,7 +235,7 @@ final class VaultController extends AbstractController
 
         if ($validationErrors !== []) {
             return $this->json([
-                'message' => 'Les donn?Â¿Â½es fournies sont invalides.',
+                'message' => 'Les données fournies sont invalides.',
                 'errors' => $validationErrors,
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
@@ -258,12 +258,12 @@ final class VaultController extends AbstractController
             new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
         ]
     )]
-    #[OA\Response(response: 200, description: 'Trousseau supprim?.')]
+    #[OA\Response(response: 200, description: 'Trousseau supprimé.')]
     #[OA\Response(response: 401, description: 'Authentification requise.')]
-    #[OA\Response(response: 403, description: 'Acc?s interdit.')]
+    #[OA\Response(response: 403, description: 'Accès interdit.')]
     #[OA\Response(response: 404, description: 'Trousseau introuvable.')]
     #[Route('/{id}', name: 'delete', methods: ['DELETE'], requirements: ['id' => '\\d+'])]
-    // Supprime d?finitivement un trousseau uniquement pour son propri?taire.
+    // Supprime définitivement un trousseau uniquement pour son propriétaire.
     public function delete(
         int $id,
         #[CurrentUser] ?User $authenticatedUser,
@@ -277,14 +277,14 @@ final class VaultController extends AbstractController
         }
 
         if (!$this->isGranted(VaultVoter::DELETE, $vault)) {
-            return $this->json(['message' => 'Acc?Â¿Â½s interdit.'], Response::HTTP_FORBIDDEN);
+            return $this->json(['message' => 'Accès interdit.'], Response::HTTP_FORBIDDEN);
         }
 
         $entityManager->remove($vault);
         $entityManager->flush();
 
         return $this->json([
-            'message' => 'Le trousseau a bien ?Â¿Â½t?Â¿Â½ supprim?Â¿Â½.',
+            'message' => 'Le trousseau a bien été supprimé.',
         ]);
     }
 
@@ -296,7 +296,7 @@ final class VaultController extends AbstractController
         $requestContent = $request->getContent();
 
         if ($requestContent === '') {
-            return new JsonResponse(['message' => 'Le corps de la requ?Â¿Â½te JSON est requis.'], Response::HTTP_BAD_REQUEST);
+            return new JsonResponse(['message' => 'Le corps de la requête JSON est requis.'], Response::HTTP_BAD_REQUEST);
         }
 
         try {
@@ -306,7 +306,7 @@ final class VaultController extends AbstractController
         }
 
         if (!is_array($decodedRequestData)) {
-            return new JsonResponse(['message' => 'Le corps de la requ?Â¿Â½te doit ?Â¿Â½tre un objet JSON.'], Response::HTTP_BAD_REQUEST);
+            return new JsonResponse(['message' => 'Le corps de la requête doit être un objet JSON.'], Response::HTTP_BAD_REQUEST);
         }
 
         return $decodedRequestData;
@@ -407,3 +407,4 @@ final class VaultController extends AbstractController
         return $payload;
     }
 }
+

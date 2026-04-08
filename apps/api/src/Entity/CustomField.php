@@ -23,8 +23,8 @@ class CustomField
     private ?VaultItem $item = null;
 
     #[ORM\Column(length: 120)]
-    #[Assert\NotBlank(message: 'Le libell? du champ personnalis? est obligatoire.')]
-    #[Assert\Length(max: 120, maxMessage: 'Le libell? du champ personnalis? ne peut pas d?passer 120 caract?res.')]
+    #[Assert\NotBlank(message: 'Le libelle du champ personnalise est obligatoire.')]
+    #[Assert\Length(max: 120, maxMessage: 'Le libelle du champ personnalise ne peut pas depasser 120 caracteres.')]
     private string $label = '';
 
     #[ORM\Column(length: 40)]
@@ -115,3 +115,4 @@ class CustomField
         return $this->createdAt;
     }
 }
+

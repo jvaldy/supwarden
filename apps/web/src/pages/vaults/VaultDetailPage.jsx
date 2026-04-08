@@ -1,5 +1,6 @@
 ﻿import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useAuth } from '../../context/authContext.js'
+import { verifyUserPin } from '../../services/api/authApi.js'
 import {
   deleteVaultItem,
   downloadVaultItemAttachment,
@@ -10,6 +11,7 @@ import {
 import { storeItemEditUnlock } from '../../services/storage/itemEditUnlockStorage.js'
 import { useSecretUnlockSession } from '../../hooks/useSecretUnlockSession.js'
 import { useSecretMaskTimeoutMs } from '../../hooks/useSecretMaskTimeoutMs.js'
+import { exportVaultDataFile, generatePassword } from '../../services/api/advancedApi.js'
 import {
   addVaultMember,
   deleteVault,
@@ -48,6 +50,17 @@ export function VaultDetailPage({ navigate, vaultId }) {
   const [visibleSecrets, setVisibleSecrets] = useState({})
   const [resolvedSecrets, setResolvedSecrets] = useState({})
   const [isSelectedItemSecretVisible, setIsSelectedItemSecretVisible] = useState(false)
+  const [isPasswordGeneratorOpen, setIsPasswordGeneratorOpen] = useState(false)
+  const [passwordOptions, setPasswordOptions] = useState({
+    length: 20,
+    useLowercase: true,
+    useUppercase: true,
+    useDigits: true,
+    useSymbols: true,
+    exclude: '',
+  })
+  const [generatedPassword, setGeneratedPassword] = useState('')
+  const [isGeneratingPassword, setIsGeneratingPassword] = useState(false)
 
   const vaultMembers = Array.isArray(vault?.members) ? vault.members : []
   const canEditVault = Boolean(vault?.access?.canEdit)
@@ -419,6 +432,59 @@ export function VaultDetailPage({ navigate, vaultId }) {
     }
   }
 
+
+  async function handleExportCurrentVault() {
+    const pin = await requestPin('Saisissez votre code PIN pour continuer.', { forcePrompt: true })
+    if (pin === null) return
+
+    try {
+      await verifyUserPin(token, pin)
+    } catch (error) {
+      clearUnlock()
+      setErrorMessage(error.responseData?.message ?? 'Le code PIN est incorrect.')
+      return
+    }
+
+    try {
+      await exportVaultDataFile(token, vaultId, 'json', vault?.name ?? '')
+      setFeedbackMessage('Export du trousseau téléchargé.')
+      setErrorMessage('')
+    } catch (error) {
+      setErrorMessage(error.message ?? 'Impossible d’exporter ce trousseau.')
+    }
+  }
+
+  function handleGeneratePassword() {
+    setErrorMessage('')
+    setFeedbackMessage('')
+    setIsPasswordGeneratorOpen(true)
+  }
+
+  async function handlePasswordGenerationSubmit(event) {
+    event.preventDefault()
+    setIsGeneratingPassword(true)
+    setErrorMessage('')
+
+    try {
+      const responseData = await generatePassword(token, passwordOptions)
+      setGeneratedPassword(responseData.password ?? '')
+    } catch (error) {
+      setErrorMessage(error.responseData?.message ?? 'Impossible de générer un mot de passe pour le moment.')
+    } finally {
+      setIsGeneratingPassword(false)
+    }
+  }
+
+  async function handleCopyGeneratedPassword() {
+    if (!generatedPassword) return
+
+    try {
+      await navigator.clipboard.writeText(generatedPassword)
+      setFeedbackMessage('Mot de passe copié dans le presse-papiers.')
+    } catch {
+      setErrorMessage('Impossible de copier ce mot de passe pour le moment.')
+    }
+  }
   async function handleVaultDelete() {
     const confirmed = window.confirm('Supprimer ce trousseau définitivement ?')
     if (!confirmed) return
@@ -535,14 +601,29 @@ export function VaultDetailPage({ navigate, vaultId }) {
 
             <div className="vault-actions-row">
               <button className="button-link button-link-secondary" type="button" onClick={() => navigate('/vaults')}>
-                Retour aux trousseaux
+                Trousseaux
               </button>
-              <button className="button-link button-link-secondary" type="button" onClick={() => setIsMembersOpen(true)}>
-                Membres
+              <button className="button-link button-link-secondary" type="button" onClick={handleGeneratePassword}>
+                Générateur
+              </button>
+              <button
+                aria-label="Membres"
+                className="button-link button-link-secondary vault-action-icon-button"
+                title="Membres"
+                type="button"
+                onClick={() => setIsMembersOpen(true)}
+              >
+                <FieldIcon name="members" />
               </button>
               {canEditVault && (
-                <button className="button-link button-link-secondary" type="button" onClick={() => setIsSettingsOpen(true)}>
-                  Paramètres
+                <button
+                  aria-label="Paramètres"
+                  className="button-link button-link-secondary vault-action-icon-button"
+                  title="Paramètres"
+                  type="button"
+                  onClick={() => setIsSettingsOpen(true)}
+                >
+                  <FieldIcon name="settings" />
                 </button>
               )}
             </div>
@@ -699,6 +780,7 @@ export function VaultDetailPage({ navigate, vaultId }) {
                 <p>Ajustez le nom et la description du trousseau.</p>
               </div>
               <div className="modal-header-actions">
+                <button className="button-link button-link-secondary" type="button" onClick={handleExportCurrentVault}>Exporter</button>
                 <button className="button-link button-link-tertiary" type="button" onClick={() => setIsSettingsOpen(false)}>Fermer</button>
               </div>
             </div>
@@ -815,7 +897,52 @@ export function VaultDetailPage({ navigate, vaultId }) {
           </div>
         </div>
       ) : null}
+      {isPasswordGeneratorOpen ? (
+        <div className="modal-backdrop" role="presentation" onClick={() => setIsPasswordGeneratorOpen(false)}>
+          <div className="modal-card vault-password-generator-modal" role="dialog" aria-modal="true" aria-labelledby="vault-password-generator-title" onClick={(event) => event.stopPropagation()}>
+            <div className="modal-header">
+              <div>
+                <h2 id="vault-password-generator-title">Générer un mot de passe</h2>
+                <p>Configurez les règles puis copiez le mot de passe généré.</p>
+              </div>
+              <div className="modal-header-actions">
+                <button className="button-link button-link-tertiary" type="button" onClick={() => setIsPasswordGeneratorOpen(false)}>Fermer</button>
+              </div>
+            </div>
 
+            <form className="vault-form" onSubmit={handlePasswordGenerationSubmit}>
+              <label className="field">
+                <span>Longueur</span>
+                <input min="8" max="128" type="number" value={passwordOptions.length} onChange={(event) => setPasswordOptions((current) => ({ ...current, length: Number(event.target.value) || 20 }))} />
+              </label>
+              <label className="field">
+                <span>Exclure des caractères</span>
+                <input type="text" placeholder="Ex: O0lI" value={passwordOptions.exclude} onChange={(event) => setPasswordOptions((current) => ({ ...current, exclude: event.target.value }))} />
+              </label>
+
+              <div className="dashboard-options-grid">
+                <label className="checkbox-option"><input type="checkbox" checked={passwordOptions.useLowercase} onChange={(event) => setPasswordOptions((current) => ({ ...current, useLowercase: event.target.checked }))} /><span>Minuscules</span></label>
+                <label className="checkbox-option"><input type="checkbox" checked={passwordOptions.useUppercase} onChange={(event) => setPasswordOptions((current) => ({ ...current, useUppercase: event.target.checked }))} /><span>Majuscules</span></label>
+                <label className="checkbox-option"><input type="checkbox" checked={passwordOptions.useDigits} onChange={(event) => setPasswordOptions((current) => ({ ...current, useDigits: event.target.checked }))} /><span>Chiffres</span></label>
+                <label className="checkbox-option"><input type="checkbox" checked={passwordOptions.useSymbols} onChange={(event) => setPasswordOptions((current) => ({ ...current, useSymbols: event.target.checked }))} /><span>Symboles</span></label>
+              </div>
+
+              <div className="modal-actions">
+                <button className="button-link button-link-primary" type="submit" disabled={isGeneratingPassword}>Générer</button>
+              </div>
+            </form>
+
+            {generatedPassword ? (
+              <div className="vault-item-copy-field dashboard-generated-password">
+                <div className="vault-item-copy-field-body">
+                  <p>{generatedPassword}</p>
+                </div>
+                <button className="button-link button-link-tertiary item-copy-button" type="button" onClick={handleCopyGeneratedPassword} title="Copier">Copier</button>
+              </div>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
       {isItemDetailsOpen ? (
         <div className="modal-backdrop" role="presentation" onClick={closeItemDetailsModal}>
           <div className="modal-card modal-card-wide vault-item-detail-modal" role="dialog" aria-modal="true" aria-labelledby="vault-item-details-title" onClick={(event) => event.stopPropagation()}>
@@ -971,6 +1098,8 @@ function FieldIcon({ name }) {
   if (name === 'username') return <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="3.5" /><path d="M5.5 18.5c1.5-3 4-4.5 6.5-4.5s5 1.5 6.5 4.5" /></svg>
   if (name === 'globe') return <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="8.5" /><path d="M3.8 12h16.4" /><path d="M12 3.8c2.5 2.2 4 5.1 4 8.2s-1.5 6-4 8.2c-2.5-2.2-4-5.1-4-8.2s1.5-6 4-8.2Z" /></svg>
   if (name === 'account') return <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="3.5" /><path d="M4.5 19c1.7-3 4.4-4.5 7.5-4.5s5.8 1.5 7.5 4.5" /></svg>
+  if (name === 'members') return <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="9" r="2.8" /><circle cx="16.5" cy="10.5" r="2.3" /><path d="M3.8 18c1.2-2.5 3.2-3.8 5.8-3.8 2.7 0 4.8 1.3 6 3.8" /><path d="M14.2 18c.7-1.5 1.9-2.3 3.4-2.3 1.1 0 2.1.4 3 1.3" /></svg>
+  if (name === 'settings') return <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="2.8" /><path d="M19.2 12a7.2 7.2 0 0 0-.1-1.2l2-1.6-2-3.4-2.5 1a7 7 0 0 0-2-.9L14.2 3h-4.4l-.4 2.9a7 7 0 0 0-2 .9l-2.5-1-2 3.4 2 1.6A7.2 7.2 0 0 0 4.8 12c0 .4 0 .8.1 1.2l-2 1.6 2 3.4 2.5-1a7 7 0 0 0 2 .9l.4 2.9h4.4l.4-2.9a7 7 0 0 0 2-.9l2.5 1 2-3.4-2-1.6c.1-.4.1-.8.1-1.2Z" /></svg>
   if (name === 'link') return <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9.5 14.5 14.5 9.5" /><path d="M7 17a3 3 0 0 1 0-4.2l2.2-2.2a3 3 0 1 1 4.2 4.2L11.2 17A3 3 0 1 1 7 17Z" /><path d="M17 7a3 3 0 0 1 0 4.2l-2.2 2.2a3 3 0 1 1-4.2-4.2L12.8 7A3 3 0 1 1 17 7Z" /></svg>
   if (name === 'secret') return <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="7" y="10" width="10" height="9" rx="2" /><path d="M9 10V8a3 3 0 0 1 6 0v2" /></svg>
   if (name === 'lock-closed') return <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="7" y="11" width="10" height="8" rx="2" /><path d="M9 11V8a3 3 0 0 1 6 0v3" /></svg>
@@ -982,4 +1111,9 @@ function FieldIcon({ name }) {
   if (name === 'search') return <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="6.5" /><path d="m16 16 4.5 4.5" /></svg>
   return null
 }
+
+
+
+
+
 

@@ -34,19 +34,20 @@ describe('Items', () => {
         cy.contains('button', 'Créer l’élément').click()
 
         cy.location('pathname', { timeout: 30000 }).should('match', /^\/vaults\/\d+$/)
-        cy.contains('strong', 'Netflix', { timeout: 30000 }).should('be.visible')
+        cy.contains('article', 'Netflix', { timeout: 30000 }).should('be.visible')
         cy.contains('button', 'Plus').click()
         cy.contains('Netflix').should('be.visible')
         cy.contains('camille@example.com').should('be.visible')
         cy.contains('button', 'Fermer').click()
 
-        cy.contains('button', 'Membres').click()
+        cy.get('button[aria-label="Membres"]', { timeout: 30000 }).click()
         cy.contains('span', 'Adresse e-mail').parent().find('input').type(editorSession.email)
         cy.contains('span', 'Rôle').parent().find('select').select('Éditeur')
         cy.contains('button', 'Ajouter un membre').click()
         cy.contains('Partagé', { timeout: 30000 }).should('be.visible')
-        cy.contains('td', editorSession.email, { timeout: 30000 }).should('exist')
+        cy.contains('td', 'Louis Editor', { timeout: 30000 }).should('exist')
       })
     })
   })
 })
+

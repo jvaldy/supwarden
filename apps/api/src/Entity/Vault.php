@@ -25,11 +25,11 @@ class Vault
 
     #[ORM\Column(length: 160)]
     #[Assert\NotBlank(message: 'Le nom du trousseau est obligatoire.')]
-    #[Assert\Length(max: 160, maxMessage: 'Le nom du trousseau ne peut pas d?passer 160 caract?res.')]
+    #[Assert\Length(max: 160, maxMessage: 'Le nom du trousseau ne peut pas depasser 160 caracteres.')]
     private string $name = '';
 
     #[ORM\Column(type: 'text', nullable: true)]
-    #[Assert\Length(max: 1000, maxMessage: 'La description du trousseau ne peut pas d?passer 1000 caract?res.')]
+    #[Assert\Length(max: 1000, maxMessage: 'La description du trousseau ne peut pas depasser 1000 caracteres.')]
     private ?string $description = null;
 
     #[ORM\Column(enumType: VaultType::class)]
@@ -241,3 +241,4 @@ class Vault
         $this->updatedAt = new \DateTimeImmutable();
     }
 }
+
