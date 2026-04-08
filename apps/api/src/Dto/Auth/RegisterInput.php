@@ -14,8 +14,8 @@ class RegisterInput
     #[Assert\Length(
         min: 10,
         max: 255,
-        minMessage: 'Le mot de passe doit contenir au moins {{ limit }} caract?res.',
-        maxMessage: 'Le mot de passe ne peut pas d?passer {{ limit }} caract?res.'
+        minMessage: 'Le mot de passe doit contenir au moins {{ limit }} caracteres.',
+        maxMessage: 'Le mot de passe ne peut pas depasser {{ limit }} caracteres.'
     )]
     public string $password = '';
 
@@ -25,3 +25,4 @@ class RegisterInput
     #[Assert\Length(max: 120)]
     public ?string $lastname = null;
 }
+

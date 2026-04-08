@@ -39,16 +39,16 @@ final class ItemController extends AbstractController
 
     #[OA\Get(
         path: '/api/vaults/{vaultId}/items',
-        summary: 'Liste les ?l?ments d?un trousseau.',
+        summary: "Liste les elements d'un trousseau.",
         security: [['Bearer' => []]],
-        tags: ['Ã‰l?ments'],
+        tags: ['Elements'],
         parameters: [
             new OA\Parameter(name: 'vaultId', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
         ]
     )]
-    #[OA\Response(response: 200, description: 'Liste des ?l?ments.')]
+    #[OA\Response(response: 200, description: 'Liste des elements.')]
     #[OA\Response(response: 401, description: 'Authentification requise.')]
-    #[OA\Response(response: 403, description: 'Acc?s interdit.')]
+    #[OA\Response(response: 403, description: 'Acces interdit.')]
     #[OA\Response(response: 404, description: 'Trousseau introuvable.')]
     #[Route('/vaults/{vaultId}/items', name: 'list', methods: ['GET'], requirements: ['vaultId' => '\\d+'])]
     public function list(int $vaultId, #[CurrentUser] ?User $authenticatedUser, VaultRepository $vaultRepository, VaultItemRepository $vaultItemRepository): JsonResponse
@@ -60,7 +60,7 @@ final class ItemController extends AbstractController
         }
 
         if (!$this->isGranted(VaultVoter::VIEW, $vault)) {
-            return $this->json(['message' => 'Acc?s interdit.'], Response::HTTP_FORBIDDEN);
+            return $this->json(['message' => 'Acces interdit.'], Response::HTTP_FORBIDDEN);
         }
 
         return $this->json([
@@ -70,9 +70,9 @@ final class ItemController extends AbstractController
 
     #[OA\Post(
         path: '/api/vaults/{vaultId}/items',
-        summary: 'Cr?e un ?l?ment dans un trousseau.',
+        summary: 'Cree un element dans un trousseau.',
         security: [['Bearer' => []]],
-        tags: ['Ã‰l?ments'],
+        tags: ['Elements'],
         parameters: [
             new OA\Parameter(name: 'vaultId', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
         ],
@@ -84,7 +84,7 @@ final class ItemController extends AbstractController
                     new OA\Property(property: 'name', type: 'string', example: 'Facebook'),
                     new OA\Property(property: 'username', type: 'string', nullable: true, example: 'john'),
                     new OA\Property(property: 'secret', type: 'string', nullable: true, example: 'motdepassefort'),
-                    new OA\Property(property: 'notes', type: 'string', nullable: true, example: 'Compte partag?'),
+                    new OA\Property(property: 'notes', type: 'string', nullable: true, example: 'Compte partage'),
                     new OA\Property(property: 'isSensitive', type: 'boolean', example: true),
                     new OA\Property(property: 'uris', type: 'array', items: new OA\Items(type: 'object')),
                     new OA\Property(property: 'customFields', type: 'array', items: new OA\Items(type: 'object')),
@@ -93,11 +93,11 @@ final class ItemController extends AbstractController
             )
         )
     )]
-    #[OA\Response(response: 201, description: 'Ã‰l?ment cr??.')]
+    #[OA\Response(response: 201, description: 'Element cree.')]
     #[OA\Response(response: 401, description: 'Authentification requise.')]
-    #[OA\Response(response: 403, description: 'Acc?s interdit.')]
+    #[OA\Response(response: 403, description: 'Acces interdit.')]
     #[OA\Response(response: 404, description: 'Trousseau introuvable.')]
-    #[OA\Response(response: 422, description: 'Donn?es invalides.')]
+    #[OA\Response(response: 422, description: 'Donnees invalides.')]
     #[Route('/vaults/{vaultId}/items', name: 'create', methods: ['POST'], requirements: ['vaultId' => '\\d+'])]
     public function create(
         int $vaultId,
@@ -114,7 +114,7 @@ final class ItemController extends AbstractController
         }
 
         if (!$this->isGranted(VaultVoter::EDIT, $vault)) {
-            return $this->json(['message' => 'Acc?s interdit.'], Response::HTTP_FORBIDDEN);
+            return $this->json(['message' => 'Acces interdit.'], Response::HTTP_FORBIDDEN);
         }
 
         $requestData = $this->decodeJsonRequest($request);
@@ -139,7 +139,7 @@ final class ItemController extends AbstractController
         $this->validateItemPermissions($vault, $itemPermissions, $errors);
 
         if ($errors !== []) {
-            return $this->json(['message' => 'Les donn?es fournies sont invalides.', 'errors' => $errors], Response::HTTP_UNPROCESSABLE_ENTITY);
+            return $this->json(['message' => 'Les donnees fournies sont invalides.', 'errors' => $errors], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         $item = (new VaultItem())
@@ -163,17 +163,17 @@ final class ItemController extends AbstractController
 
     #[OA\Get(
         path: '/api/items/{itemId}',
-        summary: 'Affiche le d?tail d?un ?l?ment.',
+        summary: "Affiche le detail d'un element.",
         security: [['Bearer' => []]],
-        tags: ['Ã‰l?ments'],
+        tags: ['Elements'],
         parameters: [
             new OA\Parameter(name: 'itemId', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
         ]
     )]
-    #[OA\Response(response: 200, description: 'D?tail de l??l?ment.')]
+    #[OA\Response(response: 200, description: "Detail de l'element.")]
     #[OA\Response(response: 401, description: 'Authentification requise.')]
-    #[OA\Response(response: 403, description: 'Acc?s interdit.')]
-    #[OA\Response(response: 404, description: 'Ã‰l?ment introuvable.')]
+    #[OA\Response(response: 403, description: 'Acces interdit.')]
+    #[OA\Response(response: 404, description: 'Element introuvable.')]
     #[Route('/items/{itemId}', name: 'show', methods: ['GET'], requirements: ['itemId' => '\\d+'])]
     public function show(int $itemId, #[CurrentUser] ?User $authenticatedUser, VaultItemRepository $vaultItemRepository): JsonResponse
     {
@@ -184,7 +184,7 @@ final class ItemController extends AbstractController
         }
 
         if (!$this->isGranted(ItemVoter::VIEW, $item)) {
-            return $this->json(['message' => 'Acc?s interdit.'], Response::HTTP_FORBIDDEN);
+            return $this->json(['message' => 'Acces interdit.'], Response::HTTP_FORBIDDEN);
         }
 
         return $this->json(['item' => $this->buildItemPayload($item, true)]);
@@ -192,9 +192,9 @@ final class ItemController extends AbstractController
 
     #[OA\Post(
         path: '/api/items/{itemId}/unlock-secret',
-        summary: 'D?verrouille le secret d?un ?l?ment sensible.',
+        summary: "Deverrouille le secret d'un element sensible.",
         security: [['Bearer' => []]],
-        tags: ['Ã‰l?ments'],
+        tags: ['Elements'],
         parameters: [
             new OA\Parameter(name: 'itemId', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
         ],
@@ -208,10 +208,10 @@ final class ItemController extends AbstractController
             )
         )
     )]
-    #[OA\Response(response: 200, description: 'Secret d?verrouill?.')]
+    #[OA\Response(response: 200, description: 'Secret deverrouille.')]
     #[OA\Response(response: 401, description: 'Authentification requise.')]
-    #[OA\Response(response: 403, description: 'PIN invalide ou acc?s interdit.')]
-    #[OA\Response(response: 404, description: 'Ã‰l?ment ou secret introuvable.')]
+    #[OA\Response(response: 403, description: 'PIN invalide ou Acces interdit.')]
+    #[OA\Response(response: 404, description: 'Element ou secret introuvable.')]
     #[OA\Response(response: 422, description: 'PIN manquant.')]
     #[Route('/items/{itemId}/unlock-secret', name: 'unlock_secret', methods: ['POST'], requirements: ['itemId' => '\\d+'])]
     public function unlockSecret(int $itemId, Request $request, #[CurrentUser] ?User $authenticatedUser, VaultItemRepository $vaultItemRepository): JsonResponse
@@ -223,13 +223,13 @@ final class ItemController extends AbstractController
         }
 
         if (!$this->isGranted(ItemVoter::REVEAL_SECRET, $item)) {
-            return $this->json(['message' => 'Acc?s interdit.'], Response::HTTP_FORBIDDEN);
+            return $this->json(['message' => 'Acces interdit.'], Response::HTTP_FORBIDDEN);
         }
 
         $decryptedSecret = $this->secretCipher->decrypt($item->getSecret());
 
         if ($decryptedSecret === null) {
-            return $this->json(['message' => 'Aucun secret enregistr? pour cet ?l?ment.'], Response::HTTP_NOT_FOUND);
+            return $this->json(['message' => 'Aucun secret enregistre pour cet element.'], Response::HTTP_NOT_FOUND);
         }
 
         if (!$item->isSensitive()) {
@@ -245,7 +245,7 @@ final class ItemController extends AbstractController
         $pin = isset($requestData['pin']) ? trim((string) $requestData['pin']) : '';
 
         if ($pin === '') {
-            return $this->json(['message' => 'Le code PIN est requis pour d?verrouiller cet ?l?ment.'], Response::HTTP_UNPROCESSABLE_ENTITY);
+            return $this->json(['message' => 'Le code PIN est requis pour deverrouiller cet element.'], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         if (!$authenticatedUser instanceof User || !$authenticatedUser->hasPin() || !is_string($authenticatedUser->getPinHash()) || !password_verify($pin, $authenticatedUser->getPinHash())) {
@@ -257,9 +257,9 @@ final class ItemController extends AbstractController
 
     #[OA\Patch(
         path: '/api/items/{itemId}',
-        summary: 'Met ? jour un ?l?ment.',
+        summary: 'Met a jour un element.',
         security: [['Bearer' => []]],
-        tags: ['Ã‰l?ments'],
+        tags: ['Elements'],
         parameters: [
             new OA\Parameter(name: 'itemId', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
         ],
@@ -279,11 +279,11 @@ final class ItemController extends AbstractController
             )
         )
     )]
-    #[OA\Response(response: 200, description: 'Ã‰l?ment mis ? jour.')]
+    #[OA\Response(response: 200, description: 'Element mis a jour.')]
     #[OA\Response(response: 401, description: 'Authentification requise.')]
-    #[OA\Response(response: 403, description: 'Acc?s interdit.')]
-    #[OA\Response(response: 404, description: 'Ã‰l?ment introuvable.')]
-    #[OA\Response(response: 422, description: 'Donn?es invalides.')]
+    #[OA\Response(response: 403, description: 'Acces interdit.')]
+    #[OA\Response(response: 404, description: 'Element introuvable.')]
+    #[OA\Response(response: 422, description: 'Donnees invalides.')]
     #[Route('/items/{itemId}', name: 'update', methods: ['PATCH'], requirements: ['itemId' => '\\d+'])]
     public function update(
         int $itemId,
@@ -300,7 +300,7 @@ final class ItemController extends AbstractController
         }
 
         if (!$this->isGranted(ItemVoter::EDIT, $item)) {
-            return $this->json(['message' => 'Acc?s interdit.'], Response::HTTP_FORBIDDEN);
+            return $this->json(['message' => 'Acces interdit.'], Response::HTTP_FORBIDDEN);
         }
 
         $requestData = $this->decodeJsonRequest($request);
@@ -329,7 +329,7 @@ final class ItemController extends AbstractController
         }
 
         if ($errors !== []) {
-            return $this->json(['message' => 'Les donn?es fournies sont invalides.', 'errors' => $errors], Response::HTTP_UNPROCESSABLE_ENTITY);
+            return $this->json(['message' => 'Les donnees fournies sont invalides.', 'errors' => $errors], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         $item
@@ -352,17 +352,17 @@ final class ItemController extends AbstractController
 
     #[OA\Delete(
         path: '/api/items/{itemId}',
-        summary: 'Supprime un ?l?ment.',
+        summary: 'Supprime un element.',
         security: [['Bearer' => []]],
-        tags: ['Ã‰l?ments'],
+        tags: ['Elements'],
         parameters: [
             new OA\Parameter(name: 'itemId', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
         ]
     )]
-    #[OA\Response(response: 200, description: 'Ã‰l?ment supprim?.')]
+    #[OA\Response(response: 200, description: 'Element supprime.')]
     #[OA\Response(response: 401, description: 'Authentification requise.')]
-    #[OA\Response(response: 403, description: 'Acc?s interdit.')]
-    #[OA\Response(response: 404, description: 'Ã‰l?ment introuvable.')]
+    #[OA\Response(response: 403, description: 'Acces interdit.')]
+    #[OA\Response(response: 404, description: 'Element introuvable.')]
     #[Route('/items/{itemId}', name: 'delete', methods: ['DELETE'], requirements: ['itemId' => '\\d+'])]
     public function delete(int $itemId, #[CurrentUser] ?User $authenticatedUser, VaultItemRepository $vaultItemRepository, EntityManagerInterface $entityManager): JsonResponse
     {
@@ -373,13 +373,13 @@ final class ItemController extends AbstractController
         }
 
         if (!$this->isGranted(ItemVoter::DELETE, $item)) {
-            return $this->json(['message' => 'Acc?s interdit.'], Response::HTTP_FORBIDDEN);
+            return $this->json(['message' => 'Acces interdit.'], Response::HTTP_FORBIDDEN);
         }
 
         $entityManager->remove($item);
         $entityManager->flush();
 
-        return $this->json(['message' => 'Ã‰l?ment supprim?.']);
+        return $this->json(['message' => 'Element supprime.']);
     }
 
     private function resolveVault(int $vaultId, ?User $authenticatedUser, VaultRepository $vaultRepository): Vault|JsonResponse
@@ -406,7 +406,7 @@ final class ItemController extends AbstractController
         $item = $vaultItemRepository->find($itemId);
 
         if (!$item instanceof VaultItem) {
-            return $this->json(['message' => 'Ã‰l?ment introuvable.'], Response::HTTP_NOT_FOUND);
+            return $this->json(['message' => 'Element introuvable.'], Response::HTTP_NOT_FOUND);
         }
 
         return $item;
@@ -417,7 +417,7 @@ final class ItemController extends AbstractController
         $requestContent = $request->getContent();
 
         if ($requestContent === '') {
-            return new JsonResponse(['message' => 'Le corps de la requ?te JSON est requis.'], Response::HTTP_BAD_REQUEST);
+            return new JsonResponse(['message' => 'Le corps de la requete JSON est requis.'], Response::HTTP_BAD_REQUEST);
         }
 
         try {
@@ -427,7 +427,7 @@ final class ItemController extends AbstractController
         }
 
         if (!is_array($decodedRequestData)) {
-            return new JsonResponse(['message' => 'Le corps de la requ?te doit ?tre un objet JSON.'], Response::HTTP_BAD_REQUEST);
+            return new JsonResponse(['message' => 'Le corps de la requete doit etre un objet JSON.'], Response::HTTP_BAD_REQUEST);
         }
 
         return $decodedRequestData;
@@ -467,7 +467,7 @@ final class ItemController extends AbstractController
             $label = is_string($fieldData['label'] ?? null) ? trim($fieldData['label']) : '';
 
             if ($label === '') {
-                $errors[sprintf('customFields.%d.label', $index)][] = 'Le libell? du champ personnalis? est obligatoire.';
+                $errors[sprintf('customFields.%d.label', $index)][] = 'Le libelle du champ personnalise est obligatoire.';
             }
         }
     }
@@ -523,18 +523,18 @@ final class ItemController extends AbstractController
             $userId = isset($permissionData['userId']) ? (int) $permissionData['userId'] : 0;
 
             if ($userId <= 0) {
-                $errors[sprintf('itemPermissions.%d.userId', $index)][] = 'Le membre cibl? est obligatoire.';
+                $errors[sprintf('itemPermissions.%d.userId', $index)][] = 'Le membre cible est obligatoire.';
                 continue;
             }
 
             if (in_array($userId, $seenUserIds, true)) {
-                $errors[sprintf('itemPermissions.%d.userId', $index)][] = 'Ce membre est d?j? pr?sent dans les permissions fines.';
+                $errors[sprintf('itemPermissions.%d.userId', $index)][] = 'Ce membre est deja present dans les permissions fines.';
             }
 
             $seenUserIds[] = $userId;
 
             if (!in_array($userId, $availableMemberIds, true)) {
-                $errors[sprintf('itemPermissions.%d.userId', $index)][] = 'Ce membre ne peut pas recevoir de droits fins sur cet ?l?ment.';
+                $errors[sprintf('itemPermissions.%d.userId', $index)][] = 'Ce membre ne peut pas recevoir de droits fins sur cet element.';
             }
         }
     }
@@ -573,7 +573,7 @@ final class ItemController extends AbstractController
             $canManageAttachments = (bool) ($permissionData['canManageAttachments'] ?? false);
             $canRevealSecret = (bool) ($permissionData['canRevealSecret'] ?? true);
 
-            // Les droits avanc?s restent toujours rattach?s ? la lecture de l??l?ment.
+            // Les droits avances restent toujours rattaches a la lecture de l'element.
             if ($canEdit || $canManageAttachments || $canRevealSecret) {
                 $canView = true;
             }
@@ -607,14 +607,14 @@ final class ItemController extends AbstractController
     private function buildItemPayload(VaultItem $item, bool $includeSecret): array
     {
         $decryptedSecret = $this->secretCipher->decrypt($item->getSecret());
-        // Le secret brut n'est renvoy? qu'en lecture explicite et seulement pour un item non sensible.
+        // Le secret brut n'est renvoye qu'en lecture explicite et seulement pour un item non sensible.
         $shouldExposeSecret = $includeSecret && !$item->isSensitive() && $decryptedSecret !== null;
         $vault = $item->getVault();
         $ownerId = $vault?->getOwner()?->getId();
         $memberOptions = [];
 
         foreach ($vault?->getMembers() ?? [] as $member) {
-            // Le propri?taire n'a pas de permission fine d?di?e.
+            // Le proprietaire n'a pas de permission fine dediee.
             if ($member->getUser()?->getId() === $ownerId) {
                 continue;
             }
@@ -691,5 +691,4 @@ final class ItemController extends AbstractController
         ];
     }
 }
-
 

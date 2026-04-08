@@ -14,7 +14,13 @@ async function requestJson(path, options = {}) {
   })
 
   const responseText = await response.text()
-  const responseData = responseText !== '' ? JSON.parse(responseText) : null
+  let responseData = null
+
+  try {
+    responseData = responseText !== '' ? JSON.parse(responseText) : null
+  } catch {
+    responseData = null
+  }
 
   if (!response.ok) {
     if (response.status === 401 && typeof onUnauthorizedResponse === 'function') {
@@ -92,6 +98,16 @@ export function fetchAuthenticatedUser(token) {
     headers: {
       Authorization: `Bearer ${token}`,
     },
+  })
+}
+
+export function verifyUserPin(token, pin) {
+  return requestJson('/api/me/verify-pin', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ pin }),
   })
 }
 

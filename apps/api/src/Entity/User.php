@@ -324,3 +324,4 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $trimmedValue !== '' ? $trimmedValue : null;
     }
 }
+

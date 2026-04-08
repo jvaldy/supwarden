@@ -38,4 +38,29 @@ class VaultRepository extends ServiceEntityRepository
 
         return $queryBuilder->getQuery()->getResult();
     }
+
+    public function findOwnedVaultByName(User $owner, string $name): ?Vault
+    {
+        return $this->createQueryBuilder('vault')
+            ->where('vault.owner = :owner')
+            ->andWhere('LOWER(vault.name) = :name')
+            ->setParameter('owner', $owner)
+            ->setParameter('name', mb_strtolower(trim($name)))
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+    /**
+     * @return list<Vault>
+     */
+    public function findOwnedVaultsForUser(User $owner): array
+    {
+        return $this->createQueryBuilder('vault')
+            ->where('vault.owner = :owner')
+            ->setParameter('owner', $owner)
+            ->orderBy('vault.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
 }
+

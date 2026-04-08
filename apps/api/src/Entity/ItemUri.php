@@ -23,13 +23,13 @@ class ItemUri
     private ?VaultItem $item = null;
 
     #[ORM\Column(length: 120, nullable: true)]
-    #[Assert\Length(max: 120, maxMessage: 'Le libell? de l?URI ne peut pas d?passer 120 caract?res.')]
+    #[Assert\Length(max: 120, maxMessage: "Le libelle de l'URI ne peut pas depasser 120 caracteres.")]
     private ?string $label = null;
 
     #[ORM\Column(length: 2048)]
-    #[Assert\NotBlank(message: 'L?URL est obligatoire.')]
-    #[Assert\Url(message: 'L?URL saisie est invalide.')]
-    #[Assert\Length(max: 2048, maxMessage: 'L?URL ne peut pas d?passer 2048 caract?res.')]
+    #[Assert\NotBlank(message: "L'URL est obligatoire.")]
+    #[Assert\Url(message: "L'URL saisie est invalide.")]
+    #[Assert\Length(max: 2048, maxMessage: "L'URL ne peut pas depasser 2048 caracteres.")]
     private string $uri = '';
 
     #[ORM\Column]
@@ -87,3 +87,4 @@ class ItemUri
         return $this->createdAt;
     }
 }
+

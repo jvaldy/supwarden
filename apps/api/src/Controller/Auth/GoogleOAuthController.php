@@ -6,8 +6,8 @@ use App\Entity\OAuthAccount;
 use App\Entity\User;
 use App\Repository\OAuthAccountRepository;
 use App\Repository\UserRepository;
-use App\Security\Token\BearerTokenManager;
 use App\Security\OAuth\GoogleOAuthClientInterface;
+use App\Security\Token\BearerTokenManager;
 use Doctrine\ORM\EntityManagerInterface;
 use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -26,12 +26,12 @@ final class GoogleOAuthController extends AbstractController
 
     #[OA\Get(
         path: '/api/auth/oauth/google/redirect',
-        summary: 'Redirige vers Google pour d?marrer l?authentification OAuth2.',
+        summary: "Redirige vers Google pour démarrer l'authentification OAuth2.",
         tags: ['Authentification']
     )]
     #[OA\Response(response: 302, description: 'Redirection vers Google.')]
     #[Route('/redirect', name: 'redirect', methods: ['GET'])]
-    // Pr?pare l'?tat OAuth puis d?l?gue l'authentification ? Google.
+    // Prépare l'état OAuth puis délègue l'authentification à Google.
     public function redirectToGoogle(Request $request, GoogleOAuthClientInterface $googleOAuthClient): RedirectResponse
     {
         $session = $request->getSession();
@@ -48,9 +48,9 @@ final class GoogleOAuthController extends AbstractController
         summary: 'Finalise le retour Google et redirige le frontend.',
         tags: ['Authentification']
     )]
-    #[OA\Response(response: 302, description: 'Redirection vers le frontend avec le r?sultat OAuth.')]
+    #[OA\Response(response: 302, description: 'Redirection vers le frontend avec le résultat OAuth.')]
     #[Route('/callback', name: 'callback', methods: ['GET'])]
-    // Traite le retour Google et d?cide entre connexion directe ou confirmation pr?alable.
+    // Traite le retour Google et décide entre connexion directe ou confirmation préalable.
     public function handleGoogleCallback(
         Request $request,
         GoogleOAuthClientInterface $googleOAuthClient,
@@ -74,7 +74,7 @@ final class GoogleOAuthController extends AbstractController
 
         if ($request->query->has('error')) {
             return $this->redirect($googleOAuthClient->buildFrontendRedirectUrl([
-                'error' => 'Connexion Google annul?e ou refus?e.',
+                'error' => 'Connexion Google annulée ou refusée.',
             ]));
         }
 
@@ -96,7 +96,7 @@ final class GoogleOAuthController extends AbstractController
 
         if (!$providerIdentity->emailVerified) {
             return $this->redirect($googleOAuthClient->buildFrontendRedirectUrl([
-                'error' => 'Le compte Google doit avoir une adresse e-mail v?rifi?e.',
+                'error' => 'Le compte Google doit avoir une adresse e-mail vérifiée.',
             ]));
         }
 
@@ -146,13 +146,13 @@ final class GoogleOAuthController extends AbstractController
 
     #[OA\Post(
         path: '/api/auth/oauth/google/confirm',
-        summary: 'Confirme la cr?ation ou la liaison du compte local apr?s retour Google.',
+        summary: 'Confirme la création ou la liaison du compte local après retour Google.',
         tags: ['Authentification']
     )]
-    #[OA\Response(response: 200, description: 'Compte local confirm? et session ouverte.')]
+    #[OA\Response(response: 200, description: 'Compte local confirmé et session ouverte.')]
     #[OA\Response(response: 400, description: 'Aucune confirmation OAuth en attente.')]
     #[Route('/confirm', name: 'confirm', methods: ['POST'])]
-    // Cr?e ou lie le compte local apr?s validation explicite du retour OAuth.
+    // Crée ou lie le compte local après validation explicite du retour OAuth.
     public function confirmGoogleAccount(
         Request $request,
         UserRepository $userRepository,
@@ -182,7 +182,7 @@ final class GoogleOAuthController extends AbstractController
 
         if ($provider === '' || $providerUserId === '' || $providerEmail === '') {
             return $this->json([
-                'message' => 'Les informations Google en attente sont incompl?tes.',
+                'message' => 'Les informations Google en attente sont incomplètes.',
             ], 400);
         }
 
@@ -211,7 +211,7 @@ final class GoogleOAuthController extends AbstractController
                 ->setIsActive(true)
                 ->setHasLocalPassword(false);
 
-            // Le mot de passe local reste inutilisable tant qu'aucun flux d?di? ne l'a d?fini.
+            // Le mot de passe local reste inutilisable tant qu'aucun flux dédié ne l'a défini.
             $generatedPassword = bin2hex(random_bytes(32));
             $user->setPassword($passwordHasher->hashPassword($user, $generatedPassword));
             $entityManager->persist($user);
@@ -233,3 +233,4 @@ final class GoogleOAuthController extends AbstractController
         ]);
     }
 }
+

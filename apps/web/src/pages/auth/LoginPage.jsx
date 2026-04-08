@@ -22,7 +22,17 @@ export function LoginPage({ navigate }) {
 
       navigate('/dashboard')
     } catch (error) {
-      setFormError(error.responseData?.message ?? 'Connexion impossible pour le moment.')
+      if (error?.responseData?.message) {
+        setFormError(error.responseData.message)
+        return
+      }
+
+      if (error?.status === 401) {
+        setFormError('Identifiants invalides.')
+        return
+      }
+
+      setFormError('Connexion impossible pour le moment.')
     } finally {
       setIsSubmitting(false)
     }

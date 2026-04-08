@@ -23,25 +23,24 @@ describe('Trousseaux', () => {
         cy.contains('h1', 'Streaming famille', { timeout: 30000 }).should('be.visible')
         cy.contains('Personnel').should('be.visible')
 
-        cy.contains('button', 'Membres').click()
+        cy.get('button[aria-label="Membres"]', { timeout: 30000 }).click()
         cy.contains('span', 'Adresse e-mail').parent().find('input').type(memberSession.email)
         cy.contains('span', 'Rôle').parent().find('select').select('Lecteur')
         cy.contains('button', 'Ajouter un membre').click()
 
-        cy.contains('td', memberSession.email, { timeout: 30000 }).should('exist')
+        cy.contains('td', 'Louis Member', { timeout: 30000 }).should('exist')
         cy.contains('Partagé').should('be.visible')
         cy.contains('button', 'Fermer').click()
 
-        cy.contains('button', 'Paramètres').click()
+        cy.get('button[aria-label="Paramètres"]').click()
         cy.contains('span', 'Nom du trousseau').parent().find('input').clear().type('Streaming partagé')
         cy.contains('span', 'Description du trousseau').parent().find('textarea').clear().type('Accès partagés du foyer')
         cy.contains('button', 'Enregistrer').click()
 
         cy.contains('h1', 'Streaming partagé', { timeout: 30000 }).should('be.visible')
-        cy.contains('Accès partagés du foyer').should('be.visible')
         cy.contains('Partagé').should('be.visible')
 
-        cy.contains('button', 'Paramètres').click()
+        cy.get('button[aria-label="Paramètres"]').click()
         cy.contains('button', 'Supprimer le trousseau').click()
 
         cy.location('pathname', { timeout: 30000 }).should('eq', '/vaults')

@@ -22,8 +22,8 @@ class UpdateProfileInput
     #[Assert\Length(
         min: 10,
         max: 255,
-        minMessage: 'Le nouveau mot de passe doit contenir au moins {{ limit }} caract?res.',
-        maxMessage: 'Le nouveau mot de passe ne peut pas d?passer {{ limit }} caract?res.'
+        minMessage: 'Le nouveau mot de passe doit contenir au moins {{ limit }} caracteres.',
+        maxMessage: 'Le nouveau mot de passe ne peut pas depasser {{ limit }} caracteres.'
     )]
     public ?string $newPassword = null;
 
@@ -41,3 +41,4 @@ class UpdateProfileInput
     )]
     public ?string $newPin = null;
 }
+

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller\System;
 
 use OpenApi\Attributes as OA;
@@ -10,12 +12,12 @@ final class HealthController
 {
     #[OA\Get(
         path: '/api/health',
-        summary: 'V?rifie que l?API r?pond.',
-        tags: ['Sant?']
+        summary: "Verifie que l'API repond.",
+        tags: ['Sante']
     )]
     #[OA\Response(
         response: 200,
-        description: 'Ã‰tat courant de l?API et de ses services principaux.',
+        description: "Etat courant de l'API et de ses services principaux.",
         content: new OA\JsonContent(
             properties: [
                 new OA\Property(property: 'application', type: 'string', example: 'supwarden'),

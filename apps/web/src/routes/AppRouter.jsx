@@ -35,13 +35,13 @@ export function AppRouter() {
       return
     }
 
-    // Bloque l'accès direct aux pages privées sans session valide.
+    // Bloque l'accÃ¨s direct aux pages privÃ©es sans session valide.
     if (isPrivatePath(path) && !isAuthenticated) {
       navigateToPath('/connexion', setPath)
       return
     }
 
-    // Évite de laisser un utilisateur connecté sur les pages d'entrée.
+    // Ã‰vite de laisser un utilisateur connectÃ© sur les pages d'entrÃ©e.
     if (guestOnlyPaths.has(path) && isAuthenticated) {
       navigateToPath('/dashboard', setPath)
     }
@@ -50,7 +50,7 @@ export function AppRouter() {
   const navigate = (targetPath) => {
     const nextPath = normalizePath(targetPath)
 
-    // Garde les mêmes règles d'accès sur navigation interne et URL saisie à la main.
+    // Garde les mÃªmes rÃ¨gles d'accÃ¨s sur navigation interne et URL saisie Ã  la main.
     if (isPrivatePath(nextPath) && !isAuthenticated && !isSessionLoading) {
       navigateToPath('/connexion', setPath)
       return
@@ -76,7 +76,7 @@ export function AppRouter() {
   )
 }
 
-// Rend la bonne page en fonction de l'URL courante et de l'état de session.
+// Rend la bonne page en fonction de l'URL courante et de l'Ã©tat de session.
 function renderPage({ path, navigate, isAuthenticated, isSessionLoading }) {
   const vaultRoute = matchVaultRoute(path)
   const itemRoute = matchItemRoute(path)
@@ -140,7 +140,7 @@ function renderPage({ path, navigate, isAuthenticated, isSessionLoading }) {
         return <PageStatus message="Redirection vers la connexion..." />
       }
 
-      return <DashboardPage />
+      return <DashboardPage navigate={navigate} />
     case '/inscription':
       return <RegisterPage navigate={navigate} />
     case '/oauth/callback':
@@ -160,7 +160,7 @@ function renderPage({ path, navigate, isAuthenticated, isSessionLoading }) {
   }
 }
 
-// Affiche un état transitoire simple pendant les redirections ou restaurations.
+// Affiche un Ã©tat transitoire simple pendant les redirections ou restaurations.
 function PageStatus({ message }) {
   return (
     <section className="auth-shell">
@@ -171,7 +171,7 @@ function PageStatus({ message }) {
   )
 }
 
-// Détecte les routes vault sans dépendre d'une librairie de routing externe.
+// DÃ©tecte les routes vault sans dÃ©pendre d'une librairie de routing externe.
 function matchVaultRoute(path) {
   if (path === '/vaults') {
     return { kind: 'list' }
@@ -226,7 +226,7 @@ function matchItemRoute(path) {
   return null
 }
 
-// Synchronise l'URL du navigateur avec l'état interne du routeur.
+// Synchronise l'URL du navigateur avec l'Ã©tat interne du routeur.
 function navigateToPath(path, setPath) {
   if (path !== window.location.pathname) {
     window.history.pushState({}, '', path)
@@ -235,7 +235,7 @@ function navigateToPath(path, setPath) {
   setPath(path)
 }
 
-// Évite les variations d'URL qui casseraient les comparaisons de routes.
+// Ã‰vite les variations d'URL qui casseraient les comparaisons de routes.
 function normalizePath(value) {
   const trimmed = value.replace(/\/+$/, '')
   return trimmed || '/'

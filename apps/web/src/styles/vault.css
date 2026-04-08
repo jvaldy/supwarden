@@ -1,4 +1,4 @@
-﻿.vault-shell,
+.vault-shell,
 .vault-form-shell {
   width: min(100%, 1200px);
   margin: 0 auto;
@@ -46,6 +46,20 @@
 
 .vault-actions-row {
   align-content: start;
+}
+
+.vault-action-icon-button {
+  width: 3rem;
+  min-width: 3rem;
+  padding-inline: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vault-action-icon-button svg {
+  width: 1.05rem;
+  height: 1.05rem;
 }
 
 .vault-list-main {
@@ -342,6 +356,16 @@
   min-width: 4.9rem;
   min-height: 2.2rem;
   padding: 0.35rem 0.7rem;
+}
+
+.vault-list-footer-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.vault-list-footer-inline .vault-list-action {
+  width: fit-content;
 }
 
 .vault-card .item-section-header {
@@ -956,6 +980,11 @@
     width: 100%;
   }
 
+  .vault-actions-row .vault-action-icon-button {
+    width: 100%;
+    min-width: 0;
+  }
+
   .vault-meta-strip {
     gap: 0.4rem;
   }
@@ -1267,8 +1296,14 @@
     column-gap: var(--space-5);
   }
 
+  .vault-list-header-row {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+  }
+
   .vault-actions-row {
     grid-auto-flow: column;
+    grid-auto-columns: max-content;
+    justify-content: end;
     align-content: start;
   }
 
@@ -1288,9 +1323,10 @@
   }
 
   .vault-list-footer {
-    grid-template-columns: auto;
+    display: inline-flex;
     align-items: center;
-    justify-content: end;
+    justify-content: flex-end;
+    gap: 0.5rem;
   }
 
   .modal-card {

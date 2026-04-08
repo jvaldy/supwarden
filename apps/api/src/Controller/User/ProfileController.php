@@ -24,7 +24,7 @@ final class ProfileController extends AbstractController
 {
     #[OA\Patch(
         path: '/api/me',
-        summary: 'Met ? jour le profil de l?utilisateur connect?.',
+        summary: "Met à jour le profil de l'utilisateur connecté.",
         security: [['Bearer' => []]],
         tags: ['Utilisateur'],
         requestBody: new OA\RequestBody(
@@ -43,11 +43,11 @@ final class ProfileController extends AbstractController
             )
         )
     )]
-    #[OA\Response(response: 200, description: 'Profil mis ? jour.')]
+    #[OA\Response(response: 200, description: 'Profil mis à jour.')]
     #[OA\Response(response: 401, description: 'Authentification requise.')]
-    #[OA\Response(response: 422, description: 'Les donn?es envoy?es sont invalides.')]
+    #[OA\Response(response: 422, description: 'Les données envoyées sont invalides.')]
     #[Route('/api/me', name: 'api_me_update', methods: ['PATCH'])]
-    // Centralise les mises ? jour de profil, mot de passe et PIN pour l'utilisateur courant.
+    // Centralise les mises à jour de profil, mot de passe et PIN pour l'utilisateur courant.
     public function update(
         Request $request,
         #[CurrentUser] ?User $authenticatedUser,
@@ -87,7 +87,7 @@ final class ProfileController extends AbstractController
 
         if ($validationErrors !== []) {
             return $this->json([
-                'message' => 'Les donn?es fournies sont invalides.',
+                'message' => 'Les données fournies sont invalides.',
                 'errors' => $validationErrors,
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
@@ -107,7 +107,7 @@ final class ProfileController extends AbstractController
         $newToken = null;
 
         if ($updateProfileInput->newPassword !== null) {
-            // N'applique le nouveau mot de passe qu'apr?s contr?le du mot de passe actuel.
+            // N'applique le nouveau mot de passe qu'après contrôle du mot de passe actuel.
             $authenticatedUser->setPassword(
                 $passwordHasher->hashPassword($authenticatedUser, $updateProfileInput->newPassword)
             );
@@ -117,7 +117,7 @@ final class ProfileController extends AbstractController
         }
 
         if ($updateProfileInput->newPin !== null) {
-            // Le PIN reste stock? sous forme hach?e, comme le mot de passe principal.
+            // Le PIN reste stocké sous forme hachée, comme le mot de passe principal.
             $authenticatedUser
                 ->setPinHash(password_hash($updateProfileInput->newPin, PASSWORD_ARGON2ID))
                 ->setHasPin(true);
@@ -133,7 +133,7 @@ final class ProfileController extends AbstractController
 
     #[OA\Delete(
         path: '/api/me',
-        summary: 'Supprime le compte de l?utilisateur connect?.',
+        summary: "Supprime le compte de l'utilisateur connecté.",
         security: [['Bearer' => []]],
         tags: ['Utilisateur'],
         requestBody: new OA\RequestBody(
@@ -148,11 +148,11 @@ final class ProfileController extends AbstractController
             )
         )
     )]
-    #[OA\Response(response: 200, description: 'Compte supprim?.')]
+    #[OA\Response(response: 200, description: 'Compte supprimé.')]
     #[OA\Response(response: 401, description: 'Authentification requise.')]
-    #[OA\Response(response: 422, description: 'Les donn?es envoy?es sont invalides.')]
+    #[OA\Response(response: 422, description: 'Les données envoyées sont invalides.')]
     #[Route('/api/me', name: 'api_me_delete', methods: ['DELETE'])]
-    // Supprime le compte apr?s une confirmation explicite et un contr?le du mot de passe.
+    // Supprime le compte après une confirmation explicite et un contrôle du mot de passe.
     public function delete(
         Request $request,
         #[CurrentUser] ?User $authenticatedUser,
@@ -184,7 +184,7 @@ final class ProfileController extends AbstractController
 
         if ($validationErrors !== []) {
             return $this->json([
-                'message' => 'Les donn?es fournies sont invalides.',
+                'message' => 'Les données fournies sont invalides.',
                 'errors' => $validationErrors,
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
@@ -194,21 +194,21 @@ final class ProfileController extends AbstractController
         $entityManager->flush();
 
         return $this->json([
-            'message' => 'Votre compte a bien ?t? supprim?.',
+            'message' => 'Votre compte a bien été supprimé.',
         ]);
     }
 
     /**
      * @return array<string, mixed>|JsonResponse
      */
-    // Normalise le d?codage JSON pour les deux endpoints du profil.
+    // Normalise le décodage JSON pour les deux endpoints du profil.
     private function decodeJsonRequest(Request $request): array|JsonResponse
     {
         $requestContent = $request->getContent();
 
         if ($requestContent === '') {
             return new JsonResponse([
-                'message' => 'Le corps de la requ?te JSON est requis.',
+                'message' => 'Le corps de la requête JSON est requis.',
             ], Response::HTTP_BAD_REQUEST);
         }
 
@@ -222,7 +222,7 @@ final class ProfileController extends AbstractController
 
         if (!is_array($decodedRequestData)) {
             return new JsonResponse([
-                'message' => 'Le corps de la requ?te doit ?tre un objet JSON.',
+                'message' => 'Le corps de la requête doit être un objet JSON.',
             ], Response::HTTP_BAD_REQUEST);
         }
 
@@ -232,7 +232,7 @@ final class ProfileController extends AbstractController
     /**
      * @param array<string, list<string>> $validationErrors
      */
-    // Emp?che le changement d'adresse vers un e-mail d?j? port? par un autre compte.
+    // Empêche le changement d'adresse vers un e-mail déjà porté par un autre compte.
     private function validateEmailUpdate(
         UpdateProfileInput $updateProfileInput,
         User $authenticatedUser,
@@ -246,21 +246,21 @@ final class ProfileController extends AbstractController
         $normalizedEmail = mb_strtolower(trim($updateProfileInput->email));
 
         if ($normalizedEmail === '') {
-            $validationErrors['email'][] = 'L?adresse e-mail est obligatoire.';
+            $validationErrors['email'][] = "L'adresse e-mail est obligatoire.";
             return;
         }
 
         $existingUser = $userRepository->findOneByEmail($normalizedEmail);
 
         if ($existingUser !== null && $existingUser->getId() !== $authenticatedUser->getId()) {
-            $validationErrors['email'][] = 'Cette adresse e-mail est d?j? utilis?e.';
+            $validationErrors['email'][] = 'Cette adresse e-mail est déjà utilisée.';
         }
     }
 
     /**
      * @param array<string, list<string>> $validationErrors
      */
-    // Distingue la d?finition initiale du mot de passe et sa modification classique.
+    // Distingue la définition initiale du mot de passe et sa modification classique.
     private function validatePasswordUpdate(
         UpdateProfileInput $updateProfileInput,
         User $authenticatedUser,
@@ -295,7 +295,7 @@ final class ProfileController extends AbstractController
     /**
      * @param array<string, list<string>> $validationErrors
      */
-    // V?rifie uniquement la pr?sence du nouveau PIN demand? par l'interface.
+    // Vérifie uniquement la présence du nouveau PIN demandé par l'interface.
     private function validatePinUpdate(
         UpdateProfileInput $updateProfileInput,
         ?string $pinCurrentPassword,
@@ -341,7 +341,7 @@ final class ProfileController extends AbstractController
     // Regroupe les erreurs par champ pour simplifier le rendu dans les formulaires.
     private function formatViolations(iterable $constraintViolations): array
     {
-        // Regroupe les erreurs par champ pour l'affichage c?t? interface.
+        // Regroupe les erreurs par champ pour l'affichage côté interface.
         $validationErrors = [];
 
         foreach ($constraintViolations as $constraintViolation) {
@@ -352,3 +352,4 @@ final class ProfileController extends AbstractController
         return $validationErrors;
     }
 }
+
