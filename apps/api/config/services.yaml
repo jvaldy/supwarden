@@ -10,6 +10,9 @@ parameters:
     app.google_oauth_redirect_uri: '%env(GOOGLE_OAUTH_REDIRECT_URI)%'
     app.google_oauth_frontend_callback_url: '%env(GOOGLE_OAUTH_FRONTEND_CALLBACK_URL)%'
     app.item_attachment_directory: '%kernel.project_dir%/var/uploads/item-attachments'
+    app.mercure_url: '%env(MERCURE_URL)%'
+    app.mercure_public_url: '%env(MERCURE_PUBLIC_URL)%'
+    app.mercure_jwt_secret: '%env(MERCURE_JWT_SECRET)%'
 
 services:
     # default configuration for services in *this* file
@@ -55,3 +58,17 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+
+
+    App\Service\Notification\NotificationTopicResolver:
+        arguments:
+            $appSecret: '%env(APP_SECRET)%'
+
+    App\Service\Notification\NotificationMercurePublisher:
+        arguments:
+            $mercureUrl: '%app.mercure_url%'
+            $mercureJwtSecret: '%app.mercure_jwt_secret%'
+
+    App\Controller\Notification\NotificationController:
+        arguments:
+            $mercurePublicUrl: '%app.mercure_public_url%'

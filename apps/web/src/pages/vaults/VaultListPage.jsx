@@ -4,6 +4,7 @@ import { exportDataFile, exportVaultDataFile, importDataFile } from '../../servi
 import { verifyUserPin } from '../../services/api/authApi.js'
 import { useSecretUnlockSession } from '../../hooks/useSecretUnlockSession.js'
 import { fetchVaults } from '../../services/api/vaultApi.js'
+import { useMessageNotifications } from '../../hooks/useMessageNotifications.js'
 
 export function VaultListPage({ navigate }) {
   const { token } = useAuth()
@@ -21,6 +22,7 @@ export function VaultListPage({ navigate }) {
   const [importErrors, setImportErrors] = useState([])
   const [isImporting, setIsImporting] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
+  const { vaultUnreadCountsById } = useMessageNotifications(token)
 
   useEffect(() => {
     let isCancelled = false
@@ -53,6 +55,7 @@ export function VaultListPage({ navigate }) {
       isCancelled = true
     }
   }, [searchQuery, token])
+
 
   const vaultCountLabel = useMemo(() => {
     if (vaults.length <= 1) return `${vaults.length} trousseau`
@@ -186,6 +189,12 @@ export function VaultListPage({ navigate }) {
                   <div className="vault-list-main">
                     <div className="vault-list-heading">
                       <h2>{vault.name}</h2>
+                      {((vaultUnreadCountsById[vault.id] ?? vault.unreadMessageCount ?? 0) > 0) ? (
+                        <span className="badge badge-success vault-unread-badge notification-badge-with-icon" title="Nouveaux messages du trousseau">
+                          <MessageIcon />
+                          <span>{(vaultUnreadCountsById[vault.id] ?? vault.unreadMessageCount ?? 0) > 99 ? '99+' : (vaultUnreadCountsById[vault.id] ?? vault.unreadMessageCount ?? 0)}</span>
+                        </span>
+                      ) : null}
                     </div>
 
                     <div className="vault-list-summary" aria-label="résumé du trousseau">
@@ -273,4 +282,15 @@ function formatRole(role) {
     default:
       return 'Accès non défini'
   }
+}
+
+
+function MessageIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M5 6.5h14A1.5 1.5 0 0 1 20.5 8v8A1.5 1.5 0 0 1 19 17.5H8l-4.5 3V8A1.5 1.5 0 0 1 5 6.5Z" />
+      <path d="M8 10h8" />
+      <path d="M8 13h5" />
+    </svg>
+  )
 }

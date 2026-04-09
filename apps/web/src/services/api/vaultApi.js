@@ -1,6 +1,6 @@
 const apiBaseUrl = import.meta.env.VITE_API_URL ?? import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
 
-// Regroupe les appels HTTP liés aux trousseaux et à leurs membres.
+// Regroupe les appels HTTP liï¿½s aux trousseaux et ï¿½ leurs membres.
 async function requestVaultJson(path, token, options = {}) {
   const response = await fetch(`${apiBaseUrl}${path}`, {
     headers: {
@@ -30,7 +30,7 @@ export function fetchVaults(token, searchQuery = '') {
   return requestVaultJson(`/api/vaults${searchSuffix}`, token)
 }
 
-// Crée un nouveau trousseau, toujours personnel à l'origine.
+// Crï¿½e un nouveau trousseau, toujours personnel ï¿½ l'origine.
 export function createVault(token, vaultData) {
   return requestVaultJson('/api/vaults', token, {
     method: 'POST',
@@ -38,12 +38,12 @@ export function createVault(token, vaultData) {
   })
 }
 
-// Récupère le détail complet d'un trousseau et de ses membres.
+// Rï¿½cupï¿½re le dï¿½tail complet d'un trousseau et de ses membres.
 export function fetchVault(token, vaultId) {
   return requestVaultJson(`/api/vaults/${vaultId}`, token)
 }
 
-// Met à jour les métadonnées d'un trousseau existant.
+// Met ï¿½ jour les mï¿½tadonnï¿½es d'un trousseau existant.
 export function updateVault(token, vaultId, vaultData) {
   return requestVaultJson(`/api/vaults/${vaultId}`, token, {
     method: 'PATCH',
@@ -51,7 +51,7 @@ export function updateVault(token, vaultId, vaultData) {
   })
 }
 
-// Supprime définitivement un trousseau autorisé.
+// Supprime dï¿½finitivement un trousseau autorisï¿½.
 export function deleteVault(token, vaultId) {
   return requestVaultJson(`/api/vaults/${vaultId}`, token, {
     method: 'DELETE',
@@ -63,7 +63,7 @@ export function fetchVaultMembers(token, vaultId) {
   return requestVaultJson(`/api/vaults/${vaultId}/members`, token)
 }
 
-// Ajoute un membre existant à un trousseau.
+// Ajoute un membre existant ï¿½ un trousseau.
 export function addVaultMember(token, vaultId, memberData) {
   return requestVaultJson(`/api/vaults/${vaultId}/members`, token, {
     method: 'POST',
@@ -71,7 +71,7 @@ export function addVaultMember(token, vaultId, memberData) {
   })
 }
 
-// Met à jour le rôle d'un membre déjà présent dans le trousseau.
+// Met ï¿½ jour le rï¿½le d'un membre dï¿½jï¿½ prï¿½sent dans le trousseau.
 export function updateVaultMember(token, vaultId, memberId, memberData) {
   return requestVaultJson(`/api/vaults/${vaultId}/members/${memberId}`, token, {
     method: 'PATCH',
