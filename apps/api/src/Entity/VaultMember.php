@@ -13,6 +13,7 @@ use Doctrine\ORM\Mapping as ORM;
     indexes: [
         new ORM\Index(name: 'idx_vault_member_vault_id', columns: ['vault_id']),
         new ORM\Index(name: 'idx_vault_member_user_id', columns: ['user_id']),
+        new ORM\Index(name: 'idx_vault_member_last_chat_read_at', columns: ['last_chat_read_at']),
     ]
 )]
 class VaultMember
@@ -36,9 +37,14 @@ class VaultMember
     #[ORM\Column]
     private \DateTimeImmutable $createdAt;
 
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $lastChatReadAt = null;
+
     public function __construct()
     {
-        $this->createdAt = new \DateTimeImmutable();
+        $now = new \DateTimeImmutable();
+        $this->createdAt = $now;
+        $this->lastChatReadAt = $now;
     }
 
     public function getId(): ?int
@@ -85,5 +91,24 @@ class VaultMember
     public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
+    }
+
+    public function getLastChatReadAt(): ?\DateTimeImmutable
+    {
+        return $this->lastChatReadAt;
+    }
+
+    public function setLastChatReadAt(?\DateTimeImmutable $lastChatReadAt): self
+    {
+        $this->lastChatReadAt = $lastChatReadAt;
+
+        return $this;
+    }
+
+    public function markChatAsRead(?\DateTimeImmutable $readAt = null): self
+    {
+        $this->lastChatReadAt = $readAt ?? new \DateTimeImmutable();
+
+        return $this;
     }
 }

@@ -10,6 +10,8 @@ use App\Entity\User;
 use App\Entity\Vault;
 use App\Entity\VaultMember;
 use App\Enum\VaultMemberRole;
+use App\Repository\VaultMemberRepository;
+use App\Repository\VaultMessageRepository;
 use App\Repository\VaultRepository;
 use App\Security\Vault\VaultVoter;
 use Doctrine\ORM\EntityManagerInterface;
@@ -28,7 +30,7 @@ final class VaultController extends AbstractController
 {
     #[OA\Post(
         path: '/api/vaults',
-        summary: 'Crée un trousseau personnel.',
+        summary: 'Cree un trousseau personnel.',
         security: [['Bearer' => []]],
         tags: ['Trousseaux'],
         requestBody: new OA\RequestBody(
@@ -37,17 +39,13 @@ final class VaultController extends AbstractController
                 required: ['name'],
                 properties: [
                     new OA\Property(property: 'name', type: 'string', example: 'Streaming'),
-                    new OA\Property(property: 'description', type: 'string', nullable: true, example: "Accès partagés de l'équipe"),
+                    new OA\Property(property: 'description', type: 'string', nullable: true, example: 'Acces partages de l equipe'),
                 ],
                 type: 'object'
             )
         )
     )]
-    #[OA\Response(response: 201, description: 'Trousseau créé.')]
-    #[OA\Response(response: 401, description: 'Authentification requise.')]
-    #[OA\Response(response: 422, description: 'Données invalides.')]
     #[Route('', name: 'create', methods: ['POST'])]
-    // Crée un trousseau personnel puis y rattache immédiatement son propriétaire comme OWNER.
     public function create(
         Request $request,
         #[CurrentUser] ?User $authenticatedUser,
@@ -59,27 +57,25 @@ final class VaultController extends AbstractController
         }
 
         $requestData = $this->decodeJsonRequest($request);
-
         if ($requestData instanceof JsonResponse) {
             return $requestData;
         }
 
-        $createVaultInput = new CreateVaultInput();
-        $createVaultInput->name = (string) ($requestData['name'] ?? '');
-        $createVaultInput->description = isset($requestData['description']) ? (string) $requestData['description'] : null;
+        $input = new CreateVaultInput();
+        $input->name = (string) ($requestData['name'] ?? '');
+        $input->description = isset($requestData['description']) ? (string) $requestData['description'] : null;
 
-        $validationErrors = $this->formatViolations($validator->validate($createVaultInput));
-
+        $validationErrors = $this->formatViolations($validator->validate($input));
         if ($validationErrors !== []) {
             return $this->json([
-                'message' => 'Les données fournies sont invalides.',
+                'message' => 'Les donnees fournies sont invalides.',
                 'errors' => $validationErrors,
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         $vault = (new Vault())
-            ->setName($createVaultInput->name)
-            ->setDescription($createVaultInput->description)
+            ->setName($input->name)
+            ->setDescription($input->description)
             ->setOwner($authenticatedUser);
 
         $ownerMembership = (new VaultMember())
@@ -92,7 +88,7 @@ final class VaultController extends AbstractController
         $entityManager->flush();
 
         return $this->json([
-            'vault' => $this->buildVaultPayload($vault, true, $authenticatedUser),
+            'vault' => $this->buildVaultPayload($vault, true, $authenticatedUser, 0),
         ], Response::HTTP_CREATED);
     }
 
@@ -102,7 +98,7 @@ final class VaultController extends AbstractController
         security: [['Bearer' => []]],
         tags: ['Trousseaux'],
         parameters: [
-            new OA\Parameter(name: 'q', in: 'query', required: false, schema: new OA\Schema(type: 'string'), description: 'Recherche par nom ou description.'),
+            new OA\Parameter(name: 'q', in: 'query', required: false, schema: new OA\Schema(type: 'string')),
         ]
     )]
     #[OA\Get(
@@ -111,18 +107,17 @@ final class VaultController extends AbstractController
         security: [['Bearer' => []]],
         tags: ['Trousseaux'],
         parameters: [
-            new OA\Parameter(name: 'q', in: 'query', required: false, schema: new OA\Schema(type: 'string'), description: 'Recherche par nom ou description.'),
+            new OA\Parameter(name: 'q', in: 'query', required: false, schema: new OA\Schema(type: 'string')),
         ]
     )]
-    #[OA\Response(response: 200, description: 'Liste des trousseaux.')]
-    #[OA\Response(response: 401, description: 'Authentification requise.')]
     #[Route('', name: 'list', methods: ['GET'])]
     #[Route('/search', name: 'search', methods: ['GET'])]
-    // Retourne uniquement les trousseaux que l'utilisateur possède ou auxquels il appartient.
     public function list(
         Request $request,
         #[CurrentUser] ?User $authenticatedUser,
-        VaultRepository $vaultRepository
+        VaultRepository $vaultRepository,
+        VaultMemberRepository $vaultMemberRepository,
+        VaultMessageRepository $vaultMessageRepository
     ): JsonResponse {
         if (!$authenticatedUser instanceof User) {
             return $this->json(['message' => 'Authentification requise.'], Response::HTTP_UNAUTHORIZED);
@@ -134,118 +129,106 @@ final class VaultController extends AbstractController
             is_string($searchQuery) ? $searchQuery : null
         );
 
+        $unreadCounts = $this->buildUnreadCountsByVaultId($authenticatedUser, $vaultMemberRepository, $vaultMessageRepository);
+
         return $this->json([
             'vaults' => array_map(
-                fn (Vault $vault) => $this->buildVaultPayload($vault, false, $authenticatedUser),
+                fn (Vault $vault) => $this->buildVaultPayload($vault, false, $authenticatedUser, $unreadCounts[$vault->getId()] ?? 0),
                 $vaults
             ),
+            'totalUnreadMessageCount' => array_sum($unreadCounts),
         ]);
     }
 
     #[OA\Get(
         path: '/api/vaults/{id}',
-        summary: "Affiche le détail d'un trousseau.",
+        summary: 'Affiche le detail d un trousseau.',
         security: [['Bearer' => []]],
         tags: ['Trousseaux'],
         parameters: [
             new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
         ]
     )]
-    #[OA\Response(response: 200, description: 'Détail du trousseau.')]
-    #[OA\Response(response: 401, description: 'Authentification requise.')]
-    #[OA\Response(response: 403, description: 'Accès interdit.')]
-    #[OA\Response(response: 404, description: 'Trousseau introuvable.')]
     #[Route('/{id}', name: 'show', methods: ['GET'], requirements: ['id' => '\\d+'])]
-    // Expose le détail complet d'un trousseau seulement à ses membres.
     public function show(
         int $id,
         #[CurrentUser] ?User $authenticatedUser,
-        VaultRepository $vaultRepository
+        VaultRepository $vaultRepository,
+        VaultMemberRepository $vaultMemberRepository,
+        VaultMessageRepository $vaultMessageRepository
     ): JsonResponse {
         $vault = $this->resolveVault($id, $authenticatedUser, $vaultRepository);
-
         if ($vault instanceof JsonResponse) {
             return $vault;
         }
 
         if (!$this->isGranted(VaultVoter::VIEW, $vault)) {
-            return $this->json(['message' => 'Accès interdit.'], Response::HTTP_FORBIDDEN);
+            return $this->json(['message' => 'Acces interdit.'], Response::HTTP_FORBIDDEN);
         }
 
+        $membership = $authenticatedUser instanceof User ? $vaultMemberRepository->findOneByVaultAndUser($vault, $authenticatedUser) : null;
+        $unreadCounts = $this->buildUnreadCountsByVaultId($authenticatedUser, $vaultMemberRepository, $vaultMessageRepository, $vault->getId());
+
         return $this->json([
-            'vault' => $this->buildVaultPayload($vault, true, $authenticatedUser),
+            'vault' => $this->buildVaultPayload($vault, true, $authenticatedUser, $unreadCounts[$vault->getId()] ?? 0, $membership),
         ]);
     }
 
     #[OA\Patch(
         path: '/api/vaults/{id}',
-        summary: "Met à jour les métadonnées d'un trousseau.",
+        summary: 'Met a jour les metadonnees d un trousseau.',
         security: [['Bearer' => []]],
         tags: ['Trousseaux'],
         parameters: [
             new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
-        ],
-        requestBody: new OA\RequestBody(
-            required: true,
-            content: new OA\JsonContent(
-                properties: [
-                    new OA\Property(property: 'name', type: 'string', example: 'Streaming 2026'),
-                    new OA\Property(property: 'description', type: 'string', nullable: true, example: 'Accès mis à jour'),
-                ],
-                type: 'object'
-            )
-        )
+        ]
     )]
-    #[OA\Response(response: 200, description: 'Trousseau mis à jour.')]
-    #[OA\Response(response: 401, description: 'Authentification requise.')]
-    #[OA\Response(response: 403, description: 'Accès interdit.')]
-    #[OA\Response(response: 404, description: 'Trousseau introuvable.')]
-    #[OA\Response(response: 422, description: 'Données invalides.')]
     #[Route('/{id}', name: 'update', methods: ['PATCH'], requirements: ['id' => '\\d+'])]
-    // Met à jour les métadonnées du trousseau si le rôle le permet.
     public function update(
         int $id,
         Request $request,
         #[CurrentUser] ?User $authenticatedUser,
         VaultRepository $vaultRepository,
+        VaultMemberRepository $vaultMemberRepository,
+        VaultMessageRepository $vaultMessageRepository,
         ValidatorInterface $validator,
         EntityManagerInterface $entityManager
     ): JsonResponse {
         $vault = $this->resolveVault($id, $authenticatedUser, $vaultRepository);
-
         if ($vault instanceof JsonResponse) {
             return $vault;
         }
 
         if (!$this->isGranted(VaultVoter::EDIT, $vault)) {
-            return $this->json(['message' => 'Accès interdit.'], Response::HTTP_FORBIDDEN);
+            return $this->json(['message' => 'Acces interdit.'], Response::HTTP_FORBIDDEN);
         }
 
         $requestData = $this->decodeJsonRequest($request);
-
         if ($requestData instanceof JsonResponse) {
             return $requestData;
         }
 
-        $updateVaultInput = new UpdateVaultInput();
-        $updateVaultInput->name = isset($requestData['name']) ? (string) $requestData['name'] : null;
-        $updateVaultInput->description = isset($requestData['description']) ? (string) $requestData['description'] : null;
+        $input = new UpdateVaultInput();
+        $input->name = isset($requestData['name']) ? (string) $requestData['name'] : null;
+        $input->description = isset($requestData['description']) ? (string) $requestData['description'] : null;
 
-        $validationErrors = $this->formatViolations($validator->validate($updateVaultInput));
-
+        $validationErrors = $this->formatViolations($validator->validate($input));
         if ($validationErrors !== []) {
             return $this->json([
-                'message' => 'Les données fournies sont invalides.',
+                'message' => 'Les donnees fournies sont invalides.',
                 'errors' => $validationErrors,
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        $vault->setName((string) $updateVaultInput->name);
-        $vault->setDescription($updateVaultInput->description);
+        $vault->setName((string) $input->name);
+        $vault->setDescription($input->description);
         $entityManager->flush();
 
+        $membership = $authenticatedUser instanceof User ? $vaultMemberRepository->findOneByVaultAndUser($vault, $authenticatedUser) : null;
+        $unreadCounts = $this->buildUnreadCountsByVaultId($authenticatedUser, $vaultMemberRepository, $vaultMessageRepository, $vault->getId());
+
         return $this->json([
-            'vault' => $this->buildVaultPayload($vault, true, $authenticatedUser),
+            'vault' => $this->buildVaultPayload($vault, true, $authenticatedUser, $unreadCounts[$vault->getId()] ?? 0, $membership),
         ]);
     }
 
@@ -258,12 +241,7 @@ final class VaultController extends AbstractController
             new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
         ]
     )]
-    #[OA\Response(response: 200, description: 'Trousseau supprimé.')]
-    #[OA\Response(response: 401, description: 'Authentification requise.')]
-    #[OA\Response(response: 403, description: 'Accès interdit.')]
-    #[OA\Response(response: 404, description: 'Trousseau introuvable.')]
     #[Route('/{id}', name: 'delete', methods: ['DELETE'], requirements: ['id' => '\\d+'])]
-    // Supprime définitivement un trousseau uniquement pour son propriétaire.
     public function delete(
         int $id,
         #[CurrentUser] ?User $authenticatedUser,
@@ -271,32 +249,26 @@ final class VaultController extends AbstractController
         EntityManagerInterface $entityManager
     ): JsonResponse {
         $vault = $this->resolveVault($id, $authenticatedUser, $vaultRepository);
-
         if ($vault instanceof JsonResponse) {
             return $vault;
         }
 
         if (!$this->isGranted(VaultVoter::DELETE, $vault)) {
-            return $this->json(['message' => 'Accès interdit.'], Response::HTTP_FORBIDDEN);
+            return $this->json(['message' => 'Acces interdit.'], Response::HTTP_FORBIDDEN);
         }
 
         $entityManager->remove($vault);
         $entityManager->flush();
 
-        return $this->json([
-            'message' => 'Le trousseau a bien été supprimé.',
-        ]);
+        return $this->json(['message' => 'Le trousseau a bien ete supprime.']);
     }
 
-    /**
-     * @return array<string, mixed>|JsonResponse
-     */
     private function decodeJsonRequest(Request $request): array|JsonResponse
     {
         $requestContent = $request->getContent();
 
         if ($requestContent === '') {
-            return new JsonResponse(['message' => 'Le corps de la requête JSON est requis.'], Response::HTTP_BAD_REQUEST);
+            return new JsonResponse(['message' => 'Le corps de la requete JSON est requis.'], Response::HTTP_BAD_REQUEST);
         }
 
         try {
@@ -306,7 +278,7 @@ final class VaultController extends AbstractController
         }
 
         if (!is_array($decodedRequestData)) {
-            return new JsonResponse(['message' => 'Le corps de la requête doit être un objet JSON.'], Response::HTTP_BAD_REQUEST);
+            return new JsonResponse(['message' => 'Le corps de la requete doit etre un objet JSON.'], Response::HTTP_BAD_REQUEST);
         }
 
         return $decodedRequestData;
@@ -328,9 +300,6 @@ final class VaultController extends AbstractController
         return $validationErrors;
     }
 
-    /**
-     * @return Vault|JsonResponse
-     */
     private function resolveVault(int $id, ?User $authenticatedUser, VaultRepository $vaultRepository): Vault|JsonResponse
     {
         if (!$authenticatedUser instanceof User) {
@@ -338,7 +307,6 @@ final class VaultController extends AbstractController
         }
 
         $vault = $vaultRepository->find($id);
-
         if (!$vault instanceof Vault) {
             return $this->json(['message' => 'Trousseau introuvable.'], Response::HTTP_NOT_FOUND);
         }
@@ -347,13 +315,43 @@ final class VaultController extends AbstractController
     }
 
     /**
-     * @return array<string, mixed>
+     * @return array<int, int>
      */
-    private function buildVaultPayload(Vault $vault, bool $includeMembers, ?User $authenticatedUser = null): array
-    {
-        $currentMember = null;
+    private function buildUnreadCountsByVaultId(
+        ?User $authenticatedUser,
+        VaultMemberRepository $vaultMemberRepository,
+        VaultMessageRepository $vaultMessageRepository,
+        ?int $onlyVaultId = null
+    ): array {
+        if (!$authenticatedUser instanceof User) {
+            return [];
+        }
 
-        if ($authenticatedUser instanceof User) {
+        $memberships = $vaultMemberRepository->findByUserIndexedByVaultId($authenticatedUser);
+        if ($memberships === []) {
+            return [];
+        }
+
+        if ($onlyVaultId !== null) {
+            $memberships = isset($memberships[$onlyVaultId]) ? [$onlyVaultId => $memberships[$onlyVaultId]] : [];
+        }
+
+        $lastReadByVaultId = [];
+        foreach ($memberships as $vaultId => $membership) {
+            $lastReadByVaultId[$vaultId] = $membership->getLastChatReadAt();
+        }
+
+        return $vaultMessageRepository->findUnreadCountsByVaultForUser($authenticatedUser, $lastReadByVaultId);
+    }
+
+    private function buildVaultPayload(
+        Vault $vault,
+        bool $includeMembers,
+        ?User $authenticatedUser = null,
+        int $unreadMessageCount = 0,
+        ?VaultMember $currentMember = null
+    ): array {
+        if ($currentMember === null && $authenticatedUser instanceof User) {
             foreach ($vault->getMembers() as $member) {
                 if ($member->getUser()?->getId() === $authenticatedUser->getId()) {
                     $currentMember = $member;
@@ -363,9 +361,7 @@ final class VaultController extends AbstractController
         }
 
         $isOwner = $authenticatedUser instanceof User && $vault->getOwner()?->getId() === $authenticatedUser->getId();
-        $currentRole = $isOwner
-            ? VaultMemberRole::OWNER->value
-            : $currentMember?->getRole()->value;
+        $currentRole = $isOwner ? VaultMemberRole::OWNER->value : $currentMember?->getRole()->value;
 
         $payload = [
             'id' => $vault->getId(),
@@ -373,6 +369,7 @@ final class VaultController extends AbstractController
             'description' => $vault->getDescription(),
             'type' => $vault->getType()->value,
             'memberCount' => $vault->getMembers()->count(),
+            'unreadMessageCount' => $unreadMessageCount,
             'createdAt' => $vault->getCreatedAt()->format(\DateTimeInterface::ATOM),
             'updatedAt' => $vault->getUpdatedAt()->format(\DateTimeInterface::ATOM),
             'access' => [
@@ -407,4 +404,3 @@ final class VaultController extends AbstractController
         return $payload;
     }
 }
-

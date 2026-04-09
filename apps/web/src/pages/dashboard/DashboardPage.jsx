@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { fetchAdminUsers, verifyUserPin } from '../../services/api/authApi.js'
 import {
   exportDataFile,
@@ -227,6 +227,9 @@ export function DashboardPage({ navigate }) {
               <button className="button-link button-link-ghost" onClick={() => navigate('/vaults')} type="button">
                 Voir les trousseaux
               </button>
+              <button className="button-link button-link-secondary" onClick={() => navigate('/messages')} type="button">
+                Ouvrir la messagerie
+              </button>
               <button className="button-link button-link-secondary" onClick={() => setIsGeneratorModalOpen(true)} type="button">
                 Générer un mot de passe
               </button>
@@ -370,4 +373,5 @@ export function DashboardPage({ navigate }) {
     </>
   )
 }
+
 

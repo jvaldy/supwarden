@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useMemo, useState } from 'react'
+﻿import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useAuth } from '../../context/authContext.js'
 import { verifyUserPin } from '../../services/api/authApi.js'
 import {
@@ -13,6 +13,10 @@ import { useSecretUnlockSession } from '../../hooks/useSecretUnlockSession.js'
 import { useSecretMaskTimeoutMs } from '../../hooks/useSecretMaskTimeoutMs.js'
 import { exportVaultDataFile, generatePassword } from '../../services/api/advancedApi.js'
 import {
+  fetchVaultMessages,
+  sendVaultMessage,
+} from '../../services/api/messagingApi.js'
+import {
   addVaultMember,
   deleteVault,
   deleteVaultMember,
@@ -20,9 +24,13 @@ import {
   updateVault,
   updateVaultMember,
 } from '../../services/api/vaultApi.js'
+import { useMessageNotifications } from '../../hooks/useMessageNotifications.js'
 
 export function VaultDetailPage({ navigate, vaultId }) {
   const { authenticatedUser, token } = useAuth()
+  const chatComposerFormRef = useRef(null)
+  const chatThreadListRef = useRef(null)
+  const lastVaultMessageCreatedAtRef = useRef(null)
   const { clearUnlock, isUnlocked, requestPin } = useSecretUnlockSession()
   const secretMaskTimeoutMs = useSecretMaskTimeoutMs()
 
@@ -61,7 +69,17 @@ export function VaultDetailPage({ navigate, vaultId }) {
   })
   const [generatedPassword, setGeneratedPassword] = useState('')
   const [isGeneratingPassword, setIsGeneratingPassword] = useState(false)
-
+  const [isChatOpen, setIsChatOpen] = useState(false)
+  const [vaultMessages, setVaultMessages] = useState([])
+  const [oldestVaultMessageDate, setOldestVaultMessageDate] = useState('')
+  const [hasOlderVaultMessages, setHasOlderVaultMessages] = useState(false)
+  const [isLoadingOlderVaultMessages, setIsLoadingOlderVaultMessages] = useState(false)
+  const [chatInput, setChatInput] = useState('')
+  const [isChatLoading, setIsChatLoading] = useState(false)
+  const [isChatSending, setIsChatSending] = useState(false)
+  const [chatErrorMessage, setChatErrorMessage] = useState('')
+  const { vaultUnreadCountsById, refreshNotifications } = useMessageNotifications(token)
+  const chatUnreadCount = Number(vaultUnreadCountsById[vaultId] ?? vault?.unreadMessageCount) || 0
   const vaultMembers = Array.isArray(vault?.members) ? vault.members : []
   const canEditVault = Boolean(vault?.access?.canEdit)
   const canDeleteVault = Boolean(vault?.access?.canDelete)
@@ -124,6 +142,7 @@ export function VaultDetailPage({ navigate, vaultId }) {
     loadVault()
   }, [loadVault])
 
+
   useEffect(() => {
     const visibleItemIds = Object.keys(visibleSecrets).filter((itemId) => visibleSecrets[itemId])
     if (visibleItemIds.length === 0) return undefined
@@ -151,6 +170,53 @@ export function VaultDetailPage({ navigate, vaultId }) {
       clearAllSecrets()
     }
   }, [clearAllSecrets, isUnlocked])
+
+  useEffect(() => {
+    if (!isChatOpen) return undefined
+
+    loadVaultMessages()
+
+    return undefined
+  }, [isChatOpen])
+
+  useEffect(() => {
+    lastVaultMessageCreatedAtRef.current = vaultMessages[vaultMessages.length - 1]?.createdAt ?? null
+  }, [vaultMessages])
+
+  useEffect(() => {
+    if (!isChatOpen) return undefined
+
+    const intervalId = window.setInterval(() => {
+      const since = lastVaultMessageCreatedAtRef.current
+      loadVaultMessages({ since, append: true, silent: true, limit: 120 })
+    }, 1500)
+
+    return () => {
+      window.clearInterval(intervalId)
+    }
+  }, [isChatOpen])
+
+  useEffect(() => {
+    if (!isChatOpen || chatUnreadCount <= 0) {
+      return
+    }
+
+    const since = lastVaultMessageCreatedAtRef.current
+    loadVaultMessages({ since, append: true, silent: true, limit: 120 })
+  }, [chatUnreadCount, isChatOpen])
+
+  useEffect(() => {
+    if (!isChatOpen || !chatThreadListRef.current) return
+
+    chatThreadListRef.current.scrollTop = chatThreadListRef.current.scrollHeight
+  }, [isChatOpen, vaultMessages])
+
+  function handleVaultChatComposerKeyDown(event) {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault()
+      chatComposerFormRef.current?.requestSubmit()
+    }
+  }
 
   useEffect(() => {
     // Certains navigateurs injectent un autofill tardif même avec autocomplete désactivé.
@@ -217,6 +283,127 @@ export function VaultDetailPage({ navigate, vaultId }) {
     return 'Vous pouvez consulter les membres de ce trousseau, sans modifier leurs accès.'
   }, [canManageMembers, vault, vaultMembers.length])
 
+  async function loadVaultMessages(options = {}) {
+    if (!vaultId || !token) return
+
+    if (!options.silent) {
+      setIsChatLoading(true)
+    }
+
+    try {
+      const responseData = await fetchVaultMessages(token, vaultId, options)
+      const incomingMessages = Array.isArray(responseData.messages) ? responseData.messages : []
+      const unreadMarkedCount = Number(responseData.unreadMarkedCount) || 0
+
+      if (options.append) {
+        setVaultMessages((currentValue) => {
+          const knownIds = new Set(currentValue.map((message) => message.id))
+          const nextValue = [...currentValue]
+
+          incomingMessages.forEach((message) => {
+            if (!knownIds.has(message.id)) {
+              nextValue.push(message)
+            }
+          })
+
+          return nextValue
+        })
+      } else if (options.prepend) {
+        setVaultMessages((currentValue) => {
+          const knownIds = new Set(currentValue.map((message) => message.id))
+          const olderMessages = incomingMessages.filter((message) => !knownIds.has(message.id))
+          return [...olderMessages, ...currentValue]
+        })
+      } else {
+        setVaultMessages(incomingMessages)
+      }
+
+      if (incomingMessages.length > 0 && !options.append) {
+        setOldestVaultMessageDate((currentValue) => incomingMessages[0]?.createdAt ?? currentValue)
+      }
+      if (options.prepend && incomingMessages.length > 0) {
+        setOldestVaultMessageDate(incomingMessages[0]?.createdAt ?? oldestVaultMessageDate)
+      }
+      if (!options.append) {
+        setHasOlderVaultMessages(Boolean(responseData.hasMoreBefore))
+      }
+
+        if (unreadMarkedCount > 0) {
+          setVault((currentValue) => (
+            currentValue
+              ? {
+                  ...currentValue,
+                  unreadMessageCount: 0,
+                }
+              : currentValue
+          ))
+          refreshNotifications().catch(() => {})
+        }
+
+      return responseData
+    } catch (error) {
+      if (!options.silent) {
+        setChatErrorMessage(error.responseData?.message ?? 'Impossible de charger la discussion pour le moment.')
+      }
+    } finally {
+      if (!options.silent) {
+        setIsChatLoading(false)
+      }
+    }
+
+    return null
+  }
+
+  async function handleLoadOlderVaultMessages() {
+    if (!token || !vaultId || !oldestVaultMessageDate || isLoadingOlderVaultMessages) {
+      return
+    }
+
+    setIsLoadingOlderVaultMessages(true)
+
+    try {
+      const responseData = await loadVaultMessages({
+        prepend: true,
+        silent: true,
+        before: oldestVaultMessageDate,
+        limit: 40,
+      })
+      const olderMessages = Array.isArray(responseData?.messages) ? responseData.messages : []
+      if (olderMessages.length === 0) {
+        setHasOlderVaultMessages(false)
+      } else {
+        setHasOlderVaultMessages(Boolean(responseData?.hasMoreBefore))
+      }
+    } finally {
+      setIsLoadingOlderVaultMessages(false)
+    }
+  }
+
+  async function handleSendVaultMessage(event) {
+    event.preventDefault()
+
+    if (chatInput.trim() === '') {
+      return
+    }
+
+    setIsChatSending(true)
+    setChatErrorMessage('')
+
+    try {
+      const responseData = await sendVaultMessage(token, vaultId, chatInput)
+      const createdMessage = responseData.message
+
+      if (createdMessage) {
+        setVaultMessages((currentValue) => [...currentValue, createdMessage])
+      }
+
+      setChatInput('')
+    } catch (error) {
+      setChatErrorMessage(error.responseData?.message ?? 'Impossible d’envoyer ce message pour le moment.')
+    } finally {
+      setIsChatSending(false)
+    }
+  }
   async function reloadVault(nextFeedbackMessage = '') {
     setFeedbackMessage('')
     setErrorMessage('')
@@ -426,7 +613,7 @@ export function VaultDetailPage({ navigate, vaultId }) {
       setIsSettingsOpen(false)
       setFeedbackMessage('Les paramètres du trousseau ont bien été mis à jour.')
     } catch (error) {
-      setErrorMessage(error.responseData?.message ?? 'Impossible de mettre à jour le trousseau.')
+      setErrorMessage(error.responseData?.message ?? 'Impossible de mettre - jour le trousseau.')
     } finally {
       setIsSettingsSubmitting(false)
     }
@@ -530,7 +717,7 @@ export function VaultDetailPage({ navigate, vaultId }) {
       await updateVaultMember(token, vaultId, memberId, { role: nextRole })
       await reloadVault('Le rôle du membre a bien été mis à jour.')
     } catch (error) {
-      setMemberErrorMessage(error.responseData?.message ?? 'Impossible de mettre à jour ce rôle.')
+      setMemberErrorMessage(error.responseData?.message ?? 'Impossible de mettre - jour ce rôle.')
     }
   }
 
@@ -595,7 +782,7 @@ export function VaultDetailPage({ navigate, vaultId }) {
                 <span className="vault-meta-chip"><span className="vault-meta-label">Votre accès</span><strong>{formatRole(vault.access?.role)}</strong></span>
                 <span className="vault-meta-chip"><span className="vault-meta-label">Propriétaire</span><strong>{vault.owner?.displayName ?? 'Non renseigné'}</strong></span>
                 <span className="vault-meta-chip"><span className="vault-meta-label">Membres</span><strong>{vaultMembers.length}</strong></span>
-                <span className="vault-meta-chip"><span className="vault-meta-label">Éléments</span><strong>{items.length}</strong></span>
+                <span className="vault-meta-chip"><span className="vault-meta-label">éléments</span><strong>{items.length}</strong></span>
               </div>
             </div>
 
@@ -605,6 +792,15 @@ export function VaultDetailPage({ navigate, vaultId }) {
               </button>
               <button className="button-link button-link-secondary" type="button" onClick={handleGeneratePassword}>
                 Générateur
+              </button>
+              <button aria-label="Discussion" className="button-link button-link-secondary vault-chat-trigger vault-chat-trigger-icon" title="Discussion" type="button" onClick={() => setIsChatOpen(true)}>
+                <MessageIcon />
+                {chatUnreadCount > 0 ? (
+                  <span className="nav-notification-badge vault-chat-trigger-badge" title="Nouveaux messages du trousseau">
+                    <MessageIcon />
+                    <span>{chatUnreadCount > 99 ? '99+' : chatUnreadCount}</span>
+                  </span>
+                ) : null}
               </button>
               <button
                 aria-label="Membres"
@@ -634,7 +830,7 @@ export function VaultDetailPage({ navigate, vaultId }) {
           <section className="item-section">
             <div className="item-section-header">
               <div>
-                <h2>Éléments du trousseau</h2>
+                <h2>éléments du trousseau</h2>
                 <p>Retrouvez ici vos identifiants, vos URL associées et les pièces jointes du trousseau.</p>
               </div>
             </div>
@@ -700,7 +896,7 @@ export function VaultDetailPage({ navigate, vaultId }) {
             >
               {filteredItems.length === 0 ? (
                 <div className="item-empty-state">
-                  <p>{itemSearch.trim() === '' ? 'Aucun élément dans ce trousseau pour le moment.' : 'Aucun élément ne correspond à cette recherche.'}</p>
+                  <p>{itemSearch.trim() === '' ? 'Aucun élément dans ce trousseau pour le moment.' : 'Aucun élément ne correspond - cette recherche.'}</p>
                 </div>
               ) : filteredItems.map((item) => {
                 const isSecretVisible = Boolean(visibleSecrets[item.id])
@@ -770,6 +966,97 @@ export function VaultDetailPage({ navigate, vaultId }) {
           </section>
         </article>
       </section>
+      {isChatOpen ? (
+        <div className="modal-backdrop" role="presentation" onClick={() => setIsChatOpen(false)}>
+          <div className="modal-card modal-card-wide vault-chat-modal" role="dialog" aria-modal="true" aria-labelledby="vault-chat-title" onClick={(event) => event.stopPropagation()}>
+            <div className="modal-header">
+              <div>
+                <h2 id="vault-chat-title">Discussion du trousseau</h2>
+                <p>Échangez avec les membres du trousseau en quasi temps réel.</p>
+              </div>
+              <div className="modal-header-actions">
+                <button className="button-link button-link-tertiary" type="button" onClick={() => setIsChatOpen(false)}>Fermer</button>
+              </div>
+            </div>
+
+            {chatErrorMessage ? <div className="feedback-banner feedback-banner-error">{chatErrorMessage}</div> : null}
+
+            <section className="modal-section vault-chat-surface">
+              <header className="messaging-thread-header">
+                <div>
+                  <p className="messaging-panel-label">Conversation</p>
+                  <h2>{vault?.name ? `Trousseau : ${vault.name}` : 'Conversation du trousseau'}</h2>
+                </div>
+                <span className="messaging-thread-meta">{vaultMessages.length} message{vaultMessages.length > 1 ? 's' : ''}</span>
+              </header>
+
+              {isChatLoading ? <p className="field-help">Chargement des messages...</p> : null}
+
+              <div className="messaging-thread-list vault-chat-thread-list" aria-live="polite" ref={chatThreadListRef}>
+                {hasOlderVaultMessages ? (
+                  <div className="modal-actions">
+                    <button className="button-link button-link-tertiary" type="button" onClick={handleLoadOlderVaultMessages} disabled={isLoadingOlderVaultMessages}>
+                      {isLoadingOlderVaultMessages ? 'Chargement...' : 'Charger les messages précédents'}
+                    </button>
+                  </div>
+                ) : null}
+
+                {vaultMessages.map((message, index) => {
+                  const isSelf = Boolean(message.author?.isCurrentUser)
+                  const previousMessage = vaultMessages[index - 1]
+                  const isGrouped = previousMessage?.author?.id === message.author?.id
+                  const formattedDateTime = new Date(message.createdAt).toLocaleString('fr-FR', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })
+
+                  return (
+                    <article key={message.id} className={isSelf ? 'messaging-row messaging-row-self' : 'messaging-row'}>
+                      {!isSelf && !isGrouped ? (
+                        <span className="messaging-avatar" aria-hidden="true">
+                          {(message.author?.displayName ?? 'U').trim().charAt(0).toUpperCase() || 'U'}
+                        </span>
+                      ) : null}
+                      {!isSelf && isGrouped ? <span className="messaging-avatar-spacer" aria-hidden="true" /> : null}
+
+                      <div className={isSelf ? 'messaging-bubble messaging-bubble-self' : 'messaging-bubble'}>
+                        <header>
+                          <strong>{isSelf ? 'Vous' : (message.author?.displayName ?? 'Utilisateur')}</strong>
+                          <time dateTime={message.createdAt}>{formattedDateTime}</time>
+                        </header>
+                        <p>{message.content}</p>
+                      </div>
+                    </article>
+                  )
+                })}
+
+                {vaultMessages.length === 0 && !isChatLoading ? (
+                  <div className="messaging-empty-state">
+                    <p>Aucun message pour le moment.</p>
+                  </div>
+                ) : null}
+              </div>
+
+              <form className="messaging-composer vault-chat-composer" onSubmit={handleSendVaultMessage} ref={chatComposerFormRef}>
+                <textarea
+                  className="messaging-composer-input"
+                  rows={1}
+                  value={chatInput}
+                  onChange={(event) => setChatInput(event.target.value)}
+                  onKeyDown={handleVaultChatComposerKeyDown}
+                  placeholder="Écrivez un message pour votre équipe..."
+                />
+                <button className="button-link button-link-primary messaging-send-button" type="submit" disabled={isChatSending || chatInput.trim() === ''}>
+                  {isChatSending ? 'Envoi...' : 'Envoyer'}
+                </button>
+              </form>
+            </section>
+          </div>
+        </div>
+      ) : null}
 
       {isSettingsOpen ? (
         <div className="modal-backdrop" role="presentation" onClick={() => setIsSettingsOpen(false)}>
@@ -948,7 +1235,7 @@ export function VaultDetailPage({ navigate, vaultId }) {
           <div className="modal-card modal-card-wide vault-item-detail-modal" role="dialog" aria-modal="true" aria-labelledby="vault-item-details-title" onClick={(event) => event.stopPropagation()}>
             <div className="modal-header">
               <div>
-                <span className="eyebrow">Élément</span>
+                <span className="eyebrow">élément</span>
                 <h2 id="vault-item-details-title">{selectedItemDetails?.name ?? 'Détail de l’élément'}</h2>
               </div>
               <div className="modal-header-actions">
@@ -963,9 +1250,9 @@ export function VaultDetailPage({ navigate, vaultId }) {
               <>
                 <div className="vault-meta-strip">
                   <span className="vault-meta-chip"><span className="vault-meta-label">Type</span><strong>{selectedItemDetails.type ?? 'Identifiant'}</strong></span>
-                  <span className="vault-meta-chip"><span className="vault-meta-label">Accès</span><strong>{selectedItemDetails.access?.canEdit ? 'Éditable' : 'Lecture seule'}</strong></span>
+                  <span className="vault-meta-chip"><span className="vault-meta-label">Accès</span><strong>{selectedItemDetails.access?.canEdit ? 'éditable' : 'Lecture seule'}</strong></span>
                   <span className="vault-meta-chip"><span className="vault-meta-label">Créé le</span><strong>{formatDateTime(selectedItemDetails.createdAt)}</strong></span>
-                  <span className="vault-meta-chip"><span className="vault-meta-label">Mis à jour</span><strong>{formatDateTime(selectedItemDetails.updatedAt)}</strong></span>
+                  <span className="vault-meta-chip"><span className="vault-meta-label">Mis - jour</span><strong>{formatDateTime(selectedItemDetails.updatedAt)}</strong></span>
                 </div>
 
                 <div className="modal-section vault-item-detail-stack">
@@ -1004,7 +1291,7 @@ export function VaultDetailPage({ navigate, vaultId }) {
                   <div className="vault-item-subsection">
                     <h4>Champs personnalisés</h4>
                     {(selectedItemDetails.customFields ?? []).length === 0 ? <p>Aucun champ personnalisé.</p> : (selectedItemDetails.customFields ?? []).map((field, index) => (
-                      <CopyField key={field.id ?? `${field.label}-${index}`} label={`${field.label || 'Champ'} · ${formatFieldType(field.type)}`} value={field.value || 'Non renseigné'} fieldKey={`field-${selectedItemDetails.id}-${index}`} copiedFieldKey={copiedFieldKey} onCopy={() => handleCopyToClipboard(field.value || '', `field-${selectedItemDetails.id}-${index}`)} icon="name" />
+                      <CopyField key={field.id ?? `${field.label}-${index}`} label={`${field.label || 'Champ'} - ${formatFieldType(field.type)}`} value={field.value || 'Non renseigné'} fieldKey={`field-${selectedItemDetails.id}-${index}`} copiedFieldKey={copiedFieldKey} onCopy={() => handleCopyToClipboard(field.value || '', `field-${selectedItemDetails.id}-${index}`)} icon="name" />
                     ))}
                   </div>
 
@@ -1065,7 +1352,7 @@ function formatFieldType(type) {
 
 function formatAttachmentMeta(attachment) {
   const size = typeof attachment?.size === 'number' ? `${Math.max(1, Math.round(attachment.size / 1024))} Ko` : 'Taille inconnue'
-  return [attachment?.mimeType, size].filter(Boolean).join(' · ')
+  return [attachment?.mimeType, size].filter(Boolean).join(' - ')
 }
 
 function readSecretUnlockError(error, fallbackMessage) {
@@ -1093,6 +1380,16 @@ function CopyField({ label, value, fieldKey, copiedFieldKey, onCopy, icon, compa
   )
 }
 
+function MessageIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M5 6.5h14A1.5 1.5 0 0 1 20.5 8v8A1.5 1.5 0 0 1 19 17.5H8l-4.5 3V8A1.5 1.5 0 0 1 5 6.5Z" />
+      <path d="M8 10h8" />
+      <path d="M8 13h5" />
+    </svg>
+  )
+}
+
 function FieldIcon({ name }) {
   if (name === 'name') return <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><path d="M8 12h8" /><path d="M12 8v8" /></svg>
   if (name === 'username') return <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="3.5" /><path d="M5.5 18.5c1.5-3 4-4.5 6.5-4.5s5 1.5 6.5 4.5" /></svg>
@@ -1111,6 +1408,22 @@ function FieldIcon({ name }) {
   if (name === 'search') return <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="6.5" /><path d="m16 16 4.5 4.5" /></svg>
   return null
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
