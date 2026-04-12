@@ -10,6 +10,7 @@ use App\Entity\User;
 use App\Entity\Vault;
 use App\Entity\VaultMember;
 use App\Enum\VaultMemberRole;
+use App\Enum\VaultType;
 use App\Repository\VaultMemberRepository;
 use App\Repository\VaultMessageRepository;
 use App\Repository\VaultRepository;
@@ -98,7 +99,7 @@ final class VaultController extends AbstractController
         security: [['Bearer' => []]],
         tags: ['Trousseaux'],
         parameters: [
-            new OA\Parameter(name: 'q', in: 'query', required: false, schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'search', in: 'query', required: false, schema: new OA\Schema(type: 'string')),
         ]
     )]
     #[OA\Get(
@@ -107,7 +108,7 @@ final class VaultController extends AbstractController
         security: [['Bearer' => []]],
         tags: ['Trousseaux'],
         parameters: [
-            new OA\Parameter(name: 'q', in: 'query', required: false, schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'search', in: 'query', required: false, schema: new OA\Schema(type: 'string')),
         ]
     )]
     #[Route('', name: 'list', methods: ['GET'])]
@@ -123,10 +124,24 @@ final class VaultController extends AbstractController
             return $this->json(['message' => 'Authentification requise.'], Response::HTTP_UNAUTHORIZED);
         }
 
-        $searchQuery = $request->query->get('q');
+        $searchQuery = $request->query->get('search');
         $vaults = $vaultRepository->findAccessibleVaultsForUser(
             $authenticatedUser,
             is_string($searchQuery) ? $searchQuery : null
+        );
+
+        usort(
+            $vaults,
+            function (Vault $leftVault, Vault $rightVault) use ($authenticatedUser): int {
+                $leftPinned = $this->isSystemPersonalVault($leftVault, $authenticatedUser);
+                $rightPinned = $this->isSystemPersonalVault($rightVault, $authenticatedUser);
+
+                if ($leftPinned !== $rightPinned) {
+                    return $leftPinned ? -1 : 1;
+                }
+
+                return $rightVault->getCreatedAt() <=> $leftVault->getCreatedAt();
+            }
         );
 
         $unreadCounts = $this->buildUnreadCountsByVaultId($authenticatedUser, $vaultMemberRepository, $vaultMessageRepository);
@@ -203,6 +218,10 @@ final class VaultController extends AbstractController
             return $this->json(['message' => 'Acces interdit.'], Response::HTTP_FORBIDDEN);
         }
 
+        if ($this->isSystemPersonalVault($vault, $authenticatedUser)) {
+            return $this->json(['message' => 'Impossible de modifier le trousseau personnel.'], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
         $requestData = $this->decodeJsonRequest($request);
         if ($requestData instanceof JsonResponse) {
             return $requestData;
@@ -251,6 +270,10 @@ final class VaultController extends AbstractController
         $vault = $this->resolveVault($id, $authenticatedUser, $vaultRepository);
         if ($vault instanceof JsonResponse) {
             return $vault;
+        }
+
+        if ($this->isSystemPersonalVault($vault, $authenticatedUser)) {
+            return $this->json(['message' => 'Impossible de supprimer le trousseau personnel.'], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         if (!$this->isGranted(VaultVoter::DELETE, $vault)) {
@@ -362,12 +385,14 @@ final class VaultController extends AbstractController
 
         $isOwner = $authenticatedUser instanceof User && $vault->getOwner()?->getId() === $authenticatedUser->getId();
         $currentRole = $isOwner ? VaultMemberRole::OWNER->value : $currentMember?->getRole()->value;
+        $isPinnedPersonalVault = $this->isSystemPersonalVault($vault, $authenticatedUser);
 
         $payload = [
             'id' => $vault->getId(),
             'name' => $vault->getName(),
             'description' => $vault->getDescription(),
             'type' => $vault->getType()->value,
+            'isPersonalDefault' => $isPinnedPersonalVault,
             'memberCount' => $vault->getMembers()->count(),
             'unreadMessageCount' => $unreadMessageCount,
             'createdAt' => $vault->getCreatedAt()->format(\DateTimeInterface::ATOM),
@@ -375,8 +400,9 @@ final class VaultController extends AbstractController
             'access' => [
                 'role' => $currentRole,
                 'canEdit' => $authenticatedUser instanceof User ? $this->isGranted(VaultVoter::EDIT, $vault) : false,
-                'canDelete' => $authenticatedUser instanceof User ? $this->isGranted(VaultVoter::DELETE, $vault) : false,
+                'canDelete' => $authenticatedUser instanceof User ? (!$isPinnedPersonalVault && $this->isGranted(VaultVoter::DELETE, $vault)) : false,
                 'canManageMembers' => $authenticatedUser instanceof User ? $this->isGranted(VaultVoter::MANAGE_MEMBERS, $vault) : false,
+                'canInviteMembers' => $authenticatedUser instanceof User ? (!$isPinnedPersonalVault && $this->isGranted(VaultVoter::MANAGE_MEMBERS, $vault)) : false,
             ],
             'owner' => [
                 'id' => $vault->getOwner()?->getId(),
@@ -403,4 +429,20 @@ final class VaultController extends AbstractController
 
         return $payload;
     }
+
+    private function isSystemPersonalVault(Vault $vault, ?User $authenticatedUser): bool
+    {
+        if (!$authenticatedUser instanceof User) {
+            return false;
+        }
+
+        if ($vault->getOwner()?->getId() !== $authenticatedUser->getId()) {
+            return false;
+        }
+
+        return $vault->getType() === VaultType::PERSONAL
+            && mb_strtolower(trim($vault->getName())) === 'trousseau personnel';
+    }
 }
+
+

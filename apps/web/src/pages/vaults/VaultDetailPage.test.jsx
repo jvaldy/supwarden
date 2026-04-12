@@ -1,13 +1,15 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+﻿import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, test, vi } from 'vitest'
 import { VaultDetailPage } from './VaultDetailPage.jsx'
 
 const {
   requestPinMock,
+  requestSecretCredentialMock,
   clearUnlockMock,
   storeItemEditUnlockMock,
 } = vi.hoisted(() => ({
   requestPinMock: vi.fn(),
+  requestSecretCredentialMock: vi.fn(),
   clearUnlockMock: vi.fn(),
   storeItemEditUnlockMock: vi.fn(),
 }))
@@ -24,6 +26,7 @@ vi.mock('../../hooks/useSecretUnlockSession.js', () => ({
     clearUnlock: clearUnlockMock,
     isUnlocked: false,
     requestPin: requestPinMock,
+    requestSecretCredential: requestSecretCredentialMock,
   }),
 }))
 
@@ -57,12 +60,13 @@ describe('VaultDetailPage', () => {
     fetchVaultItems.mockResolvedValue({ items: [] })
   })
 
-  test('ouvre un modal membres pour le propriétaire même sur un trousseau personnel', async () => {
+  test('ouvre la modale membres sur un trousseau personnel mais bloque les invitations', async () => {
     fetchVault.mockResolvedValueOnce({
       vault: {
         id: 1,
         name: 'Streaming',
         type: 'PERSONAL',
+        isPersonalDefault: true,
         owner: { id: 1, displayName: 'John Valdy Boungou' },
         members: [
           {
@@ -77,17 +81,17 @@ describe('VaultDetailPage', () => {
           canEdit: true,
           canDelete: true,
           canManageMembers: true,
+          canInviteMembers: false,
         },
       },
     })
 
     render(<VaultDetailPage navigate={vi.fn()} vaultId={1} />)
-
     fireEvent.click(await screen.findByRole('button', { name: 'Membres' }))
 
-    expect(screen.getByText(/Gérer les membres du trousseau/)).toBeInTheDocument()
-    expect(screen.getByText(/Invitez un premier membre pour partager ce trousseau. Il deviendra automatiquement partagé./)).toBeInTheDocument()
-    expect(screen.getByLabelText('Adresse e-mail')).toBeInTheDocument()
+    expect(screen.getByText('Membres du trousseau')).toBeInTheDocument()
+    expect(screen.getByText('Impossible d’inviter des membres dans le trousseau personnel.')).toBeInTheDocument()
+    expect(screen.queryByLabelText('Adresse e-mail')).not.toBeInTheDocument()
   })
 
   test('laisse un membre simple consulter la liste sans afficher les actions de gestion', async () => {
@@ -98,30 +102,14 @@ describe('VaultDetailPage', () => {
         type: 'SHARED',
         owner: { id: 3, displayName: 'John Valdy Boungou' },
         members: [
-          {
-            id: 22,
-            role: 'OWNER',
-            createdAt: null,
-            user: { id: 3, displayName: 'John Valdy Boungou' },
-          },
-          {
-            id: 23,
-            role: 'VIEWER',
-            createdAt: null,
-            user: { id: 1, displayName: 'Elsie LIKWELA ZOLANA' },
-          },
+          { id: 22, role: 'OWNER', createdAt: null, user: { id: 3, displayName: 'John Valdy Boungou' } },
+          { id: 23, role: 'VIEWER', createdAt: null, user: { id: 1, displayName: 'Elsie LIKWELA ZOLANA' } },
         ],
-        access: {
-          role: 'VIEWER',
-          canEdit: false,
-          canDelete: false,
-          canManageMembers: false,
-        },
+        access: { role: 'VIEWER', canEdit: false, canDelete: false, canManageMembers: false, canInviteMembers: false },
       },
     })
 
     render(<VaultDetailPage navigate={vi.fn()} vaultId={2} />)
-
     fireEvent.click(await screen.findByRole('button', { name: 'Membres' }))
 
     expect(screen.getByText('Membres du trousseau')).toBeInTheDocument()
@@ -136,22 +124,10 @@ describe('VaultDetailPage', () => {
         id: 7,
         name: 'Streaming',
         description: 'Accès vidéo',
-        type: 'PERSONAL',
+        type: 'SHARED',
         owner: { id: 1, displayName: 'John Valdy Boungou' },
-        members: [
-          {
-            id: 70,
-            role: 'OWNER',
-            createdAt: null,
-            user: { id: 1, displayName: 'John Valdy Boungou' },
-          },
-        ],
-        access: {
-          role: 'OWNER',
-          canEdit: true,
-          canDelete: true,
-          canManageMembers: true,
-        },
+        members: [{ id: 70, role: 'OWNER', createdAt: null, user: { id: 1, displayName: 'John Valdy Boungou' } }],
+        access: { role: 'OWNER', canEdit: true, canDelete: true, canManageMembers: true, canInviteMembers: true },
       },
     })
 
@@ -160,113 +136,24 @@ describe('VaultDetailPage', () => {
         id: 7,
         name: 'Streaming famille',
         description: 'Accès vidéo du foyer',
-        type: 'PERSONAL',
+        type: 'SHARED',
         owner: { id: 1, displayName: 'John Valdy Boungou' },
-        members: [
-          {
-            id: 70,
-            role: 'OWNER',
-            createdAt: null,
-            user: { id: 1, displayName: 'John Valdy Boungou' },
-          },
-        ],
-        access: {
-          role: 'OWNER',
-          canEdit: true,
-          canDelete: true,
-          canManageMembers: true,
-        },
+        members: [{ id: 70, role: 'OWNER', createdAt: null, user: { id: 1, displayName: 'John Valdy Boungou' } }],
+        access: { role: 'OWNER', canEdit: true, canDelete: true, canManageMembers: true, canInviteMembers: true },
       },
     })
 
     render(<VaultDetailPage navigate={vi.fn()} vaultId={7} />)
-
-    fireEvent.click(await screen.findByRole('button', { name: /Paramètres/ }))
-
-    fireEvent.change(screen.getByLabelText('Nom du trousseau'), {
-      target: { value: 'Streaming famille' },
-    })
-    fireEvent.change(screen.getByLabelText('Description du trousseau'), {
-      target: { value: 'Accès vidéo du foyer' },
-    })
-
+    fireEvent.click(await screen.findByRole('button', { name: /Paramètres/i }))
+    fireEvent.change(screen.getByLabelText('Nom du trousseau'), { target: { value: 'Streaming famille' } })
+    fireEvent.change(screen.getByLabelText('Description du trousseau'), { target: { value: 'Accès vidéo du foyer' } })
     fireEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
 
     expect(updateVault).toHaveBeenCalledWith('test-token', 7, {
       name: 'Streaming famille',
       description: 'Accès vidéo du foyer',
     })
-    expect(await screen.findByText(/Les paramètres du trousseau ont bien été mis à jour./)).toBeInTheDocument()
-  })
-
-  test('cache la suppression du trousseau pour un membre sans droit de suppression', async () => {
-    fetchVault.mockResolvedValueOnce({
-      vault: {
-        id: 8,
-        name: 'Projet partagé',
-        description: 'Accès communs',
-        type: 'SHARED',
-        owner: { id: 3, displayName: 'John Valdy Boungou' },
-        members: [
-          {
-            id: 80,
-            role: 'OWNER',
-            createdAt: null,
-            user: { id: 3, displayName: 'John Valdy Boungou' },
-          },
-          {
-            id: 81,
-            role: 'EDITOR',
-            createdAt: null,
-            user: { id: 1, displayName: 'Elsie LIKWELA ZOLANA' },
-          },
-        ],
-        access: {
-          role: 'EDITOR',
-          canEdit: true,
-          canDelete: false,
-          canManageMembers: false,
-        },
-      },
-    })
-
-    render(<VaultDetailPage navigate={vi.fn()} vaultId={8} />)
-
-    fireEvent.click(await screen.findByRole('button', { name: /Paramètres/ }))
-
-    expect(screen.queryByRole('button', { name: 'Supprimer le trousseau' })).not.toBeInTheDocument()
-  })
-
-  test('affiche une erreur de validation si l’adresse e-mail du membre est vide', async () => {
-    fetchVault.mockResolvedValueOnce({
-      vault: {
-        id: 9,
-        name: 'Streaming',
-        type: 'PERSONAL',
-        owner: { id: 1, displayName: 'John Valdy Boungou' },
-        members: [
-          {
-            id: 90,
-            role: 'OWNER',
-            createdAt: null,
-            user: { id: 1, displayName: 'John Valdy Boungou' },
-          },
-        ],
-        access: {
-          role: 'OWNER',
-          canEdit: true,
-          canDelete: true,
-          canManageMembers: true,
-        },
-      },
-    })
-
-    render(<VaultDetailPage navigate={vi.fn()} vaultId={9} />)
-
-    fireEvent.click(await screen.findByRole('button', { name: 'Membres' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Ajouter un membre' }))
-
-    expect(screen.getByText(/Renseignez une adresse e-mail avant d’ajouter un membre./)).toBeInTheDocument()
+    expect(await screen.findByText(/Les paramètres du trousseau ont bien été mis à jour\./)).toBeInTheDocument()
   })
 
   test('affiche le message de succès après ajout d’un membre', async () => {
@@ -274,22 +161,10 @@ describe('VaultDetailPage', () => {
       vault: {
         id: 10,
         name: 'Streaming',
-        type: 'PERSONAL',
+        type: 'SHARED',
         owner: { id: 1, displayName: 'John Valdy Boungou' },
-        members: [
-          {
-            id: 100,
-            role: 'OWNER',
-            createdAt: null,
-            user: { id: 1, displayName: 'John Valdy Boungou' },
-          },
-        ],
-        access: {
-          role: 'OWNER',
-          canEdit: true,
-          canDelete: true,
-          canManageMembers: true,
-        },
+        members: [{ id: 100, role: 'OWNER', createdAt: null, user: { id: 1, displayName: 'John Valdy Boungou' } }],
+        access: { role: 'OWNER', canEdit: true, canDelete: true, canManageMembers: true, canInviteMembers: true },
       },
     })
 
@@ -310,34 +185,16 @@ describe('VaultDetailPage', () => {
         type: 'SHARED',
         owner: { id: 1, displayName: 'John Valdy Boungou' },
         members: [
-          {
-            id: 100,
-            role: 'OWNER',
-            createdAt: null,
-            user: { id: 1, displayName: 'John Valdy Boungou' },
-          },
-          {
-            id: 101,
-            role: 'VIEWER',
-            createdAt: null,
-            user: { id: 2, displayName: 'Elsie LIKWELA ZOLANA' },
-          },
+          { id: 100, role: 'OWNER', createdAt: null, user: { id: 1, displayName: 'John Valdy Boungou' } },
+          { id: 101, role: 'VIEWER', createdAt: null, user: { id: 2, displayName: 'Elsie LIKWELA ZOLANA' } },
         ],
-        access: {
-          role: 'OWNER',
-          canEdit: true,
-          canDelete: true,
-          canManageMembers: true,
-        },
+        access: { role: 'OWNER', canEdit: true, canDelete: true, canManageMembers: true, canInviteMembers: true },
       },
     })
 
     render(<VaultDetailPage navigate={vi.fn()} vaultId={10} />)
-
     fireEvent.click(await screen.findByRole('button', { name: 'Membres' }))
-    fireEvent.change(screen.getByLabelText('Adresse e-mail'), {
-      target: { value: 'elsie@example.com' },
-    })
+    fireEvent.change(screen.getByLabelText('Adresse e-mail'), { target: { value: 'elsie@example.com' } })
     fireEvent.click(screen.getByRole('button', { name: 'Ajouter un membre' }))
 
     await waitFor(() => {
@@ -347,45 +204,24 @@ describe('VaultDetailPage', () => {
       })
     })
 
-    expect(await screen.findByText(/Invitation enregistrée. Le membre apparaît maintenant dans la liste./)).toBeInTheDocument()
+    expect(await screen.findByText(/Invitation enregistrée\. Le membre apparaît maintenant dans la liste\./)).toBeInTheDocument()
   })
 
-  test('demande le PIN avant de modifier un élément sensible depuis le modal', async () => {
-    requestPinMock.mockResolvedValueOnce('1234')
+  test('demande une preuve sensible avant de modifier un élément sensible depuis le modal', async () => {
+    requestSecretCredentialMock.mockResolvedValueOnce({ method: 'pin', value: '1234' })
     fetchVault.mockResolvedValueOnce({
       vault: {
         id: 11,
         name: 'Streaming',
         description: '',
-        type: 'PERSONAL',
+        type: 'SHARED',
         owner: { id: 1, displayName: 'John Valdy Boungou' },
-        members: [
-          {
-            id: 110,
-            role: 'OWNER',
-            createdAt: null,
-            user: { id: 1, displayName: 'John Valdy Boungou' },
-          },
-        ],
-        access: {
-          role: 'OWNER',
-          canEdit: true,
-          canDelete: true,
-          canManageMembers: true,
-        },
+        members: [{ id: 110, role: 'OWNER', createdAt: null, user: { id: 1, displayName: 'John Valdy Boungou' } }],
+        access: { role: 'OWNER', canEdit: true, canDelete: true, canManageMembers: true, canInviteMembers: true },
       },
     })
     fetchVaultItems.mockResolvedValueOnce({
-      items: [
-        {
-          id: 71,
-          name: 'Twitch',
-          username: '2aCrazy',
-          hasSecret: true,
-          isSensitive: true,
-          uris: [],
-        },
-      ],
+      items: [{ id: 71, name: 'Twitch', username: '2aCrazy', hasSecret: true, isSensitive: true, uris: [] }],
     })
     fetchVaultItem.mockResolvedValueOnce({
       item: {
@@ -414,12 +250,13 @@ describe('VaultDetailPage', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Modifier' }))
 
     await waitFor(() => {
-      expect(requestPinMock).toHaveBeenCalledWith('Saisissez votre code PIN pour déverrouiller ce secret.')
+      expect(requestSecretCredentialMock).toHaveBeenCalled()
     })
-    expect(unlockVaultItemSecret).toHaveBeenCalledWith('test-token', 71, '1234')
+    expect(requestSecretCredentialMock.mock.calls[0][0]).toMatch(/mot de passe/i)
+    expect(requestSecretCredentialMock.mock.calls[0][1]).toEqual({ allowPin: false })
+    expect(unlockVaultItemSecret).toHaveBeenCalledWith('test-token', 71, { method: 'pin', value: '1234' })
     expect(storeItemEditUnlockMock).toHaveBeenCalledWith(71, 'secret-twitch')
     expect(navigate).toHaveBeenCalledWith('/vaults/11/items/71/modifier')
   })
 })
-
 

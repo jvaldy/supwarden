@@ -4,6 +4,9 @@ namespace App\Controller\Auth;
 
 use App\Entity\OAuthAccount;
 use App\Entity\User;
+use App\Entity\Vault;
+use App\Entity\VaultMember;
+use App\Enum\VaultMemberRole;
 use App\Repository\OAuthAccountRepository;
 use App\Repository\UserRepository;
 use App\Security\OAuth\GoogleOAuthClientInterface;
@@ -215,6 +218,18 @@ final class GoogleOAuthController extends AbstractController
             $generatedPassword = bin2hex(random_bytes(32));
             $user->setPassword($passwordHasher->hashPassword($user, $generatedPassword));
             $entityManager->persist($user);
+
+            // Les comptes OAuth reçoivent aussi un trousseau personnel à la première connexion.
+            $personalVault = (new Vault())
+                ->setName('Trousseau personnel')
+                ->setOwner($user);
+
+            $ownerMembership = (new VaultMember())
+                ->setUser($user)
+                ->setRole(VaultMemberRole::OWNER);
+
+            $personalVault->addMember($ownerMembership);
+            $entityManager->persist($personalVault);
         }
 
         $oauthAccount = (new OAuthAccount())

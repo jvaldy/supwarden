@@ -29,3 +29,6 @@ coverage/
 Thumbs.db
 .idea/
 .vscode/
+
+# Temporary working files
+tmp_enonces_text.txt

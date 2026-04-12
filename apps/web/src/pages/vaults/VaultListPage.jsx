@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+﻿import { useEffect, useMemo, useState } from 'react'
 import { useAuth } from '../../context/authContext.js'
 import { exportDataFile, exportVaultDataFile, importDataFile } from '../../services/api/advancedApi.js'
 import { verifyUserPin } from '../../services/api/authApi.js'
@@ -143,8 +143,8 @@ export function VaultListPage({ navigate }) {
           <div className="vault-header-row vault-list-header-row">
             <div>
               <p className="eyebrow">Trousseaux</p>
-              <h1 className="dashboard-title vault-title">Retrouver vos trousseaux ici.</h1>
-              <p className="lede">Parcourez vos trousseaux, retrouvez-les rapidement par nom et ouvrez celui qu'il vous faut sans détour.</p>
+              <h1 className="dashboard-title vault-title">Tous vos trousseaux ici.</h1>
+              <p className="lede">Retrouvez-les rapidement par nom et ouvrez celui qu'il vous faut sans détour.</p>
             </div>
             <button className="button-link button-link-primary vault-create-button" onClick={() => navigate('/vaults/nouveau')} type="button">
               Créer un trousseau
@@ -156,19 +156,22 @@ export function VaultListPage({ navigate }) {
 
           <div className="vault-toolbar vault-toolbar-surface">
             <label className="field vault-search-field">
-              <span>Recherche</span>
-              <input
-                onChange={(event) => setSearchQuery(event.target.value)}
-                placeholder="Rechercher un trousseau"
-                type="search"
-                value={searchQuery}
-              />
-            </label>
+              <div className="vault-search-input-wrap">
+                <input
+                  aria-label="Rechercher un trousseau"
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  placeholder="Rechercher un trousseau"
+                  type="search"
+                  value={searchQuery}
+                />
+                <span aria-hidden="true" className="vault-search-icon-label"><SearchIcon /></span>
+              </div>
 
-            <div aria-live="polite" className="vault-toolbar-meta">
-              <span className="badge badge-info">{vaultCountLabel}</span>
-              <p>{searchQuery.trim() !== '' ? 'Résultats filtrés sur votre recherche.' : 'Vos trousseaux récents restent visibles en premier.'}</p>
-            </div>
+              <div aria-live="polite" className="vault-toolbar-meta vault-toolbar-meta-below">
+                <span className="badge badge-info">{vaultCountLabel}</span>
+                {searchQuery.trim() !== '' ? <p>Résultats filtrés sur votre recherche.</p> : null}
+              </div>
+            </label>
           </div>
 
           {feedbackMessage ? <p className="field-feedback field-feedback-success">{feedbackMessage}</p> : null}
@@ -185,10 +188,18 @@ export function VaultListPage({ navigate }) {
           {vaults.length > 0 ? (
             <div className="vault-list" role="list">
               {vaults.map((vault) => (
-                <article className="status-card vault-list-item" key={vault.id} role="listitem">
+                <article className={`status-card vault-list-item${vault.isPersonalDefault ? ' vault-list-item-personal' : ''}`} key={vault.id} role="listitem">
                   <div className="vault-list-main">
                     <div className="vault-list-heading">
-                      <h2>{vault.name}</h2>
+                      <h2 className="vault-name-with-pin">
+                        {vault.name}
+                        {vault.isPersonalDefault ? (
+                          <span className="vault-personal-pin" title="Trousseau personnel non supprimable" aria-label="Trousseau personnel non supprimable">
+                            <PinIcon />
+                          </span>
+                        ) : null}
+                      </h2>
+                      {vault.isPersonalDefault ? <span className="badge badge-info">Epinglé</span> : null}
                       {((vaultUnreadCountsById[vault.id] ?? vault.unreadMessageCount ?? 0) > 0) ? (
                         <span className="badge badge-success vault-unread-badge notification-badge-with-icon" title="Nouveaux messages du trousseau">
                           <MessageIcon />
@@ -256,7 +267,7 @@ export function VaultListPage({ navigate }) {
               <div className="modal-section-header">
                 <h3>Exporter toutes les données</h3>
               </div>
-              <div className="modal-actions dashboard-actions-wrap">
+              <div className="modal-actions modal-actions-equal">
                 <button className="button-link button-link-secondary" disabled={isExporting} onClick={() => handleExportAll('json')} type="button">Exporter JSON</button>
                 <button className="button-link button-link-secondary" disabled={isExporting} onClick={() => handleExportAll('csv')} type="button">Exporter CSV</button>
               </div>
@@ -294,3 +305,27 @@ function MessageIcon() {
     </svg>
   )
 }
+
+function PinIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+      <path d="m14.5 3.5 6 6-2.4 2.4-2.1-2.1-3.6 3.6 2.1 2.1-2.4 2.4-6-6 2.4-2.4 2.1 2.1 3.6-3.6-2.1-2.1Z" />
+      <path d="m7 17-3.5 3.5" />
+    </svg>
+  )
+}
+
+function SearchIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="11" cy="11" r="6.5" />
+      <path d="m16 16 4.5 4.5" />
+    </svg>
+  )
+}
+
+
+
+
+
+

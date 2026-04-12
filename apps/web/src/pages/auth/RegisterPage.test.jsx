@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+﻿import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { vi } from 'vitest'
 import { AuthContext } from '../../context/authContext.js'
 import * as authApi from '../../services/api/authApi.js'
@@ -83,3 +83,4 @@ describe('RegisterPage', () => {
     expect(await screen.findByText('Les mots de passe doivent être identiques.')).toBeInTheDocument()
   })
 })
+

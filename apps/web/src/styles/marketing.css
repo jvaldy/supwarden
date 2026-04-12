@@ -307,6 +307,41 @@
   margin-top: var(--space-5);
 }
 
+.brand-quick-list {
+  margin: var(--space-4) 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--space-3);
+}
+
+.brand-quick-list li {
+  display: grid;
+  gap: 0.35rem;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(173, 216, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.brand-quick-list li strong {
+  color: var(--color-text-strong);
+}
+
+.brand-quick-list li span {
+  color: var(--color-text-soft);
+}
+
+.brand-button-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-3);
+}
+
+.brand-button-grid .button-link {
+  width: 100%;
+}
+
 .type-scale-card {
   padding: var(--space-4);
   border-radius: var(--radius-md);
@@ -410,6 +445,10 @@
   }
 
   .type-scale-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .brand-button-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

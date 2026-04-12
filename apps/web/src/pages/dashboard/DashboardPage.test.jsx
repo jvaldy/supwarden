@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+﻿import { render, screen } from '@testing-library/react'
 import { vi } from 'vitest'
 import { AuthContext } from '../../context/authContext.js'
 import { DashboardPage } from './DashboardPage.jsx'
@@ -69,3 +69,4 @@ describe('DashboardPage', () => {
     expect(await screen.findByText('ROLE_ADMIN')).toBeInTheDocument()
   })
 })
+

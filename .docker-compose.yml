@@ -21,14 +21,25 @@ services:
       - api_vendor:/app/apps/api/vendor
     ports:
       - "${APP_PORT:-8000}:${APP_PORT:-8000}"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1:${APP_PORT:-8000}/api/health >/dev/null || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
     depends_on:
-      - db
-      - mercure
+      db:
+        condition: service_healthy
+      mercure:
+        condition: service_started
+    restart: unless-stopped
 
   web:
     build:
       context: .
       dockerfile: infra/docker/web/Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL}
     working_dir: /app/apps/web
     command: sh -c "npm install && npm run dev -- --host 0.0.0.0 --port ${WEB_PORT:-5173}"
     environment:
@@ -38,8 +49,16 @@ services:
       - web_node_modules:/app/apps/web/node_modules
     ports:
       - "${WEB_PORT:-5173}:${WEB_PORT:-5173}"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1:${WEB_PORT:-5173} >/dev/null || exit 1"]
+      interval: 20s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
     depends_on:
-      - api
+      api:
+        condition: service_healthy
+    restart: unless-stopped
 
   db:
     image: postgres:16-alpine
@@ -52,6 +71,13 @@ services:
       - ./infra/docker/db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     ports:
       - "${DB_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    restart: unless-stopped
 
   adminer:
     image: adminer:4
@@ -60,7 +86,9 @@ services:
     ports:
       - "${ADMINER_PORT:-8080}:8080"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+    restart: unless-stopped
 
   mercure:
     image: dunglas/mercure
@@ -75,6 +103,7 @@ services:
       - mercure_config:/config
     ports:
       - "${MERCURE_PORT:-3000}:80"
+    restart: unless-stopped
 
 volumes:
   api_vendor:

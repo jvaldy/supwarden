@@ -56,10 +56,7 @@ export function RegisterPage({ navigate }) {
       <article className="auth-card">
         <p className="eyebrow">Inscription</p>
         <h1 className="auth-title">Créez votre espace Supwarden.</h1>
-        <p className="lede">
-          Créez un compte pour obtenir un trousseau personnel, rejoindre des espaces partagés et
-          commencer à administrer vos secrets.
-        </p>
+        <p className="lede">Créez un compte pour administrer seul ou avec des collaborateurs vos trousseaux.</p>
 
         <form className="auth-form" onSubmit={handleSubmit}>
           <label className="field">
@@ -120,7 +117,7 @@ export function RegisterPage({ navigate }) {
           {formError ? <p className="field-feedback field-feedback-error">{formError}</p> : null}
 
           <button className="button-link button-link-primary auth-submit" disabled={isSubmitting} type="submit">
-            {isSubmitting ? 'Création du compte...' : 'Créer mon compte'}
+            {isSubmitting ? 'Création du compte...' : "S'inscrire"}
           </button>
         </form>
 
@@ -132,11 +129,13 @@ export function RegisterPage({ navigate }) {
           <button className="button-link button-link-ghost" onClick={() => navigate('/connexion')} type="button">
             J'ai déjà un compte
           </button>
-          <button className="button-link button-link-ghost" onClick={() => navigate('/')} type="button">
-            Retour à l'accueil
+          <button className="button-link button-link-ghost" onClick={() => navigate('/en-savoir-plus')} type="button">
+            En savoir plus
           </button>
         </div>
       </article>
     </section>
   )
 }
+
+

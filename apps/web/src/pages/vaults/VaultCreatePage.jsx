@@ -38,7 +38,7 @@ export function VaultCreatePage({ navigate }) {
         <form className="auth-form vault-form" onSubmit={handleSubmit}>
           <label className="field vault-form-wide">
             <span>Nom du trousseau</span>
-            <input onChange={(event) => setName(event.target.value)} type="text" value={name} />
+            <input onChange={(event) => setName(event.target.value)} placeholder="Ex. Finance, RH, Produit" type="text" value={name} />
           </label>
 
           <label className="field vault-form-wide">

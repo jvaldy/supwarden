@@ -198,7 +198,7 @@ export function DashboardPage({ navigate }) {
           <p className="eyebrow">Tableau de bord</p>
           <h1 className="dashboard-title">Bienvenue dans votre espace Supwarden.</h1>
           <p className="lede">
-            Votre session est ouverte pour{' '}
+            Vous êtes connectés en tant que{' '}
             <strong>{authenticatedUser?.firstname ? `${authenticatedUser.firstname} ${authenticatedUser.lastname ?? ''}`.trim() : authenticatedUser?.email}</strong>.
           </p>
 
@@ -217,9 +217,7 @@ export function DashboardPage({ navigate }) {
                 <article className="activity-item"><strong>{stats.sharedVaultsCount ?? 0}</strong><span>Trousseaux partagés</span></article>
                 <article className="activity-item"><strong>{stats.invitedMembersCount ?? 0}</strong><span>Membres invités</span></article>
                 <article className="activity-item"><strong>{stats.exportsCount ?? 0}</strong><span>Exports</span></article>
-                <article className="activity-item"><strong>{stats.lastExportAt ? new Date(stats.lastExportAt).toLocaleString('fr-FR') : '0'}</strong><span>Dernier export</span></article>
                 <article className="activity-item"><strong>{stats.importsCount ?? 0}</strong><span>Imports</span></article>
-                <article className="activity-item"><strong>{stats.lastImportAt ? new Date(stats.lastImportAt).toLocaleString('fr-FR') : '0'}</strong><span>Dernier import</span></article>
               </div>
             ) : null}
 
@@ -286,12 +284,12 @@ export function DashboardPage({ navigate }) {
             <form className="vault-form" onSubmit={handleGeneratePassword}>
               <label className="field">
                 <span>Longueur</span>
-                <input max="128" min="8" onChange={(event) => setPasswordOptions((current) => ({ ...current, length: Number(event.target.value) || 20 }))} type="number" value={passwordOptions.length} />
+                <input max="128" min="8" onChange={(event) => setPasswordOptions((current) => ({ ...current, length: Number(event.target.value) || 20 }))} placeholder="20" type="number" value={passwordOptions.length} />
               </label>
 
               <label className="field">
                 <span>Exclure des caractères</span>
-                <input onChange={(event) => setPasswordOptions((current) => ({ ...current, exclude: event.target.value }))} placeholder="Ex: O0lI" type="text" value={passwordOptions.exclude} />
+                <input onChange={(event) => setPasswordOptions((current) => ({ ...current, exclude: event.target.value }))} placeholder="Ex. 0OIl{}[]" type="text" value={passwordOptions.exclude} />
               </label>
 
               <div className="dashboard-options-grid">
@@ -359,7 +357,7 @@ export function DashboardPage({ navigate }) {
                 <h3>Exporter des données</h3>
               </div>
               <p className="field-help">Téléchargez un export global de vos trousseaux et éléments.</p>
-              <div className="modal-actions dashboard-actions-wrap">
+              <div className="modal-actions modal-actions-equal">
                 <button className="button-link button-link-secondary" disabled={isExporting} onClick={() => handleExport('json')} type="button">Exporter JSON</button>
                 <button className="button-link button-link-secondary" disabled={isExporting} onClick={() => handleExport('csv')} type="button">Exporter CSV</button>
               </div>

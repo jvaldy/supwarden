@@ -73,7 +73,7 @@ export const buttonRules = [
 
 export const statusCards = [
   {
-    label: 'Accueil',
+    label: 'En savoir plus',
     value: 'Un message direct, une promesse claire et une action principale visible dès les premières secondes.',
   },
   {
@@ -101,7 +101,7 @@ export const typographyScale = [
     token: '--step--2',
     label: 'Micro-texte',
     value: '12 px',
-    usage: 'Aides brèves, détails secondaires et petites mentions.',
+    usage: 'Mentions secondaires et petits repères.',
   },
   {
     token: '--step--1',
@@ -113,25 +113,25 @@ export const typographyScale = [
     token: '--step-0',
     label: 'Texte courant',
     value: '14 px',
-    usage: 'Paragraphes, champs et contenu principal du parcours.',
+    usage: 'Texte principal et contenu des champs.',
   },
   {
     token: '--step-1',
     label: 'Texte renforcé',
     value: '16 px',
-    usage: 'Actions visibles, informations clés et lecture confortable.',
+    usage: 'Actions et informations clés.',
   },
   {
     token: '--step-2',
     label: 'Titre de section',
     value: '22 px',
-    usage: 'Titres intermédiaires et blocs structurants.',
+    usage: 'Titres de sections.',
   },
   {
     token: '--step-3',
     label: 'Titre principal',
     value: '30 à 50 px',
-    usage: 'Titres de page et prises de parole fortes.',
+    usage: 'Titre principal de page.',
   },
 ]
 
@@ -173,6 +173,42 @@ export const headingRules = [
     title: 'Cohérence',
     value: 'Même logique partout',
     description: 'La hiérarchie des titres doit rester stable sur l’accueil, l’authentification, les trousseaux et les items.',
+  },
+]
+
+export const spacingRules = [
+  {
+    title: 'Bloc titre standard',
+    value: '8 px puis 12 px',
+    description: 'Eyebrow -> titre: 8 px. Titre -> texte: 12 px.',
+  },
+  {
+    title: 'Sections de carte',
+    value: '16 px',
+    description: 'Même niveau visuel = même espacement.',
+  },
+  {
+    title: 'Champs et actions',
+    value: '16 px',
+    description: 'Formulaires, boutons et messages gardent un rythme constant.',
+  },
+]
+
+export const mobileRules = [
+  {
+    title: 'Lecture compacte',
+    value: 'Structure mono-colonne',
+    description: 'Les blocs se réorganisent sans perdre la hiérarchie.',
+  },
+  {
+    title: 'Actions accessibles',
+    value: 'Boutons pleine largeur sur mobile',
+    description: 'Actions visibles et faciles à toucher.',
+  },
+  {
+    title: 'Modales confortables',
+    value: 'Scroll interne',
+    description: 'Les modales longues restent utilisables sur petit écran.',
   },
 ]
 

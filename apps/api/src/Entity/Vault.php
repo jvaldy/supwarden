@@ -35,6 +35,7 @@ class Vault
     #[ORM\Column(enumType: VaultType::class)]
     private VaultType $type = VaultType::PERSONAL;
 
+
     #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'ownedVaults')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?User $owner = null;
@@ -241,4 +242,7 @@ class Vault
         $this->updatedAt = new \DateTimeImmutable();
     }
 }
+
+
+
 

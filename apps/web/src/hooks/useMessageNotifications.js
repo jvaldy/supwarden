@@ -123,7 +123,6 @@ export function useMessageNotifications(token, options = {}) {
     }
 
     listeners.add(handleStateChange)
-    setCounts(notificationState)
 
     if (enabled && token) {
       ensureMercureSubscription(token).catch(() => {

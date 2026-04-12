@@ -26,6 +26,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
 use Symfony\Component\Validator\ConstraintViolationInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -33,7 +34,10 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 #[Route('/api', name: 'api_items_')]
 final class ItemController extends AbstractController
 {
-    public function __construct(private readonly VaultSecretCipher $secretCipher)
+    public function __construct(
+        private readonly VaultSecretCipher $secretCipher,
+        private readonly UserPasswordHasherInterface $passwordHasher,
+    )
     {
     }
 
@@ -44,6 +48,7 @@ final class ItemController extends AbstractController
         tags: ['Elements'],
         parameters: [
             new OA\Parameter(name: 'vaultId', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+            new OA\Parameter(name: 'search', in: 'query', required: false, schema: new OA\Schema(type: 'string')),
         ]
     )]
     #[OA\Response(response: 200, description: 'Liste des elements.')]
@@ -51,7 +56,7 @@ final class ItemController extends AbstractController
     #[OA\Response(response: 403, description: 'Acces interdit.')]
     #[OA\Response(response: 404, description: 'Trousseau introuvable.')]
     #[Route('/vaults/{vaultId}/items', name: 'list', methods: ['GET'], requirements: ['vaultId' => '\\d+'])]
-    public function list(int $vaultId, #[CurrentUser] ?User $authenticatedUser, VaultRepository $vaultRepository, VaultItemRepository $vaultItemRepository): JsonResponse
+    public function list(int $vaultId, Request $request, #[CurrentUser] ?User $authenticatedUser, VaultRepository $vaultRepository, VaultItemRepository $vaultItemRepository): JsonResponse
     {
         $vault = $this->resolveVault($vaultId, $authenticatedUser, $vaultRepository);
 
@@ -63,8 +68,10 @@ final class ItemController extends AbstractController
             return $this->json(['message' => 'Acces interdit.'], Response::HTTP_FORBIDDEN);
         }
 
+        $searchQuery = trim((string) $request->query->get('search', ''));
+
         return $this->json([
-            'items' => array_map(fn (VaultItem $item) => $this->buildItemPayload($item, false), $vaultItemRepository->findByVault($vault)),
+            'items' => array_map(fn (VaultItem $item) => $this->buildItemPayload($item, false), $vaultItemRepository->findByVaultWithQuery($vault, $searchQuery)),
         ]);
     }
 
@@ -203,6 +210,7 @@ final class ItemController extends AbstractController
             content: new OA\JsonContent(
                 properties: [
                     new OA\Property(property: 'pin', type: 'string', example: '1234'),
+                    new OA\Property(property: 'currentPassword', type: 'string', example: 'motdepasse123'),
                 ],
                 type: 'object'
             )
@@ -210,9 +218,9 @@ final class ItemController extends AbstractController
     )]
     #[OA\Response(response: 200, description: 'Secret deverrouille.')]
     #[OA\Response(response: 401, description: 'Authentification requise.')]
-    #[OA\Response(response: 403, description: 'PIN invalide ou Acces interdit.')]
+    #[OA\Response(response: 403, description: 'Mot de passe, PIN invalide ou Acces interdit.')]
     #[OA\Response(response: 404, description: 'Element ou secret introuvable.')]
-    #[OA\Response(response: 422, description: 'PIN manquant.')]
+    #[OA\Response(response: 422, description: 'Justificatif manquant.')]
     #[Route('/items/{itemId}/unlock-secret', name: 'unlock_secret', methods: ['POST'], requirements: ['itemId' => '\\d+'])]
     public function unlockSecret(int $itemId, Request $request, #[CurrentUser] ?User $authenticatedUser, VaultItemRepository $vaultItemRepository): JsonResponse
     {
@@ -243,13 +251,26 @@ final class ItemController extends AbstractController
         }
 
         $pin = isset($requestData['pin']) ? trim((string) $requestData['pin']) : '';
+        $currentPassword = isset($requestData['currentPassword']) ? trim((string) $requestData['currentPassword']) : '';
 
-        if ($pin === '') {
-            return $this->json(['message' => 'Le code PIN est requis pour deverrouiller cet element.'], Response::HTTP_UNPROCESSABLE_ENTITY);
+        if ($pin === '' && $currentPassword === '') {
+            return $this->json(['message' => 'Le mot de passe du compte est requis. Le code PIN peut etre utilise en alternative s il est defini.'], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        if (!$authenticatedUser instanceof User || !$authenticatedUser->hasPin() || !is_string($authenticatedUser->getPinHash()) || !password_verify($pin, $authenticatedUser->getPinHash())) {
-            return $this->json(['message' => 'Le code PIN fourni est invalide.'], Response::HTTP_FORBIDDEN);
+        if (!$authenticatedUser instanceof User) {
+            return $this->json(['message' => 'Authentification requise.'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        if ($pin !== '') {
+            if (!$authenticatedUser->hasPin() || !is_string($authenticatedUser->getPinHash()) || !password_verify($pin, $authenticatedUser->getPinHash())) {
+                return $this->json(['message' => 'Le code PIN fourni est invalide.'], Response::HTTP_FORBIDDEN);
+            }
+
+            return $this->json(['secret' => $decryptedSecret]);
+        }
+
+        if (!$this->passwordHasher->isPasswordValid($authenticatedUser, $currentPassword)) {
+            return $this->json(['message' => 'Le mot de passe du compte est invalide.'], Response::HTTP_FORBIDDEN);
         }
 
         return $this->json(['secret' => $decryptedSecret]);
@@ -664,6 +685,7 @@ final class ItemController extends AbstractController
                     'size' => $attachment->getSize(),
                     'createdAt' => $attachment->getCreatedAt()->format(\DateTimeInterface::ATOM),
                     'downloadUrl' => sprintf('/api/attachments/%d/download', $attachment->getId()),
+                    'previewUrl' => sprintf('/api/attachments/%d/preview', $attachment->getId()),
                 ],
                 $item->getAttachments()->toArray()
             ),
@@ -691,4 +713,6 @@ final class ItemController extends AbstractController
         ];
     }
 }
+
+
 

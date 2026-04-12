@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+﻿import { useEffect, useRef, useState } from 'react'
 import { AuthContext } from './authContext.js'
 import {
   confirmGoogleOAuthRegistration,
@@ -280,3 +280,4 @@ export function AuthProvider({ children }) {
 
   return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
 }
+

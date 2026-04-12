@@ -1,18 +1,19 @@
-import { useEffect, useMemo, useState } from 'react'
+﻿import { useEffect, useMemo, useState } from 'react'
 import { useAuth } from '../../context/authContext.js'
-import { deleteVaultItem, downloadVaultItemAttachment, fetchVaultItem, unlockVaultItemSecret } from '../../services/api/itemApi.js'
+import { deleteVaultItem, downloadVaultItemAttachment, fetchVaultItem, fetchVaultItemAttachmentPreview, unlockVaultItemSecret } from '../../services/api/itemApi.js'
 import { useSecretUnlockSession } from '../../hooks/useSecretUnlockSession.js'
 import { storeItemEditUnlock } from '../../services/storage/itemEditUnlockStorage.js'
 
 export function ItemDetailPage({ navigate, vaultId, itemId }) {
   const { authenticatedUser, token } = useAuth()
-  const { clearUnlock, isUnlocked, requestPin } = useSecretUnlockSession()
+  const { clearUnlock, isUnlocked, requestSecretCredential, requestPin } = useSecretUnlockSession()
   const [item, setItem] = useState(null)
   const [errorMessage, setErrorMessage] = useState('')
   const [copiedFieldKey, setCopiedFieldKey] = useState('')
   const [resolvedSecret, setResolvedSecret] = useState('')
   const [isSecretVisible, setIsSecretVisible] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const [previewAttachment, setPreviewAttachment] = useState(null)
 
   function lockSecret() {
     setIsSecretVisible(false)
@@ -82,22 +83,16 @@ export function ItemDetailPage({ navigate, vaultId, itemId }) {
       return nextSecret
     }
 
-    if (authenticatedUser?.hasPin === false) {
-      setErrorMessage('Définissez un code PIN dans votre profil avant d’afficher un mot de passe protégé.')
-      return ''
-    }
-
-    const pin = await requestPin('Saisissez votre code PIN pour déverrouiller cet élément.')
-
-    if (authenticatedUser?.hasPin === false) {
-      setErrorMessage('Définissez un code PIN dans votre profil avant d’afficher un mot de passe protégé.')
-      return ''
-    }
-
-    if (pin === null) return ''
+    const unlockProof = await requestSensitiveUnlockProof(
+      requestSecretCredential,
+      requestPin,
+      authenticatedUser?.hasPin === true,
+      'Saisissez votre mot de passe du compte pour déverrouiller ce secret. Vous pouvez aussi utiliser votre code PIN si vous l’avez défini.',
+    )
+    if (unlockProof === null) return ''
 
     try {
-      const responseData = await unlockVaultItemSecret(token, item.id, pin)
+      const responseData = await unlockVaultItemSecret(token, item.id, unlockProof)
       const nextSecret = responseData.secret ?? ''
       setResolvedSecret(nextSecret)
       return nextSecret
@@ -139,6 +134,28 @@ export function ItemDetailPage({ navigate, vaultId, itemId }) {
     } catch {
       setErrorMessage('Impossible de télécharger cette pièce jointe.')
     }
+  }
+
+  async function handleAttachmentPreview(attachment) {
+    try {
+      const { blob, mimeType } = await fetchVaultItemAttachmentPreview(token, attachment)
+      const objectUrl = window.URL.createObjectURL(blob)
+      setPreviewAttachment({
+        id: attachment.id,
+        name: attachment.name ?? 'Pièce jointe',
+        mimeType,
+        objectUrl,
+      })
+    } catch (error) {
+      setErrorMessage(error.message ?? 'Impossible de consulter cette pièce jointe pour le moment.')
+    }
+  }
+
+  function closeAttachmentPreview() {
+    if (previewAttachment?.objectUrl) {
+      window.URL.revokeObjectURL(previewAttachment.objectUrl)
+    }
+    setPreviewAttachment(null)
   }
 
   async function handleEditNavigation() {
@@ -265,7 +282,12 @@ export function ItemDetailPage({ navigate, vaultId, itemId }) {
                 {item.attachments.map((attachment, index) => (
                   <div className="vault-item-detail-row" key={attachment.id}>
                     <CopyField copiedFieldKey={copiedFieldKey} copyValue={attachment.name} fieldKey={`page-attachment-${item.id}-${index}`} label={attachment.name} onCopy={handleCopy} value={formatAttachmentMeta(attachment)} />
-                    <button className="button-link button-link-secondary vault-item-inline-action" onClick={() => handleAttachmentDownload(attachment)} type="button">Télécharger</button>
+                    <div className="vault-item-inline-actions">
+                      {isPreviewableAttachment(attachment) ? (
+                        <button className="button-link button-link-tertiary vault-item-inline-action" onClick={() => handleAttachmentPreview(attachment)} type="button">Consulter</button>
+                      ) : null}
+                      <button className="button-link button-link-secondary vault-item-inline-action" onClick={() => handleAttachmentDownload(attachment)} type="button">Télécharger</button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -288,6 +310,26 @@ export function ItemDetailPage({ navigate, vaultId, itemId }) {
           </>
         ) : null}
       </article>
+      {previewAttachment ? (
+        <div className="modal-backdrop" role="presentation" onClick={closeAttachmentPreview}>
+          <div className="modal-card modal-card-wide" role="dialog" aria-modal="true" aria-labelledby="attachment-preview-title" onClick={(event) => event.stopPropagation()}>
+            <div className="modal-header">
+              <div>
+                <h2 id="attachment-preview-title">Prévisualisation</h2>
+                <p>{previewAttachment.name}</p>
+              </div>
+              <button className="button-link button-link-tertiary" type="button" onClick={closeAttachmentPreview}>Fermer</button>
+            </div>
+            <div className="attachment-preview-content">
+              {previewAttachment.mimeType === 'application/pdf' ? (
+                <iframe src={previewAttachment.objectUrl} title={previewAttachment.name} className="attachment-preview-frame" />
+              ) : (
+                <img src={previewAttachment.objectUrl} alt={previewAttachment.name} className="attachment-preview-image" />
+              )}
+            </div>
+          </div>
+        </div>
+      ) : null}
     </section>
   )
 }
@@ -296,6 +338,9 @@ function readSecretUnlockError(error, fallbackMessage) {
   const apiMessage = error?.responseData?.message
   if (apiMessage === 'Le code PIN fourni est invalide.') {
     return 'Impossible d’afficher ce mot de passe pour le moment. Le code PIN est incorrect.'
+  }
+  if (apiMessage === 'Le mot de passe du compte est invalide.') {
+    return 'Impossible d’afficher ce mot de passe pour le moment. Le mot de passe du compte est incorrect.'
   }
   return apiMessage ?? fallbackMessage
 }
@@ -340,6 +385,28 @@ function formatAttachmentMeta(attachment) {
   return `${attachment.mimeType} · ${sizeInKb} Ko`
 }
 
+function isPreviewableAttachment(attachment) {
+  const mimeType = attachment?.mimeType ?? ''
+  return mimeType.startsWith('image/') || mimeType === 'application/pdf'
+}
+
+async function requestSensitiveUnlockProof(requestSecretCredential, requestPin, canUsePin, message) {
+  if (typeof requestSecretCredential === 'function') {
+    return requestSecretCredential(message, { allowPin: canUsePin })
+  }
+
+  if (!canUsePin || typeof requestPin !== 'function') {
+    return null
+  }
+
+  const pin = await requestPin('Saisissez votre code PIN pour déverrouiller cet élément.')
+  if (pin === null) {
+    return null
+  }
+
+  return { method: 'pin', value: pin }
+}
+
 function FieldIcon({ kind }) {
   if (kind === 'eye' || kind === 'eye-off') {
     return (
@@ -368,3 +435,5 @@ function FieldIcon({ kind }) {
 
   return null
 }
+
+

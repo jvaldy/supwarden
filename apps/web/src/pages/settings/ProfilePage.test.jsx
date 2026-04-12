@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+﻿import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, vi } from 'vitest'
 import { AuthContext } from '../../context/authContext.js'
 import { ProfilePage } from './ProfilePage.jsx'
@@ -236,3 +236,4 @@ describe('ProfilePage', () => {
     expect(navigate).toHaveBeenCalledWith('/')
   })
 })
+

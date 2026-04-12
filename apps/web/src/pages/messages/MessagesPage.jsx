@@ -17,6 +17,7 @@ export function MessagesPage() {
   const composerFormRef = useRef(null)
   const threadListRef = useRef(null)
   const shouldStickToBottomRef = useRef(true)
+  const refreshNotificationsRef = useRef(() => Promise.resolve())
 
   const [contacts, setContacts] = useState([])
   const [selectedContactId, setSelectedContactId] = useState(null)
@@ -31,6 +32,11 @@ export function MessagesPage() {
   const [isSending, setIsSending] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
   const { privateUnreadCount: totalUnreadCount, refreshNotifications } = useMessageNotifications(token)
+  const selectedContactIdKey = selectedContactId !== null ? String(selectedContactId) : ''
+
+  useEffect(() => {
+    refreshNotificationsRef.current = refreshNotifications
+  }, [refreshNotifications])
 
   function applyContactsPayload(responseData, preserveSelection = true) {
     const nextContacts = Array.isArray(responseData.contacts) ? responseData.contacts : []
@@ -42,7 +48,7 @@ export function MessagesPage() {
         return nextContacts[0]?.id ?? null
       }
 
-      if (currentValue !== null && nextContacts.some((contact) => contact.id === currentValue)) {
+      if (currentValue !== null && nextContacts.some((contact) => String(contact.id) === String(currentValue))) {
         return currentValue
       }
 
@@ -81,7 +87,7 @@ export function MessagesPage() {
         applyContactsPayload(responseData)
       } catch (error) {
         if (!isCancelled) {
-          setErrorMessage(error.responseData?.message ?? 'Impossible de charger vos conversations privees.')
+          setErrorMessage(error.responseData?.message ?? 'Impossible de charger vos conversations privées.')
         }
       } finally {
         if (!isCancelled) setIsLoadingContacts(false)
@@ -111,7 +117,7 @@ export function MessagesPage() {
           applyContactsPayload(responseData)
         }
       } catch {
-        // Evite de perturber l'ecran en cas d'echec ponctuel.
+        // Évite de perturber l'écran en cas d'échec ponctuel.
       }
     }
 
@@ -132,7 +138,7 @@ export function MessagesPage() {
         const responseData = await fetchPrivateContacts(token)
         applyContactsPayload(responseData)
       } catch {
-        // Garde l'etat courant si un rafraichissement ponctuel echoue.
+        // Garde l'état courant si un rafraîchissement ponctuel échoue.
       }
     }, 3000)
 
@@ -160,7 +166,7 @@ export function MessagesPage() {
           setHasOlderMessages(Boolean(responseData.hasMoreBefore))
           markConversationAsReadLocally(selectedContactId, unreadMarkedCount)
           if (unreadMarkedCount > 0) {
-            refreshNotifications().catch(() => {})
+            refreshNotificationsRef.current().catch(() => {})
           }
         }
       } catch (error) {
@@ -232,10 +238,10 @@ export function MessagesPage() {
 
         if (unreadMarkedCount > 0) {
           markConversationAsReadLocally(selectedContactId, unreadMarkedCount)
-          refreshNotifications().catch(() => {})
+          refreshNotificationsRef.current().catch(() => {})
         }
       } catch {
-        // Evite de bloquer l'ecran en cas d'echec ponctuel du rafraichissement.
+        // Évite de bloquer l'écran en cas d'échec ponctuel du rafraîchissement.
       }
     }, pollIntervalMs)
 
@@ -258,7 +264,7 @@ export function MessagesPage() {
 
         if (unreadMarkedCount > 0) {
           markConversationAsReadLocally(selectedContactId, unreadMarkedCount)
-          refreshNotifications().catch(() => {})
+          refreshNotificationsRef.current().catch(() => {})
         }
       } catch {
         // Ignore les erreurs ponctuelles au retour de focus.
@@ -350,7 +356,7 @@ export function MessagesPage() {
 
       setMessageInput('')
     } catch (error) {
-      setErrorMessage(error.responseData?.message ?? 'Impossible d envoyer ce message pour le moment.')
+      setErrorMessage(error.responseData?.message ?? 'Impossible d’envoyer ce message pour le moment.')
     } finally {
       setIsSending(false)
     }
@@ -364,16 +370,16 @@ export function MessagesPage() {
   }
 
   const selectedContact = useMemo(
-    () => contacts.find((contact) => contact.id === selectedContactId) ?? null,
-    [contacts, selectedContactId],
+    () => contacts.find((contact) => String(contact.id) === selectedContactIdKey) ?? null,
+    [contacts, selectedContactIdKey],
   )
 
   return (
     <section className="dashboard-shell messaging-shell">
       <article className="auth-card messaging-card">
-        <p className="eyebrow">Messagerie privee</p>
+        <p className="eyebrow">Messagerie privée</p>
         <h1 className="dashboard-title">Discutez en direct avec vos collaborateurs.</h1>
-        <p className="lede">Selectionnez un contact, consultez l historique et envoyez vos messages sans quitter Supwarden.</p>
+        <p className="lede">Sélectionnez un contact, consultez l’historique et envoyez vos messages sans quitter Supwarden.</p>
 
         {errorMessage ? <div className="feedback-banner feedback-banner-error">{errorMessage}</div> : null}
 
@@ -395,9 +401,9 @@ export function MessagesPage() {
             ) : contacts.length > 0 ? (
               <label className="field messaging-select-field">
                 <span className="messaging-select-label"><MessageIcon /><span>Mes conversations</span></span>
-                <select value={selectedContactId ?? ''} onChange={(event) => setSelectedContactId(Number(event.target.value))}>
+                <select value={selectedContactIdKey} onChange={(event) => setSelectedContactId(event.target.value)}>
                   {contacts.map((contact) => (
-                    <option key={contact.id} value={contact.id}>
+                    <option key={contact.id} value={String(contact.id)}>
                       {formatContactOption(contact)}
                     </option>
                   ))}
@@ -412,12 +418,12 @@ export function MessagesPage() {
             <header className="messaging-thread-header">
               <div>
                 <p className="messaging-panel-label">Conversation</p>
-                <h2>{selectedContact ? selectedContact.displayName : 'Selectionnez un contact'}</h2>
+                <h2>{selectedContact ? selectedContact.displayName : 'Conversation privée'}</h2>
               </div>
               {selectedContact ? (
                 <div className="messaging-header-badges">
                   {selectedContact.unreadCount > 0 ? <span className="messaging-unread-pill"><MessageIcon /><span>{selectedContact.unreadCount}</span></span> : null}
-                  <span className="messaging-thread-meta"><MessageIcon /><span>Messagerie privee</span></span>
+                  <span className="messaging-thread-meta"><MessageIcon /><span>Messagerie privée</span></span>
                 </div>
               ) : null}
             </header>
@@ -444,7 +450,7 @@ export function MessagesPage() {
                   hour: '2-digit',
                   minute: '2-digit',
                 })
-                const deliveryLabel = isSelf ? (message.isRead ? 'Lu' : 'Envoye') : null
+                const deliveryLabel = isSelf ? (message.isRead ? 'Lu' : 'Envoyé') : null
 
                 return (
                   <article key={message.id} className={isSelf ? 'messaging-row messaging-row-self' : 'messaging-row'}>
@@ -489,11 +495,11 @@ export function MessagesPage() {
                 value={messageInput}
                 onChange={(event) => setMessageInput(event.target.value)}
                 onKeyDown={handleComposerKeyDown}
-                placeholder="Ecrivez votre message..."
+                placeholder="Écrivez votre message..."
                 disabled={!selectedContactId}
               />
               <button className="button-link button-link-primary messaging-send-button" type="submit" disabled={isSending || !selectedContactId || messageInput.trim() === ''}>
-                {isSending ? 'Envoi...' : 'Envoyer'}
+                Envoyer
               </button>
             </form>
           </div>
@@ -512,4 +518,6 @@ function MessageIcon() {
     </svg>
   )
 }
+
+
 

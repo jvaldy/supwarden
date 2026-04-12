@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+﻿import { useEffect, useRef, useState } from 'react'
 import { NavLink } from '../components/ui/NavLink.jsx'
 import { useAuth } from '../context/authContext.js'
 import { useMessageNotifications } from '../hooks/useMessageNotifications.js'
@@ -42,7 +42,7 @@ export function PublicLayout({ children, navigate, path }) {
   async function handleLogout() {
     await logout()
     setIsAccountMenuOpen(false)
-    navigate('/')
+    navigate('/connexion')
   }
 
   const isVaultArea = path === '/vaults' || path.startsWith('/vaults/')
@@ -50,14 +50,11 @@ export function PublicLayout({ children, navigate, path }) {
   return (
     <main className="app-shell">
       <header className="topbar">
-        <NavLink className="brandmark" onNavigate={navigateAndClose} to="/">
+        <NavLink className="brandmark" onNavigate={navigateAndClose} to="/dashboard">
           Supwarden
         </NavLink>
 
         <nav className="topnav" aria-label="navigation principale">
-          <NavLink className={path === '/' ? 'nav-link active' : 'nav-link'} onNavigate={navigateAndClose} to="/">
-            Accueil
-          </NavLink>
           <NavLink className={path === '/dashboard' ? 'nav-link active' : 'nav-link'} onNavigate={navigateAndClose} to="/dashboard">
             Tableau de bord
           </NavLink>
@@ -120,6 +117,9 @@ export function PublicLayout({ children, navigate, path }) {
 
       <footer className="site-footer">
         <p className="footer-copy">© 2026 Supwarden</p>
+        <NavLink className="footer-link" onNavigate={navigateAndClose} to="/en-savoir-plus">
+          En savoir plus
+        </NavLink>
         <NavLink className="footer-link" onNavigate={navigateAndClose} to="/brand">
           Charte graphique
         </NavLink>
@@ -137,3 +137,4 @@ function MessageIcon() {
     </svg>
   )
 }
+

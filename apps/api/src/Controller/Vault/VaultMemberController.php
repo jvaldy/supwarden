@@ -10,6 +10,7 @@ use App\Entity\User;
 use App\Entity\Vault;
 use App\Entity\VaultMember;
 use App\Enum\VaultMemberRole;
+use App\Enum\VaultType;
 use App\Repository\UserRepository;
 use App\Repository\VaultMemberRepository;
 use App\Repository\VaultRepository;
@@ -53,6 +54,7 @@ final class VaultMemberController extends AbstractController
         if ($vault instanceof JsonResponse) {
             return $vault;
         }
+
 
         return $this->json([
             'members' => array_map([$this, 'buildMemberPayload'], $vault->getMembers()->toArray()),
@@ -101,6 +103,12 @@ final class VaultMemberController extends AbstractController
 
         if ($vault instanceof JsonResponse) {
             return $vault;
+        }
+
+        if ($this->isSystemPersonalVault($vault, $authenticatedUser)) {
+            return $this->json([
+                'message' => 'Impossible d’inviter des membres dans le trousseau personnel.',
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         $requestData = $this->decodeJsonRequest($request);
@@ -371,5 +379,20 @@ final class VaultMemberController extends AbstractController
             ],
         ];
     }
+
+    private function isSystemPersonalVault(Vault $vault, ?User $authenticatedUser): bool
+    {
+        if (!$authenticatedUser instanceof User) {
+            return false;
+        }
+
+        if ($vault->getOwner()?->getId() !== $authenticatedUser->getId()) {
+            return false;
+        }
+
+        return $vault->getType() === VaultType::PERSONAL
+            && mb_strtolower(trim($vault->getName())) === 'trousseau personnel';
+    }
 }
+
 

@@ -216,6 +216,10 @@
   align-self: stretch;
 }
 
+.messaging-send-button:disabled {
+  cursor: not-allowed;
+}
+
 .vault-chat-list {
   display: grid;
   gap: var(--space-2);

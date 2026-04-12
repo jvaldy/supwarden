@@ -5,6 +5,9 @@ namespace App\Controller\Auth;
 use App\Dto\Auth\LoginInput;
 use App\Dto\Auth\RegisterInput;
 use App\Entity\User;
+use App\Entity\Vault;
+use App\Entity\VaultMember;
+use App\Enum\VaultMemberRole;
 use App\Repository\UserRepository;
 use App\Security\Auth\AuthRateLimiter;
 use App\Security\Token\BearerTokenManager;
@@ -98,6 +101,19 @@ final class AuthController extends AbstractController
         }
 
         $entityManager->persist($user);
+
+        // Chaque compte local démarre avec un trousseau personnel prêt à l'emploi.
+        $personalVault = (new Vault())
+            ->setName('Trousseau personnel')
+            ->setOwner($user);
+
+        $ownerMembership = (new VaultMember())
+            ->setUser($user)
+            ->setRole(VaultMemberRole::OWNER);
+
+        $personalVault->addMember($ownerMembership);
+
+        $entityManager->persist($personalVault);
         $entityManager->flush();
 
         return $this->json([

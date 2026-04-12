@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { useAuth } from '../../context/authContext.js'
 import {
   createVaultItem,
@@ -26,7 +26,7 @@ export function ItemFormPage({ navigate, vaultId, itemId = null }) {
   const [isSecretLoaded, setIsSecretLoaded] = useState(false)
   const [isSecretVisible, setIsSecretVisible] = useState(false)
   const [notes, setNotes] = useState('')
-  const [isSensitive, setIsSensitive] = useState(true)
+  const [isSensitive, setIsSensitive] = useState(false)
   const [uris, setUris] = useState([{ ...emptyUri }])
   const [customFields, setCustomFields] = useState([])
   const [memberOptions, setMemberOptions] = useState([])
@@ -443,3 +443,5 @@ function formatMemberRole(role) {
       return 'Membre'
   }
 }
+
+

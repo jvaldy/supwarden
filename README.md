@@ -1,4 +1,4 @@
-﻿# supwarden
+# supwarden
 
 Gestionnaire de mots de passe collaboratif fullstack avec React, Symfony, PostgreSQL, Mercure et Docker.
 
@@ -6,132 +6,212 @@ Gestionnaire de mots de passe collaboratif fullstack avec React, Symfony, Postgr
 
 ```text
 supwarden/
-├── apps/
-│   ├── api/
-│   └── web/
-├── infra/
-│   └── docker/
-│       ├── api/
-│       ├── web/
-│       ├── db/
-│       └── mercure/
-├── scripts/
-├── .github/
-├── .editorconfig
-├── .gitignore
-├── .docker-compose.yml
-├── .env.example
-└── README.md
+|-- apps/
+|   |-- api/
+|   `-- web/
+|-- infra/
+|   `-- docker/
+|       |-- api/
+|       |-- web/
+|       |-- db/
+|       `-- mercure/
+|-- scripts/
+|-- .github/
+|-- .editorconfig
+|-- .gitignore
+|-- .docker-compose.yml
+|-- .docker-compose.prod.yml
+|-- .env.example
+|-- .env.local.example
+|-- .env.prod.example
+`-- README.md
 ```
 
-## Rôles des dossiers
+## Roles des dossiers
 
 - `apps/api` : application backend Symfony.
 - `apps/web` : application frontend React.
 - `infra/docker` : configuration Docker par service.
 - `scripts` : scripts utilitaires pour le projet.
-- `.github` : configuration CI/CD et automatisations GitHub.
+- `.github` : configuration CI/CD et automatisations de depot.
 
-## Structure figée des applications
+## Structure figee des applications
 
 ### `apps/api`
 
 ```text
 apps/api/
-├── bin/
-├── config/
-├── public/
-├── src/
-│   ├── Controller/
-│   ├── Entity/
-│   ├── Repository/
-│   ├── Service/
-│   ├── Dto/
-│   ├── Enum/
-│   ├── EventSubscriber/
-│   └── Security/
-├── migrations/
-├── tests/
-└── var/
+|-- bin/
+|-- config/
+|-- public/
+|-- src/
+|   |-- Controller/
+|   |-- Entity/
+|   |-- Repository/
+|   |-- Service/
+|   |-- Dto/
+|   |-- Enum/
+|   |-- EventSubscriber/
+|   `-- Security/
+|-- migrations/
+|-- tests/
+`-- var/
 ```
 
-Rôle des dossiers API :
+Role des dossiers API :
 
 - `Controller` : endpoints HTTP.
-- `Entity` : entités Doctrine.
-- `Repository` : accès base de données.
-- `Service` : logique métier.
-- `Dto` : objets d'entrée et de sortie.
-- `Enum` : constantes métier propres.
+- `Entity` : entites Doctrine.
+- `Repository` : acces base de donnees.
+- `Service` : logique metier.
+- `Dto` : objets d'entree et de sortie.
+- `Enum` : constantes metier propres.
 - `EventSubscriber` : hooks Symfony.
-- `Security` : auth, voters et gestion des accès.
-- `migrations` : versions de schéma BDD.
+- `Security` : auth, voters et gestion des acces.
+- `migrations` : versions de schema BDD.
 - `tests` : tests backend.
 
 ### `apps/web`
 
 ```text
 apps/web/
-├── public/
-├── src/
-│   ├── assets/
-│   ├── components/
-│   ├── pages/
-│   ├── layouts/
-│   ├── services/
-│   ├── hooks/
-│   ├── context/
-│   ├── routes/
-│   ├── utils/
-│   └── styles/
-└── tests/
+|-- public/
+|-- src/
+|   |-- assets/
+|   |-- components/
+|   |-- pages/
+|   |-- layouts/
+|   |-- services/
+|   |-- hooks/
+|   |-- context/
+|   |-- routes/
+|   |-- utils/
+|   `-- styles/
+`-- tests/
 ```
 
-Rôle des dossiers Web :
+Role des dossiers Web :
 
-- `components` : composants réutilisables.
-- `pages` : pages écran.
+- `components` : composants reutilisables.
+- `pages` : pages ecran.
 - `layouts` : structures de page.
 - `services` : appels API.
-- `hooks` : hooks React personnalisés.
+- `hooks` : hooks React personnalises.
 - `context` : contexte global.
 - `routes` : routage.
 - `utils` : fonctions utilitaires.
 - `styles` : styles globaux ou variables.
 - `tests` : tests frontend.
 
-Cette structure sert de convention de rangement. Les dossiers plus avancés déjà présents peuvent coexister temporairement, mais cette base est désormais la structure de référence pour le projet.
+Cette structure sert de convention de rangement. Les dossiers deja presents peuvent coexister temporairement, mais cette base reste la structure de reference du projet.
 
-## Démarrage rapide
+## Demarrage rapide
 
-1. Copier `.env.example` vers `.env` si le fichier n'existe pas encore.
-2. Remplacer dans `.env` toutes les valeurs `__SET_...__` par des secrets locaux propres avant tout démarrage.
-3. Lancer `docker compose -f .docker-compose.yml --env-file .env up -d --build`.
-4. Ouvrir le frontend sur `http://localhost:5173`.
-5. Ouvrir l'API sur `http://localhost:8000`.
-6. Ouvrir Adminer sur `http://localhost:8080`.
-7. Utiliser Mercure via `http://localhost:3000/.well-known/mercure`.
+### Version web / developpement
+
+1. Copier `.env.example` vers `.env`.
+2. Copier `.env.local.example` vers `.env.local` si des surcharges locales sont necessaires.
+3. Renseigner les valeurs attendues a partir des placeholders `__SET_...__`.
+4. Definir avant le build les variables BDD minimales :
+   - `POSTGRES_DB`
+   - `POSTGRES_USER`
+   - `POSTGRES_PASSWORD`
+5. Verifier aussi les autres secrets requis selon votre environnement :
+   - `APP_SECRET`
+   - `MERCURE_JWT_SECRET`
+   - `GOOGLE_OAUTH_CLIENT_ID`
+   - `GOOGLE_OAUTH_CLIENT_SECRET`
+6. Lancer :
+
+```bash
+docker compose -f .docker-compose.yml --env-file .env --env-file .env.local up -d --build
+```
+
+7. Ouvrir :
+   - frontend : `http://localhost:5173`
+   - API : `http://localhost:8000`
+   - documentation API : `http://localhost:8000/api/doc`
+
+### Version prod / validation finale
+
+1. Copier `.env.prod.example` vers `.env`.
+2. Copier `.env.local.example` vers `.env.local` si des surcharges locales sont necessaires.
+3. Renseigner toutes les variables `__SET_...__`, en particulier :
+   - `POSTGRES_DB`
+   - `POSTGRES_USER`
+   - `POSTGRES_PASSWORD`
+   - `APP_SECRET`
+   - `MERCURE_JWT_SECRET`
+   - `GOOGLE_OAUTH_CLIENT_ID`
+   - `GOOGLE_OAUTH_CLIENT_SECRET`
+4. Lancer :
+
+```bash
+docker compose -f .docker-compose.prod.yml --env-file .env --env-file .env.local up -d --build
+```
+
+5. Ouvrir :
+   - frontend : `http://localhost:5173`
+   - API : `http://localhost:8000`
+   - documentation API : `http://localhost:8000/api/doc`
+
+Exemple minimal de configuration BDD dans `.env` :
+
+```env
+POSTGRES_DB=supwarden
+POSTGRES_USER=supwarden
+POSTGRES_PASSWORD=choisir-un-mot-de-passe-solide
+```
 
 ## Outils disponibles
 
-- `docker compose -f .docker-compose.yml --env-file .env up -d --build` : démarre toute la stack Docker.
-- `docker compose -f .docker-compose.yml --env-file .env down --remove-orphans` : arrête la stack.
-- `cd apps/api && composer install && php bin/console about` : vérifie l'application Symfony localement.
+- `docker compose -f .docker-compose.yml --env-file .env --env-file .env.local up -d --build` : demarre la stack dev.
+- `docker compose -f .docker-compose.yml --env-file .env --env-file .env.local down --remove-orphans` : arrete la stack dev.
+- `docker compose -f .docker-compose.prod.yml --env-file .env --env-file .env.local up -d --build` : demarre la stack de validation prod.
+- `docker compose -f .docker-compose.prod.yml --env-file .env --env-file .env.local down --remove-orphans` : arrete la stack de validation prod.
+- `cd apps/api && composer install && php bin/console about` : verifie l'application Symfony localement.
 - `cd apps/web && npm install && npm run build` : construit le frontend React localement.
 
-## Accès base de données
+## Documentation Sprint 6
+
+- Architecture : `docs/architecture.md`
+- Choix techniques : `docs/tech-choices.md`
+- UML : `docs/uml.md`
+- Base de donnees : `docs/database.md`
+- API : `docs/api.md`
+- Deploiement : `docs/deployment.md`
+- Securite : `docs/security-checklist.md`
+- Guide utilisateur : `docs/user-guide.md`
+
+## Fichiers locaux a creer apres un clone Git
+
+Ces fichiers ne sont pas versionnes et doivent etre recrees localement :
+
+- `.env` : configuration principale de l'environnement.
+- `.env.local` : surcharges sensibles ou specifiques a la machine.
+- `apps/api/var/` : cache, logs et fichiers temporaires Symfony.
+- `apps/web/node_modules/` et `apps/api/vendor/` : dependances installees localement ou via Docker.
+
+Les fichiers d'exemple a utiliser comme point de depart sont :
+
+- `.env.example`
+- `.env.prod.example`
+- `.env.local.example`
+
+## Acces base de donnees
 
 Une interface graphique PostgreSQL est disponible via Adminer sur `http://localhost:8080`.
 
-Utiliser les informations suivantes :
-- Système : `PostgreSQL`
-- Serveur : `db`
-- Utilisateur : `supwarden`
-- Mot de passe : la valeur de `POSTGRES_PASSWORD` dans `.env`
-- Base de données : `supwarden`
+Les identifiants de connexion ne sont pas documentes ici pour eviter toute confusion avec des valeurs reelles.
+Utiliser uniquement les variables definies dans vos fichiers locaux `.env` et `.env.local`.
 
-## Sécurité
+## Securite
 
-Les variables d'environnement locales sont définies dans `.env`, qui ne doit pas être versionné. Le fichier `.env.example` sert uniquement de modèle de configuration.
+Les variables d'environnement locales sont definies dans `.env` et `.env.local`, qui ne doivent pas etre versionnes. Les fichiers `*.example` servent uniquement de modeles de configuration.
 
-Les secrets applicatifs doivent rester hors du dépôt. Les mots de passe utilisateur et les codes PIN sont destinés à être stockés sous forme hachée, jamais en clair.
+Les secrets applicatifs doivent rester hors du depot. Les mots de passe utilisateur et les codes PIN sont destines a etre stockes sous forme hachee, jamais en clair.
+
+## Profils d'environnement
+
+- Dev : copier `.env.example` vers `.env`, puis `.env.local.example` vers `.env.local` si besoin.
+- Prod : copier `.env.prod.example` vers `.env`, puis `.env.local.example` vers `.env.local` si besoin.

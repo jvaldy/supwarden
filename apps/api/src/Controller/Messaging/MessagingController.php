@@ -8,6 +8,7 @@ use App\Entity\PrivateMessage;
 use App\Entity\User;
 use App\Entity\Vault;
 use App\Entity\VaultMessage;
+use App\Enum\VaultType;
 use App\Repository\PrivateMessageRepository;
 use App\Repository\UserRepository;
 use App\Repository\VaultMemberRepository;
@@ -63,6 +64,10 @@ final class MessagingController extends AbstractController
 
         if (!$this->isGranted(VaultVoter::VIEW, $vault)) {
             return $this->json(['message' => 'Acces interdit.'], Response::HTTP_FORBIDDEN);
+        }
+
+        if ($this->isSystemPersonalVault($vault, $authenticatedUser)) {
+            return $this->json(['message' => 'La discussion est désactivée pour le trousseau personnel.'], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         $limit = max(1, min((int) $request->query->get('limit', 80), 200));
@@ -132,6 +137,10 @@ final class MessagingController extends AbstractController
 
         if (!$this->isGranted(VaultVoter::VIEW, $vault)) {
             return $this->json(['message' => 'Acces interdit.'], Response::HTTP_FORBIDDEN);
+        }
+
+        if ($this->isSystemPersonalVault($vault, $authenticatedUser)) {
+            return $this->json(['message' => 'La discussion est désactivée pour le trousseau personnel.'], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         $requestData = $this->decodeJsonRequest($request);
@@ -423,5 +432,19 @@ final class MessagingController extends AbstractController
                 'email' => $recipient?->getEmail(),
             ],
         ];
+    }
+
+    private function isSystemPersonalVault(Vault $vault, ?User $authenticatedUser): bool
+    {
+        if (!$authenticatedUser instanceof User) {
+            return false;
+        }
+
+        if ($vault->getOwner()?->getId() !== $authenticatedUser->getId()) {
+            return false;
+        }
+
+        return $vault->getType() === VaultType::PERSONAL
+            && mb_strtolower(trim($vault->getName())) === 'trousseau personnel';
     }
 }
