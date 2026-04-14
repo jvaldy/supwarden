@@ -9,7 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ItemUriRepository::class)]
-#[ORM\Table(name: 'item_uri')]
+#[ORM\Table(name: 'sw_item_uri')]
 #[ORM\Index(columns: ['item_id'], name: 'idx_item_uri_item_id')]
 class ItemUri
 {

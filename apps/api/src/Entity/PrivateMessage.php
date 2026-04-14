@@ -9,7 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: PrivateMessageRepository::class)]
-#[ORM\Table(name: 'private_message')]
+#[ORM\Table(name: 'sw_private_message')]
 #[ORM\Index(columns: ['sender_id', 'recipient_id', 'created_at'], name: 'idx_private_message_pair_created_at')]
 #[ORM\Index(columns: ['created_at'], name: 'idx_private_message_created_at')]
 #[ORM\Index(columns: ['recipient_id', 'read_at'], name: 'idx_private_message_recipient_read_at')]

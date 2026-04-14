@@ -8,7 +8,7 @@ use App\Repository\ItemPermissionRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: ItemPermissionRepository::class)]
-#[ORM\Table(name: 'item_permission')]
+#[ORM\Table(name: 'sw_item_permission')]
 #[ORM\UniqueConstraint(name: 'uniq_item_permission_item_user', columns: ['item_id', 'user_id'])]
 #[ORM\Index(columns: ['item_id'], name: 'idx_item_permission_item_id')]
 #[ORM\Index(columns: ['user_id'], name: 'idx_item_permission_user_id')]

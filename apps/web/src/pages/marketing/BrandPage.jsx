@@ -10,9 +10,9 @@ export function BrandPage() {
     <section className="brand-page">
       <section className="hero-panel brand-hero-panel">
         <div className="hero-copy">
-          <p className="eyebrow">Charte graphique Supwarden</p>
-          <h1 className="brand-title">Une base claire pour toutes les pages, en mobile d’abord.</h1>
-          <p className="lede">Cette version conserve l’essentiel: couleurs, typographie, espacements et règles mobiles.</p>
+          <p className="eyebrow">Système visuel Supwarden</p>
+          <h1 className="brand-title">Des règles simples pour une interface cohérente.</h1>
+          <p className="lede">Référence interne pour garder les mêmes repères sur le dashboard, les trousseaux et les écrans de compte.</p>
           <ul className="principles-list">
             {principles.map((item) => (
               <li key={item}>{item}</li>
@@ -32,8 +32,8 @@ export function BrandPage() {
         <article className="showcase-card showcase-card-wide">
           <div className="section-heading">
             <p className="panel-label">Palette</p>
-            <h2>Les couleurs à utiliser</h2>
-            <p className="lede compact">Base sombre, accents cyan, et couleurs d’état lisibles.</p>
+            <h2>Couleurs utilisées dans le produit</h2>
+            <p className="lede compact">Palette appliquée aux actions, états de sécurité et zones de travail.</p>
           </div>
 
           <div className="palette-groups">
@@ -58,14 +58,14 @@ export function BrandPage() {
         <article className="showcase-card">
           <div className="section-heading">
             <p className="panel-label">Typographie</p>
-            <h2>Comment garder une lecture confortable</h2>
+            <h2>Lecture prioritaire sur les actions</h2>
           </div>
 
           <div className="type-specimen">
             <p className="type-overline">Police interface: Arial / Helvetica</p>
-            <p className="type-display">Des titres lisibles, des textes courts, des actions visibles.</p>
-            <p className="type-body">Conservez une seule hiérarchie de texte sur tout le site.</p>
-            <code>JetBrains Mono: uniquement pour les données techniques</code>
+            <p className="type-display">Titres courts, contenu lisible, actions visibles.</p>
+            <p className="type-body">Même hiérarchie de texte sur tout le parcours applicatif.</p>
+            <code>JetBrains Mono: réservé aux informations techniques</code>
           </div>
 
           <div className="type-scale-list" aria-label="échelle typographique principale">
@@ -84,7 +84,7 @@ export function BrandPage() {
         <article className="showcase-card">
           <div className="section-heading">
             <p className="panel-label">Espacements</p>
-            <h2>Le bon rythme visuel partout</h2>
+            <h2>Rythme constant des formulaires aux modales</h2>
           </div>
 
           <div className="type-scale-list" aria-label="règles d’espacement">
@@ -112,8 +112,8 @@ export function BrandPage() {
         <article className="showcase-card showcase-card-wide">
           <div className="section-heading">
             <p className="panel-label">Boutons utilisés</p>
-            <h2>Tous les styles de boutons du site</h2>
-            <p className="lede compact">À utiliser selon la priorité de l’action.</p>
+            <h2>Styles d’action disponibles</h2>
+            <p className="lede compact">Choisir selon la priorité métier de l’action.</p>
           </div>
 
           <div className="brand-button-grid">
@@ -130,8 +130,8 @@ export function BrandPage() {
         <article className="showcase-card showcase-card-wide">
           <div className="section-heading">
             <p className="panel-label">Champs utilisés</p>
-            <h2>Les inputs standards du site</h2>
-            <p className="lede compact">Même style, mêmes placeholders, même comportement sur mobile.</p>
+            <h2>Référentiel des entrées standard</h2>
+            <p className="lede compact">Même présentation pour garder une saisie prévisible.</p>
           </div>
 
           <form className="form-demo" onSubmit={(event) => event.preventDefault()}>
@@ -184,3 +184,4 @@ export function BrandPage() {
     </section>
   )
 }
+

@@ -107,6 +107,42 @@ Cette structure sert de convention de rangement. Les dossiers deja presents peuv
 
 ## Demarrage rapide
 
+## Prerequis
+
+Pour lancer le projet sur une machine neuve, il faut disposer au minimum de :
+
+- `Git` pour recuperer le depot : <https://git-scm.com/downloads>
+- `Docker Desktop` sur Windows, avec `Docker Compose` disponible : <https://docs.docker.com/desktop/setup/install/windows-install/>
+- un navigateur web recent.
+
+Outils utiles en plus pour travailler hors Docker :
+
+- `Node.js` et `npm` pour lancer ou construire le frontend localement : <https://nodejs.org/en/download>
+- `PHP` pour lancer, verifier ou tester l'API localement : <https://windows.php.net/download/>
+- `Composer` pour gerer les dependances PHP localement : <https://getcomposer.org/download/>
+
+## Avant le premier lancement
+
+Avant de demarrer les conteneurs, il faut :
+
+1. Copier `.env.example` vers `.env`.
+2. Copier `.env.local.example` vers `.env.local` si des surcharges locales sont necessaires.
+3. Remplacer les placeholders `__SET_...__` par vos propres valeurs.
+4. Definir au minimum la configuration de la base de donnees :
+   - `POSTGRES_DB`
+   - `POSTGRES_USER`
+   - `POSTGRES_PASSWORD`
+5. Definir aussi les secrets applicatifs necessaires :
+   - `APP_SECRET`
+   - `MERCURE_JWT_SECRET`
+6. Renseigner les variables Google OAuth si la connexion Google doit fonctionner :
+   - `GOOGLE_OAUTH_CLIENT_ID`
+   - `GOOGLE_OAUTH_CLIENT_SECRET`
+   - `GOOGLE_OAUTH_REDIRECT_URI`
+   - `GOOGLE_OAUTH_FRONTEND_CALLBACK_URL`
+
+Sans configuration Google OAuth, le projet peut demarrer, mais la connexion Google ne sera pas utilisable.
+
 ### Version web / developpement
 
 1. Copier `.env.example` vers `.env`.

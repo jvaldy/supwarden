@@ -8,7 +8,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: VaultMemberRepository::class)]
 #[ORM\Table(
-    name: 'vault_member',
+    name: 'sw_vault_member',
     uniqueConstraints: [new ORM\UniqueConstraint(name: 'uniq_vault_member_vault_user', columns: ['vault_id', 'user_id'])],
     indexes: [
         new ORM\Index(name: 'idx_vault_member_vault_id', columns: ['vault_id']),

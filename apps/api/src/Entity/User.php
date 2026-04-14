@@ -14,7 +14,7 @@ use Symfony\Component\Serializer\Attribute\Ignore;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
-#[ORM\Table(name: 'app_user')]
+#[ORM\Table(name: 'sw_app_user')]
 #[UniqueEntity(fields: ['email'], message: 'Cette adresse e-mail est d?j? utilis?e.')]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
