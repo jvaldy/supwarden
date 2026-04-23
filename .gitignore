@@ -1,0 +1,46 @@
+# Dependencies
+node_modules/
+vendor/
+
+# Environment
+.env
+.env.local
+.env.*.local
+.env.dev
+.env.test
+.env.prod
+**/.env
+**/.env.local
+**/.env.*.local
+**/.env.dev
+**/.env.test
+**/.env.prod
+
+# Build artifacts
+dist/
+build/
+coverage/
+apps/web/cypress/screenshots/
+**/cypress/screenshots/
+apps/web/test-results/
+apps/web/test-results/.last-run.json
+apps/web/playwright/ui-snapshots.spec.js
+
+# Logs
+*.log
+
+# Documentation working files
+docs/*
+!docs/
+!docs/documentation technique.pdf
+!docs/guide utilisateur.pdf
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Temporary working files
+tmp_enonces_text.txt
+tmp_enonce_extract.txt

@@ -1,0 +1,44 @@
+.auth-shell {
+  width: min(100%, 1200px);
+  margin: 0 auto;
+}
+
+.auth-card {
+  padding: var(--space-6);
+  border-radius: 28px;
+  position: relative;
+  overflow: hidden;
+}
+
+.auth-title {
+  margin: 0;
+  max-width: none;
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  line-height: 1.1;
+}
+
+
+.auth-form {
+  display: grid;
+  gap: var(--space-4);
+  margin-top: var(--space-5);
+}
+
+.auth-submit {
+  width: 100%;
+  margin-top: var(--space-2);
+}
+
+.auth-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: var(--space-5);
+}
+
+@media (min-width: 640px) {
+  .auth-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+}

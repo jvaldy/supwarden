@@ -1,0 +1,198 @@
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { afterEach, vi } from 'vitest'
+import { AuthContext } from '../../context/authContext.js'
+import { ProfilePage } from './ProfilePage.jsx'
+
+const baseUser = {
+  email: 'camille@example.com',
+  firstname: 'Camille',
+  lastname: 'Martin',
+  isActive: true,
+  hasLocalPassword: true,
+  hasPin: false,
+}
+
+function renderProfilePage(overrides = {}) {
+  const navigate = vi.fn()
+  const updateProfile = vi.fn().mockResolvedValue({
+    user: {
+      email: 'camille@example.com',
+      firstname: 'Camille',
+      lastname: 'Martin',
+      hasLocalPassword: true,
+      hasPin: false,
+    },
+  })
+  const deleteAccount = vi.fn().mockResolvedValue({
+    message: 'Votre compte a bien été supprimé.',
+  })
+
+  render(
+    <AuthContext.Provider
+      value={{
+        authenticatedUser: baseUser,
+        updateProfile,
+        deleteAccount,
+        ...overrides,
+      }}
+    >
+      <ProfilePage navigate={navigate} />
+    </AuthContext.Provider>,
+  )
+
+  return { navigate, updateProfile, deleteAccount }
+}
+
+function changeByLabel(label, value, index = 0) {
+  const fields = screen.getAllByLabelText(label)
+  fireEvent.change(fields[index], { target: { value } })
+}
+
+function clickButton(name) {
+  fireEvent.click(screen.getByRole('button', { name }))
+}
+
+afterEach(() => {
+  vi.restoreAllMocks()
+})
+
+describe('ProfilePage', () => {
+  test('met à jour les informations du profil', async () => {
+    const { updateProfile } = renderProfilePage()
+
+    fireEvent.change(screen.getByLabelText('Prénom'), { target: { value: 'Alicia' } })
+    fireEvent.change(screen.getByLabelText('Nom'), { target: { value: 'Bernard' } })
+    clickButton('Enregistrer mes informations')
+
+    await waitFor(() => {
+      expect(updateProfile).toHaveBeenCalledWith({ firstname: 'Alicia', lastname: 'Bernard' })
+    })
+
+    expect(await screen.findByText('Vos informations ont bien été mises à jour.')).toBeInTheDocument()
+  })
+
+  test('modifie le mot de passe avec le mot de passe actuel', async () => {
+    const { updateProfile } = renderProfilePage()
+
+    changeByLabel('Mot de passe actuel', 'motdepasse123')
+    fireEvent.change(screen.getByLabelText('Nouveau mot de passe'), { target: { value: 'motdepasse12345' } })
+    fireEvent.change(screen.getByLabelText('Confirmer le nouveau mot de passe'), { target: { value: 'motdepasse12345' } })
+    clickButton('Modifier mon mot de passe')
+
+    await waitFor(() => {
+      expect(updateProfile).toHaveBeenCalledWith({
+        currentPassword: 'motdepasse123',
+        newPassword: 'motdepasse12345',
+      })
+    })
+
+    expect(await screen.findByText('Votre mot de passe a bien été modifié.')).toBeInTheDocument()
+  })
+
+  test('définit un code PIN sans demander l’ancien si aucun PIN n’existe encore', async () => {
+    const { updateProfile } = renderProfilePage()
+
+    expect(screen.queryByLabelText('Code PIN actuel')).not.toBeInTheDocument()
+
+    fireEvent.change(screen.getByLabelText('Nouveau code PIN'), { target: { value: '1234' } })
+    fireEvent.change(screen.getByLabelText('Confirmer le nouveau code PIN'), { target: { value: '1234' } })
+    clickButton('Définir un code PIN')
+
+    await waitFor(() => {
+      expect(updateProfile).toHaveBeenCalledWith({ newPin: '1234' })
+    })
+
+    expect(await screen.findByText('Votre code PIN a bien été défini.')).toBeInTheDocument()
+  })
+
+  test('modifie le code PIN en demandant le mot de passe actuel du compte', async () => {
+    const { updateProfile } = renderProfilePage({
+      authenticatedUser: {
+        ...baseUser,
+        hasPin: true,
+      },
+    })
+
+    fireEvent.change(screen.getByLabelText('Mot de passe actuel du compte'), { target: { value: 'motdepasse123' } })
+    fireEvent.change(screen.getByLabelText('Nouveau code PIN'), { target: { value: '4826' } })
+    fireEvent.change(screen.getByLabelText('Confirmer le nouveau code PIN'), { target: { value: '4826' } })
+    clickButton('Modifier mon code PIN')
+
+    await waitFor(() => {
+      expect(updateProfile).toHaveBeenCalledWith({
+        pinCurrentPassword: 'motdepasse123',
+        newPin: '4826',
+      })
+    })
+
+    expect(await screen.findByText('Votre code PIN a bien été modifié.')).toBeInTheDocument()
+  })
+
+  test('bloque la modification du PIN si la confirmation ne correspond pas', async () => {
+    const { updateProfile } = renderProfilePage()
+
+    fireEvent.change(screen.getByLabelText('Nouveau code PIN'), { target: { value: '1234' } })
+    fireEvent.change(screen.getByLabelText('Confirmer le nouveau code PIN'), { target: { value: '9999' } })
+    clickButton('Définir un code PIN')
+
+    expect(updateProfile).not.toHaveBeenCalled()
+    expect(await screen.findByText('Les codes PIN doivent être identiques.')).toBeInTheDocument()
+  })
+
+  test('propose de définir un mot de passe sans demander l’ancien pour un compte OAuth', async () => {
+    const { updateProfile } = renderProfilePage({
+      authenticatedUser: {
+        ...baseUser,
+        email: 'google@example.com',
+        firstname: 'Google',
+        lastname: 'User',
+        hasLocalPassword: false,
+      },
+    })
+
+    expect(screen.getAllByLabelText('Mot de passe actuel')).toHaveLength(1)
+    expect(screen.getByRole('button', { name: 'Définir un mot de passe' })).toBeInTheDocument()
+
+    fireEvent.change(screen.getByLabelText('Nouveau mot de passe'), { target: { value: 'motdepasse12345' } })
+    fireEvent.change(screen.getByLabelText('Confirmer le nouveau mot de passe'), { target: { value: 'motdepasse12345' } })
+    clickButton('Définir un mot de passe')
+
+    await waitFor(() => {
+      expect(updateProfile).toHaveBeenCalledWith({ newPassword: 'motdepasse12345' })
+    })
+
+    expect(await screen.findByText('Votre mot de passe local a bien été défini.')).toBeInTheDocument()
+  })
+
+  test('bloque la modification si la confirmation du nouveau mot de passe ne correspond pas', async () => {
+    const { updateProfile } = renderProfilePage()
+
+    changeByLabel('Mot de passe actuel', 'motdepasse123')
+    fireEvent.change(screen.getByLabelText('Nouveau mot de passe'), { target: { value: 'motdepasse12345' } })
+    fireEvent.change(screen.getByLabelText('Confirmer le nouveau mot de passe'), { target: { value: 'different' } })
+    clickButton('Modifier mon mot de passe')
+
+    expect(updateProfile).not.toHaveBeenCalled()
+    expect(await screen.findByText('Les nouveaux mots de passe doivent être identiques.')).toBeInTheDocument()
+  })
+
+  test('supprime le compte après confirmation', async () => {
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true)
+    const { deleteAccount, navigate } = renderProfilePage()
+
+    changeByLabel('Mot de passe actuel', 'motdepasse123', 1)
+    fireEvent.click(screen.getByLabelText('Je confirme vouloir supprimer définitivement mon compte.'))
+    clickButton('Supprimer mon compte')
+
+    await waitFor(() => {
+      expect(deleteAccount).toHaveBeenCalledWith({
+        currentPassword: 'motdepasse123',
+        confirmDeletion: true,
+      })
+    })
+
+    expect(confirmSpy).toHaveBeenCalled()
+    expect(navigate).toHaveBeenCalledWith('/')
+  })
+})
+

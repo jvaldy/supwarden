@@ -1,0 +1,176 @@
+﻿.dashboard-shell {
+  width: min(100%, 1200px);
+  margin: 0 auto;
+  display: grid;
+  gap: var(--space-5);
+}
+
+.dashboard-title {
+  margin: 0;
+  max-width: none;
+  font-size: clamp(2rem, 4vw, 2.9rem);
+  line-height: 1.08;
+}
+
+
+.dashboard-card,
+.dashboard-summary {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+}
+
+.dashboard-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.activity-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--space-3);
+}
+
+.activity-item {
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(173, 216, 255, 0.1);
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--color-text-soft);
+}
+
+@media (min-width: 640px) {
+  .dashboard-card,
+  .dashboard-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 900px) {
+  .dashboard-card {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-summary {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.dashboard-options-grid {
+  display: grid;
+  gap: var(--space-2);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.checkbox-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--color-text-soft);
+}
+
+.dashboard-actions-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.dashboard-generated-password {
+  margin-top: var(--space-3);
+}
+
+.dashboard-generated-password .vault-item-copy-field-body p {
+  overflow-wrap: anywhere;
+}
+
+.dashboard-error-list {
+  margin: var(--space-2) 0 0;
+  padding-left: 1rem;
+  color: #f7a8b5;
+  display: grid;
+  gap: 0.3rem;
+}
+
+.activity-item {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.activity-item strong {
+  font-size: 1.25rem;
+  color: var(--color-text-high);
+}
+
+.activity-item span {
+  color: var(--color-text-soft);
+}
+
+@media (max-width: 639px) {
+  .dashboard-options-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.dashboard-stats-card {
+  gap: var(--space-3);
+}
+
+.dashboard-stats-head {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.dashboard-stats-head h2 {
+  margin: 0;
+}
+
+.dashboard-summary-compact {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.45rem;
+}
+
+.dashboard-summary-compact .activity-item {
+  padding: 0.5rem 0.62rem;
+  border-radius: 0.82rem;
+}
+
+.dashboard-summary-compact .activity-item strong {
+  font-size: 0.96rem;
+  line-height: 1.1;
+}
+
+.dashboard-summary-compact .activity-item span {
+  font-size: 0.74rem;
+  line-height: 1.2;
+}
+
+.dashboard-stats-table-compact {
+  margin-top: var(--space-2);
+}
+
+.dashboard-stats-table-compact table {
+  font-size: 0.9rem;
+}
+
+.dashboard-stats-table-compact th,
+.dashboard-stats-table-compact td {
+  padding-top: 0.45rem;
+  padding-bottom: 0.45rem;
+}
+
+@media (min-width: 680px) {
+  .dashboard-stats-head {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+  }
+
+  .dashboard-summary-compact {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.dashboard-actions-below-stats {
+  margin-top: var(--space-2);
+}

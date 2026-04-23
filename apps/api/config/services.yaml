@@ -1,0 +1,74 @@
+# This file is the entry point to configure your own services.
+# Files in the packages/ subdirectory configure your dependencies.
+
+# Put parameters here that don't need to change on each machine where the app is deployed
+# https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
+parameters:
+    app.auth_token_ttl: 3600
+    app.google_oauth_client_id: '%env(GOOGLE_OAUTH_CLIENT_ID)%'
+    app.google_oauth_client_secret: '%env(GOOGLE_OAUTH_CLIENT_SECRET)%'
+    app.google_oauth_redirect_uri: '%env(GOOGLE_OAUTH_REDIRECT_URI)%'
+    app.google_oauth_frontend_callback_url: '%env(GOOGLE_OAUTH_FRONTEND_CALLBACK_URL)%'
+    app.item_attachment_directory: '%kernel.project_dir%/var/uploads/item-attachments'
+    app.mercure_url: '%env(MERCURE_URL)%'
+    app.mercure_public_url: '%env(MERCURE_PUBLIC_URL)%'
+    app.mercure_jwt_secret: '%env(MERCURE_JWT_SECRET)%'
+
+services:
+    # default configuration for services in *this* file
+    _defaults:
+        autowire: true      # Automatically injects dependencies in your services.
+        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+
+    # makes classes in src/ available to be used as services
+    # this creates a service per class whose id is the fully-qualified class name
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/DependencyInjection/'
+            - '../src/Entity/'
+            - '../src/Kernel.php'
+
+    App\Security\Token\BearerTokenManager:
+        arguments:
+            $appSecret: '%env(APP_SECRET)%'
+            $tokenTtl: '%app.auth_token_ttl%'
+
+    App\Security\Auth\AuthRateLimiter:
+        arguments:
+            $loginLimiter: '@limiter.auth_login'
+            $registerLimiter: '@limiter.auth_register'
+
+    App\Security\OAuth\GoogleOAuthClientInterface: '@App\Security\OAuth\GoogleOAuthClient'
+
+    App\Security\OAuth\GoogleOAuthClient:
+        arguments:
+            $clientId: '%app.google_oauth_client_id%'
+            $clientSecret: '%app.google_oauth_client_secret%'
+            $redirectUri: '%app.google_oauth_redirect_uri%'
+            $frontendCallbackUrl: '%app.google_oauth_frontend_callback_url%'
+
+    App\Service\ItemAttachmentStorage:
+        arguments:
+            $targetDirectory: '%app.item_attachment_directory%'
+
+    App\Service\VaultSecretCipher:
+        arguments:
+            $appSecret: '%env(APP_SECRET)%'
+
+    # add more service definitions when explicit configuration is needed
+    # please note that last definitions always *replace* previous ones
+
+
+    App\Service\Notification\NotificationTopicResolver:
+        arguments:
+            $appSecret: '%env(APP_SECRET)%'
+
+    App\Service\Notification\NotificationMercurePublisher:
+        arguments:
+            $mercureUrl: '%app.mercure_url%'
+            $mercureJwtSecret: '%app.mercure_jwt_secret%'
+
+    App\Controller\Notification\NotificationController:
+        arguments:
+            $mercurePublicUrl: '%app.mercure_public_url%'

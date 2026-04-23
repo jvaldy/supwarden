@@ -1,0 +1,19 @@
+{
+  auto_https off
+}
+
+:80 {
+  encode zstd gzip
+
+  mercure {
+    publisher_jwt {$MERCURE_PUBLISHER_JWT_KEY} HS256
+    subscriber_jwt {$MERCURE_SUBSCRIBER_JWT_KEY} HS256
+    anonymous
+    subscriptions
+    cors_origins {$MERCURE_CORS_ALLOWED_ORIGINS}
+    publish_origins *
+    demo
+  }
+
+  respond /healthz 200
+}
