@@ -1,4 +1,4 @@
-const apiBaseUrl = import.meta.env.VITE_API_URL ?? import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
+﻿const apiBaseUrl = import.meta.env.VITE_API_URL ?? import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
 
 function sanitizeForFileName(value) {
   return String(value ?? '')
@@ -136,3 +136,4 @@ export async function exportVaultDataFile(token, vaultId, format = 'json', vault
     window.URL.revokeObjectURL(objectUrl)
   }, 1000)
 }
+

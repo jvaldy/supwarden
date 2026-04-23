@@ -18,7 +18,7 @@ final class MeController extends AbstractController
 {
     #[OA\Get(
         path: '/api/me',
-        summary: "Retourne l'utilisateur authentifie.",
+        summary: "Retourne l'utilisateur authentifié.",
         security: [['Bearer' => []]],
         tags: ['Utilisateur']
     )]
@@ -50,9 +50,7 @@ final class MeController extends AbstractController
         NormalizerInterface $normalizer
     ): JsonResponse {
         if ($authenticatedUser === null) {
-            return $this->json([
-                'message' => 'Authentification requise.',
-            ], JsonResponse::HTTP_UNAUTHORIZED);
+            return $this->jsonError('Authentification requise.', Response::HTTP_UNAUTHORIZED);
         }
 
         return $this->json([
@@ -66,39 +64,57 @@ final class MeController extends AbstractController
         #[CurrentUser] ?User $authenticatedUser
     ): JsonResponse {
         if ($authenticatedUser === null) {
-            return $this->json([
-                'message' => 'Authentification requise.',
-            ], Response::HTTP_UNAUTHORIZED);
+            return $this->jsonError('Authentification requise.', Response::HTTP_UNAUTHORIZED);
         }
 
-        $requestData = json_decode($request->getContent(), true);
-        if (!is_array($requestData)) {
-            return $this->json([
-                'message' => 'Le corps de la requete doit etre un objet JSON.',
-            ], Response::HTTP_BAD_REQUEST);
+        $requestData = $this->decodeJsonObject($request);
+        if ($requestData instanceof JsonResponse) {
+            return $requestData;
         }
 
         $pin = isset($requestData['pin']) ? trim((string) $requestData['pin']) : '';
         if ($pin === '') {
-            return $this->json([
-                'message' => 'Le code PIN est requis.',
-            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+            return $this->jsonError('Le code PIN est requis.', Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         if (!$authenticatedUser->hasPin() || !is_string($authenticatedUser->getPinHash())) {
-            return $this->json([
-                'message' => "Vous n'avez pas encore defini votre code PIN.",
-            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+            return $this->jsonError("Vous n'avez pas encore défini votre code PIN.", Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         if (!password_verify($pin, $authenticatedUser->getPinHash())) {
-            return $this->json([
-                'message' => 'Le code PIN est incorrect.',
-            ], Response::HTTP_UNAUTHORIZED);
+            return $this->jsonError('Le code PIN est incorrect.', Response::HTTP_UNAUTHORIZED);
         }
 
-        return $this->json([
-            'message' => 'PIN valide.',
-        ]);
+        return $this->json(['message' => 'PIN valide.']);
+    }
+
+    /**
+     * @return array<string, mixed>|JsonResponse
+     */
+    private function decodeJsonObject(Request $request): array|JsonResponse
+    {
+        $rawContent = $request->getContent();
+
+        if ($rawContent === '') {
+            return $this->jsonError('Le corps de la requête JSON est requis.', Response::HTTP_BAD_REQUEST);
+        }
+
+        try {
+            $decoded = json_decode($rawContent, true, 512, JSON_THROW_ON_ERROR);
+        } catch (\JsonException) {
+            return $this->jsonError('Le JSON fourni est invalide.', Response::HTTP_BAD_REQUEST);
+        }
+
+        if (!is_array($decoded)) {
+            return $this->jsonError('Le corps de la requête doit être un objet JSON.', Response::HTTP_BAD_REQUEST);
+        }
+
+        return $decoded;
+    }
+
+    private function jsonError(string $message, int $status): JsonResponse
+    {
+        return $this->json(['message' => $message], $status);
     }
 }
+

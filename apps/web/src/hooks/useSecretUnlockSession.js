@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+﻿import { useCallback, useEffect, useState } from 'react'
 import { useSecretMaskTimeoutMs } from './useSecretMaskTimeoutMs.js'
 
 export function useSecretUnlockSession() {
@@ -41,6 +41,27 @@ export function useSecretUnlockSession() {
     return rememberPin(enteredPin)
   }, [pin, rememberPin, timeoutMs, unlockStartedAt])
 
+  const requestSecretCredential = useCallback(async (promptMessage, options = {}) => {
+    const allowPin = options?.allowPin === true
+
+    if (allowPin && pin !== '' && unlockStartedAt > 0 && unlockStartedAt + timeoutMs > Date.now()) {
+      setUnlockStartedAt(Date.now())
+      return { method: 'pin', value: pin }
+    }
+
+    const credential = await promptForSecretCredential(promptMessage, { allowPin })
+    if (!credential) {
+      return null
+    }
+
+    if (credential.method === 'pin') {
+      const rememberedPin = rememberPin(credential.value)
+      return rememberedPin ? { method: 'pin', value: rememberedPin } : null
+    }
+
+    return credential.value ? credential : null
+  }, [pin, rememberPin, timeoutMs, unlockStartedAt])
+
   useEffect(() => {
     if (!isUnlocked) {
       return undefined
@@ -76,6 +97,7 @@ export function useSecretUnlockSession() {
     isUnlocked,
     rememberPin,
     requestPin,
+    requestSecretCredential,
   }
 }
 
@@ -216,3 +238,169 @@ function promptForMaskedPin(message) {
     }, 0)
   })
 }
+
+function promptForSecretCredential(message, options = {}) {
+  const allowPin = options?.allowPin === true
+
+  return new Promise((resolve) => {
+    const overlay = document.createElement('div')
+    overlay.setAttribute('role', 'dialog')
+    overlay.setAttribute('aria-modal', 'true')
+    overlay.style.position = 'fixed'
+    overlay.style.inset = '0'
+    overlay.style.zIndex = '9999'
+    overlay.style.display = 'grid'
+    overlay.style.placeItems = 'center'
+    overlay.style.padding = '1rem'
+    overlay.style.background = 'rgba(3, 8, 15, 0.68)'
+
+    const panel = document.createElement('div')
+    panel.style.width = 'min(100%, 28rem)'
+    panel.style.display = 'grid'
+    panel.style.gap = '0.85rem'
+    panel.style.padding = '1rem'
+    panel.style.borderRadius = '1rem'
+    panel.style.border = '1px solid rgba(173, 216, 255, 0.2)'
+    panel.style.background = 'rgba(8, 17, 29, 0.98)'
+
+    const title = document.createElement('strong')
+    title.textContent = 'Déverrouillage requis'
+    title.style.color = '#eef6ff'
+
+    const text = document.createElement('p')
+    text.textContent = message || 'Saisissez votre mot de passe pour afficher ce secret.'
+    text.style.margin = '0'
+    text.style.color = '#c7dcef'
+    text.style.fontSize = '0.95rem'
+
+    let mode = 'password'
+
+    const modeSwitch = document.createElement('div')
+    modeSwitch.style.display = allowPin ? 'flex' : 'none'
+    modeSwitch.style.gap = '0.45rem'
+
+    const passwordModeButton = document.createElement('button')
+    passwordModeButton.type = 'button'
+    passwordModeButton.textContent = 'Mot de passe'
+    applyModeButtonStyle(passwordModeButton, true)
+
+    const pinModeButton = document.createElement('button')
+    pinModeButton.type = 'button'
+    pinModeButton.textContent = 'Code PIN'
+    applyModeButtonStyle(pinModeButton, false)
+
+    const input = document.createElement('input')
+    input.type = 'password'
+    input.autocomplete = 'new-password'
+    input.name = 'secret_unlock_proof'
+    input.inputMode = 'text'
+    input.spellcheck = false
+    input.autocapitalize = 'off'
+    input.autocorrect = 'off'
+    input.setAttribute('data-lpignore', 'true')
+    input.setAttribute('data-1p-ignore', 'true')
+    input.placeholder = 'Mot de passe du compte'
+    input.style.width = '100%'
+    input.style.minHeight = '44px'
+    input.style.padding = '0.75rem 0.9rem'
+    input.style.borderRadius = '0.9rem'
+    input.style.border = '1px solid rgba(173, 216, 255, 0.22)'
+    input.style.background = 'rgba(8, 17, 29, 0.9)'
+    input.style.color = '#eef6ff'
+
+    function setMode(nextMode) {
+      mode = nextMode
+      const isPasswordMode = mode === 'password'
+      input.placeholder = isPasswordMode ? 'Mot de passe du compte' : 'Code PIN'
+      input.inputMode = isPasswordMode ? 'text' : 'numeric'
+      applyModeButtonStyle(passwordModeButton, isPasswordMode)
+      applyModeButtonStyle(pinModeButton, !isPasswordMode)
+      input.value = ''
+      window.setTimeout(() => input.focus(), 0)
+    }
+
+    passwordModeButton.addEventListener('click', () => setMode('password'))
+    pinModeButton.addEventListener('click', () => setMode('pin'))
+
+    const actions = document.createElement('div')
+    actions.style.display = 'flex'
+    actions.style.justifyContent = 'flex-end'
+    actions.style.gap = '0.6rem'
+
+    const cancelButton = document.createElement('button')
+    cancelButton.type = 'button'
+    cancelButton.textContent = 'Annuler'
+    cancelButton.style.minHeight = '40px'
+    cancelButton.style.padding = '0.55rem 0.9rem'
+    cancelButton.style.borderRadius = '999px'
+    cancelButton.style.border = '1px solid rgba(173, 216, 255, 0.28)'
+    cancelButton.style.background = 'linear-gradient(180deg, rgba(173, 216, 255, 0.14), rgba(143, 211, 255, 0.1))'
+    cancelButton.style.color = '#c7dcef'
+    cancelButton.style.cursor = 'pointer'
+
+    const submitButton = document.createElement('button')
+    submitButton.type = 'button'
+    submitButton.textContent = 'Valider'
+    submitButton.style.minHeight = '40px'
+    submitButton.style.padding = '0.55rem 0.9rem'
+    submitButton.style.borderRadius = '999px'
+    submitButton.style.border = '1px solid transparent'
+    submitButton.style.background = 'linear-gradient(180deg, rgba(173, 216, 255, 0.98), rgba(143, 211, 255, 0.92))'
+    submitButton.style.color = '#08111d'
+    submitButton.style.cursor = 'pointer'
+
+    const cleanup = (value) => {
+      overlay.remove()
+      resolve(value)
+    }
+
+    cancelButton.addEventListener('click', () => cleanup(null))
+    submitButton.addEventListener('click', () => cleanup({ method: mode, value: input.value.trim() }))
+
+    input.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        event.preventDefault()
+        cleanup({ method: mode, value: input.value.trim() })
+      }
+
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        cleanup(null)
+      }
+    })
+
+    overlay.addEventListener('click', (event) => {
+      if (event.target === overlay) {
+        cleanup(null)
+      }
+    })
+
+    modeSwitch.append(passwordModeButton, pinModeButton)
+    actions.append(cancelButton, submitButton)
+    panel.append(title, text)
+    if (allowPin) {
+      panel.append(modeSwitch)
+    }
+    panel.append(input, actions)
+    overlay.append(panel)
+    document.body.append(overlay)
+    input.value = ''
+    window.setTimeout(() => input.focus(), 0)
+  })
+}
+
+function applyModeButtonStyle(button, isActive) {
+  button.style.minHeight = '36px'
+  button.style.padding = '0.45rem 0.8rem'
+  button.style.borderRadius = '999px'
+  button.style.border = isActive
+    ? '1px solid rgba(173, 216, 255, 0.64)'
+    : '1px solid rgba(173, 216, 255, 0.22)'
+  button.style.background = isActive
+    ? 'linear-gradient(180deg, rgba(173, 216, 255, 0.96), rgba(143, 211, 255, 0.9))'
+    : 'linear-gradient(180deg, rgba(173, 216, 255, 0.14), rgba(143, 211, 255, 0.1))'
+  button.style.color = isActive ? '#08111d' : '#c7dcef'
+  button.style.cursor = 'pointer'
+}
+
+

@@ -3,10 +3,10 @@ set -eu
 
 cd /app/apps/api
 
-# Installe les dependances sans relancer les auto-scripts Symfony a chaque boot.
-composer install --no-interaction --no-progress --prefer-dist --no-scripts
-
-# Le cache local peut rester dans un etat incoherent avec le volume monte.
-rm -rf var/cache/dev var/cache/test
+# Image prod: dependances installees au build, on ne reinstalle pas au demarrage.
+if [ "${APP_ENV:-prod}" = "prod" ]; then
+  rm -rf var/cache/prod
+  php bin/console cache:warmup --env=prod --no-debug || true
+fi
 
 exec php -S "0.0.0.0:${APP_PORT:-8000}" -t public

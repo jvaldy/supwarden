@@ -6,6 +6,8 @@
 .auth-card {
   padding: var(--space-6);
   border-radius: 28px;
+  position: relative;
+  overflow: hidden;
 }
 
 .auth-title {

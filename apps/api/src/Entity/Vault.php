@@ -12,7 +12,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: VaultRepository::class)]
-#[ORM\Table(name: 'vault')]
+#[ORM\Table(name: 'sw_vault')]
 #[ORM\Index(columns: ['owner_id'], name: 'idx_vault_owner_id')]
 #[ORM\Index(columns: ['created_at'], name: 'idx_vault_created_at')]
 #[ORM\HasLifecycleCallbacks]
@@ -34,6 +34,7 @@ class Vault
 
     #[ORM\Column(enumType: VaultType::class)]
     private VaultType $type = VaultType::PERSONAL;
+
 
     #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'ownedVaults')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
@@ -241,4 +242,7 @@ class Vault
         $this->updatedAt = new \DateTimeImmutable();
     }
 }
+
+
+
 

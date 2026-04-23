@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+﻿import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { MessagesPage } from './MessagesPage.jsx'
 
@@ -74,7 +74,7 @@ describe('MessagesPage', () => {
 
     render(<MessagesPage />)
 
-    const input = await screen.findByPlaceholderText('Ecrivez votre message...')
+    const input = await screen.findByPlaceholderText('Écrivez votre message...')
     fireEvent.change(input, { target: { value: 'Bonjour' } })
     fireEvent.click(screen.getByRole('button', { name: 'Envoyer' }))
 
@@ -97,6 +97,7 @@ describe('MessagesPage', () => {
           sender: { id: 10, displayName: 'Elsie LIKWELA ZOLANA', isCurrentUser: false },
         })),
         unreadMarkedCount: 0,
+        hasMoreBefore: true,
       })
       .mockResolvedValueOnce({
         messages: [
@@ -109,6 +110,7 @@ describe('MessagesPage', () => {
           },
         ],
         unreadMarkedCount: 0,
+        hasMoreBefore: false,
       })
 
     render(<MessagesPage />)

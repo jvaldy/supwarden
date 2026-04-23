@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+﻿import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { vi } from 'vitest'
 import { AuthContext } from '../../context/authContext.js'
 import * as authApi from '../../services/api/authApi.js'
@@ -73,3 +73,4 @@ describe('LoginPage', () => {
     expect(await screen.findByText('Identifiants invalides.')).toBeInTheDocument()
   })
 })
+

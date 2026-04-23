@@ -1,10 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller\Auth;
 
 use App\Dto\Auth\LoginInput;
 use App\Dto\Auth\RegisterInput;
 use App\Entity\User;
+use App\Entity\Vault;
+use App\Entity\VaultMember;
+use App\Enum\VaultMemberRole;
 use App\Repository\UserRepository;
 use App\Security\Auth\AuthRateLimiter;
 use App\Security\Token\BearerTokenManager;
@@ -45,7 +50,6 @@ final class AuthController extends AbstractController
     #[OA\Response(response: 201, description: "Utilisateur créé et jeton d'authentification retourné.")]
     #[OA\Response(response: 422, description: 'Les données envoyées sont invalides.')]
     #[Route('/register', name: 'register', methods: ['POST'])]
-    // Gère l'inscription classique puis ouvre immédiatement une session API.
     public function register(
         Request $request,
         ValidatorInterface $validator,
@@ -56,8 +60,7 @@ final class AuthController extends AbstractController
         BearerTokenManager $bearerTokenManager,
         NormalizerInterface $normalizer
     ): JsonResponse {
-        $requestData = $this->decodeJsonRequest($request);
-
+        $requestData = $this->decodeJsonObject($request);
         if ($requestData instanceof JsonResponse) {
             return $requestData;
         }
@@ -81,23 +84,32 @@ final class AuthController extends AbstractController
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        // Le mot de passe n'est jamais persisté en clair.
         $user = (new User())
             ->setEmail($registerInput->email)
             ->setFirstname($registerInput->firstname)
             ->setLastname($registerInput->lastname)
             ->setIsActive(true);
 
-        $hashedPassword = $passwordHasher->hashPassword($user, $registerInput->password);
-        $user->setPassword($hashedPassword);
+        $user->setPassword($passwordHasher->hashPassword($user, $registerInput->password));
 
         $rateLimitResponse = $authRateLimiter->consumeRegistrationAttempt($request);
-
         if ($rateLimitResponse instanceof JsonResponse) {
             return $rateLimitResponse;
         }
 
         $entityManager->persist($user);
+
+        $personalVault = (new Vault())
+            ->setName('Trousseau personnel')
+            ->setOwner($user);
+
+        $ownerMembership = (new VaultMember())
+            ->setUser($user)
+            ->setRole(VaultMemberRole::OWNER);
+
+        $personalVault->addMember($ownerMembership);
+
+        $entityManager->persist($personalVault);
         $entityManager->flush();
 
         return $this->json([
@@ -126,7 +138,6 @@ final class AuthController extends AbstractController
     #[OA\Response(response: 401, description: 'Identifiants invalides.')]
     #[OA\Response(response: 422, description: 'Les données envoyées sont invalides.')]
     #[Route('/login', name: 'login', methods: ['POST'])]
-    // Authentifie un utilisateur local et applique la protection anti-bruteforce.
     public function login(
         Request $request,
         ValidatorInterface $validator,
@@ -136,8 +147,7 @@ final class AuthController extends AbstractController
         BearerTokenManager $bearerTokenManager,
         NormalizerInterface $normalizer
     ): JsonResponse {
-        $requestData = $this->decodeJsonRequest($request);
-
+        $requestData = $this->decodeJsonObject($request);
         if ($requestData instanceof JsonResponse) {
             return $requestData;
         }
@@ -147,7 +157,6 @@ final class AuthController extends AbstractController
         $loginInput->password = (string) ($requestData['password'] ?? '');
 
         $validationErrors = $this->formatViolations($validator->validate($loginInput));
-
         if ($validationErrors !== []) {
             return $this->json([
                 'message' => 'Les données fournies sont invalides.',
@@ -160,14 +169,11 @@ final class AuthController extends AbstractController
 
         if ($user === null || !$user->isActive() || !$passwordIsValid) {
             $rateLimitResponse = $authRateLimiter->consumeFailedLoginAttempt($request);
-
             if ($rateLimitResponse instanceof JsonResponse) {
                 return $rateLimitResponse;
             }
 
-            return $this->json([
-                'message' => 'Identifiants invalides.',
-            ], Response::HTTP_UNAUTHORIZED);
+            return $this->json(['message' => 'Identifiants invalides.'], Response::HTTP_UNAUTHORIZED);
         }
 
         $authRateLimiter->resetLoginAttempts($request);
@@ -187,65 +193,50 @@ final class AuthController extends AbstractController
     #[OA\Response(response: 200, description: 'Session invalidée côté serveur.')]
     #[OA\Response(response: 401, description: 'Authentification requise.')]
     #[Route('/logout', name: 'logout', methods: ['POST'])]
-    // Invalide les jetons encore en circulation pour ce compte.
     public function logout(
         #[CurrentUser] ?User $authenticatedUser,
         EntityManagerInterface $entityManager
     ): JsonResponse {
         if ($authenticatedUser === null) {
-            return $this->json([
-                'message' => 'Authentification requise.',
-            ], Response::HTTP_UNAUTHORIZED);
+            return $this->json(['message' => 'Authentification requise.'], Response::HTTP_UNAUTHORIZED);
         }
 
-        // Incrémente la version attendue pour invalider tous les jetons plus anciens.
         $authenticatedUser->incrementAuthTokenVersion();
         $entityManager->flush();
 
-        return $this->json([
-            'message' => 'Déconnexion prise en compte côté serveur.',
-        ]);
+        return $this->json(['message' => 'Déconnexion prise en compte côté serveur.']);
     }
 
     /**
      * @return array<string, mixed>|JsonResponse
      */
-    // Refuse les requêtes vides ou non JSON avant d'entrer dans la logique métier.
-    private function decodeJsonRequest(Request $request): array|JsonResponse
+    private function decodeJsonObject(Request $request): array|JsonResponse
     {
-        $requestContent = $request->getContent();
+        $rawContent = $request->getContent();
 
-        if ($requestContent === '') {
-            return new JsonResponse([
-                'message' => 'Le corps de la requête JSON est requis.',
-            ], Response::HTTP_BAD_REQUEST);
+        if ($rawContent === '') {
+            return $this->jsonError('Le corps de la requête JSON est requis.', Response::HTTP_BAD_REQUEST);
         }
 
         try {
-            $decodedRequestData = json_decode($requestContent, true, 512, JSON_THROW_ON_ERROR);
+            $decoded = json_decode($rawContent, true, 512, JSON_THROW_ON_ERROR);
         } catch (\JsonException) {
-            return new JsonResponse([
-                'message' => 'Le JSON fourni est invalide.',
-            ], Response::HTTP_BAD_REQUEST);
+            return $this->jsonError('Le JSON fourni est invalide.', Response::HTTP_BAD_REQUEST);
         }
 
-        if (!is_array($decodedRequestData)) {
-            return new JsonResponse([
-                'message' => 'Le corps de la requête doit être un objet JSON.',
-            ], Response::HTTP_BAD_REQUEST);
+        if (!is_array($decoded)) {
+            return $this->jsonError('Le corps de la requête doit être un objet JSON.', Response::HTTP_BAD_REQUEST);
         }
 
-        return $decodedRequestData;
+        return $decoded;
     }
 
     /**
      * @param iterable<ConstraintViolationInterface> $constraintViolations
      * @return array<string, list<string>>
      */
-    // Ramène les violations Symfony dans un format directement exploitable côté interface.
     private function formatViolations(iterable $constraintViolations): array
     {
-        // Regroupe les erreurs par champ pour simplifier l'exploitation côté frontend.
         $validationErrors = [];
 
         foreach ($constraintViolations as $constraintViolation) {
@@ -254,6 +245,11 @@ final class AuthController extends AbstractController
         }
 
         return $validationErrors;
+    }
+
+    private function jsonError(string $message, int $status): JsonResponse
+    {
+        return $this->json(['message' => $message], $status);
     }
 }
 

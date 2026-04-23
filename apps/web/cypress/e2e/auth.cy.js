@@ -45,7 +45,7 @@ describe('Authentification', () => {
     cy.get('input[type="email"]').type(email)
     cy.get('input[autocomplete="new-password"]').eq(0).type('motdepasse123')
     cy.get('input[autocomplete="new-password"]').eq(1).type('motdepasse123')
-    cy.contains('button', 'Créer mon compte').click()
+    cy.contains('button', "S'inscrire").click()
 
     cy.wait('@registerRequest')
     cy.location('pathname', { timeout: 30000 }).should('eq', '/dashboard')
@@ -59,7 +59,7 @@ describe('Authentification', () => {
     cy.visit('/inscription')
     cy.get('input[autocomplete="new-password"]').eq(0).type('motdepasse123')
     cy.get('input[autocomplete="new-password"]').eq(1).type('motdepasse-different')
-    cy.contains('button', 'Créer mon compte').click()
+    cy.contains('button', "S'inscrire").click()
 
     cy.contains('Les mots de passe doivent être identiques.').should('be.visible')
   })
@@ -76,7 +76,7 @@ describe('Authentification', () => {
       cy.get('input[type="email"]').type(email)
       cy.get('input[autocomplete="new-password"]').eq(0).type('motdepasse123')
       cy.get('input[autocomplete="new-password"]').eq(1).type('motdepasse123')
-      cy.contains('button', 'Créer mon compte').click()
+      cy.contains('button', "S'inscrire").click()
 
       cy.wait('@registerRequest')
       cy.contains('Cette adresse e-mail est déjà utilisée.').should('be.visible')

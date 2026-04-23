@@ -113,6 +113,7 @@ final class ItemAttachmentController extends AbstractController
                 'size' => $attachment->getSize(),
                 'createdAt' => $attachment->getCreatedAt()->format(\DateTimeInterface::ATOM),
                 'downloadUrl' => sprintf('/api/attachments/%d/download', $attachment->getId()),
+                'previewUrl' => sprintf('/api/attachments/%d/preview', $attachment->getId()),
             ],
         ], Response::HTTP_CREATED);
     }
@@ -162,6 +163,63 @@ final class ItemAttachmentController extends AbstractController
         $response = new BinaryFileResponse($path);
         $response->headers->set('Content-Type', $attachment->getMimeType() ?: 'application/octet-stream');
         $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $attachment->getOriginalName());
+
+        return $response;
+    }
+
+    #[OA\Get(
+        path: '/api/attachments/{attachmentId}/preview',
+        summary: 'Consulte une piece jointe (image ou PDF).',
+        security: [['Bearer' => []]],
+        tags: ['Pieces jointes'],
+        parameters: [
+            new OA\Parameter(name: 'attachmentId', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ]
+    )]
+    #[OA\Response(response: 200, description: 'Apercu du fichier.')]
+    #[OA\Response(response: 401, description: 'Authentification requise.')]
+    #[OA\Response(response: 403, description: 'Acces interdit.')]
+    #[OA\Response(response: 404, description: 'Piece jointe introuvable.')]
+    #[OA\Response(response: 422, description: 'Type de fichier non consultable.')]
+    #[Route('/attachments/{attachmentId}/preview', name: 'preview', methods: ['GET'], requirements: ['attachmentId' => '\\d+'])]
+    public function preview(
+        int $attachmentId,
+        #[CurrentUser] ?User $authenticatedUser,
+        AttachmentRepository $attachmentRepository,
+        ItemAttachmentStorage $attachmentStorage
+    ): Response {
+        if (!$authenticatedUser instanceof User) {
+            return $this->json(['message' => 'Authentification requise.'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        $attachment = $attachmentRepository->find($attachmentId);
+
+        if (!$attachment instanceof Attachment) {
+            return $this->json(['message' => 'Piece jointe introuvable.'], Response::HTTP_NOT_FOUND);
+        }
+
+        $item = $attachment->getItem();
+
+        if ($item === null || !$this->isGranted(ItemVoter::VIEW, $item)) {
+            return $this->json(['message' => 'Acces interdit.'], Response::HTTP_FORBIDDEN);
+        }
+
+        $mimeType = $attachment->getMimeType() ?? '';
+        $isPreviewable = str_starts_with($mimeType, 'image/') || $mimeType === 'application/pdf';
+
+        if (!$isPreviewable) {
+            return $this->json(['message' => 'Ce type de piece jointe nest pas consultable en apercu.'], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        $path = $attachmentStorage->resolvePath($attachment);
+
+        if (!is_file($path)) {
+            return $this->json(['message' => 'Fichier introuvable.'], Response::HTTP_NOT_FOUND);
+        }
+
+        $response = new BinaryFileResponse($path);
+        $response->headers->set('Content-Type', $mimeType);
+        $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_INLINE, $attachment->getOriginalName());
 
         return $response;
     }

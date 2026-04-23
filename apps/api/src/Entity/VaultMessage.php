@@ -9,7 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: VaultMessageRepository::class)]
-#[ORM\Table(name: 'vault_message')]
+#[ORM\Table(name: 'sw_vault_message')]
 #[ORM\Index(columns: ['vault_id', 'created_at'], name: 'idx_vault_message_vault_created_at')]
 class VaultMessage
 {
@@ -27,8 +27,8 @@ class VaultMessage
     private ?User $author = null;
 
     #[ORM\Column(type: 'text')]
-    #[Assert\NotBlank(message: 'Le message ne peut pas être vide.')]
-    #[Assert\Length(max: 4000, maxMessage: 'Le message ne peut pas dépasser 4000 caractères.')]
+    #[Assert\NotBlank(message: 'Le message ne peut pas ÃƒÂªtre vide.')]
+    #[Assert\Length(max: 4000, maxMessage: 'Le message ne peut pas dÃƒÂ©passer 4000 caractÃƒÂ¨res.')]
     private string $content = '';
 
     #[ORM\Column]

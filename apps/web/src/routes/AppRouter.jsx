@@ -15,7 +15,7 @@ import { VaultCreatePage } from '../pages/vaults/VaultCreatePage.jsx'
 import { VaultDetailPage } from '../pages/vaults/VaultDetailPage.jsx'
 import { VaultListPage } from '../pages/vaults/VaultListPage.jsx'
 
-const privatePaths = ['/dashboard', '/profil', '/vaults', '/messages']
+const privatePaths = ['/', '/dashboard', '/profil', '/vaults', '/messages']
 const guestOnlyPaths = new Set(['/connexion', '/inscription'])
 
 export function AppRouter() {
@@ -92,14 +92,17 @@ function renderPage({ path, navigate, isAuthenticated, isSessionLoading }) {
   }
 
   switch (path) {
-    case '/brand':
-      return <BrandPage />
-    case '/connexion':
-      return <LoginPage navigate={navigate} />
+    case '/':
     case '/dashboard':
       if (isSessionLoading) return <PageStatus message="Restauration de votre session en cours..." />
       if (!isAuthenticated) return <PageStatus message="Redirection vers la connexion..." />
       return <DashboardPage navigate={navigate} />
+    case '/en-savoir-plus':
+      return <LandingPage navigate={navigate} />
+    case '/brand':
+      return <BrandPage />
+    case '/connexion':
+      return <LoginPage navigate={navigate} />
     case '/messages':
       if (isSessionLoading) return <PageStatus message="Restauration de votre session en cours..." />
       if (!isAuthenticated) return <PageStatus message="Redirection vers la connexion..." />
@@ -113,7 +116,9 @@ function renderPage({ path, navigate, isAuthenticated, isSessionLoading }) {
       if (!isAuthenticated) return <PageStatus message="Redirection vers la connexion..." />
       return <ProfilePage navigate={navigate} />
     default:
-      return <LandingPage navigate={navigate} />
+      if (isSessionLoading) return <PageStatus message="Restauration de votre session en cours..." />
+      if (!isAuthenticated) return <PageStatus message="Redirection vers la connexion..." />
+      return <DashboardPage navigate={navigate} />
   }
 }
 

@@ -219,8 +219,8 @@ export function ProfilePage({ navigate = () => {} }) {
       <article className="auth-card profile-card">
         <div className="profile-header">
           <p className="eyebrow">Profil</p>
-          <h1 className="dashboard-title">Gérez vos informations personnelles et votre sécurité.</h1>
-          <p className="lede">Mettez à jour votre identité et vos accès depuis un seul endroit, avec des confirmations claires pour les actions sensibles.</p>
+          <h1 className="dashboard-title">Gérez vos informations personnelles.</h1>
+          <p className="lede">Mettez à jour informations sensibles.</p>
         </div>
 
         <div className="profile-meta-strip" aria-label="informations du compte">
@@ -249,12 +249,12 @@ export function ProfilePage({ navigate = () => {} }) {
           <form className="auth-form profile-form" onSubmit={handleProfileSubmit}>
             <label className="field">
               <span>Prénom</span>
-              <input onChange={(event) => setFirstname(event.target.value)} type="text" value={firstname} />
+              <input onChange={(event) => setFirstname(event.target.value)} placeholder="Votre prénom" type="text" value={firstname} />
             </label>
 
             <label className="field">
               <span>Nom</span>
-              <input onChange={(event) => setLastname(event.target.value)} type="text" value={lastname} />
+              <input onChange={(event) => setLastname(event.target.value)} placeholder="Votre nom" type="text" value={lastname} />
             </label>
 
             {profileMessage ? <p className="field-feedback field-feedback-success profile-form-wide">{profileMessage}</p> : null}
@@ -300,6 +300,7 @@ export function ProfilePage({ navigate = () => {} }) {
                     <input
                       autoComplete="current-password"
                       onChange={(event) => setPinCurrentPassword(event.target.value)}
+                      placeholder="Mot de passe actuel"
                       type="password"
                       value={pinCurrentPassword}
                     />
@@ -387,6 +388,7 @@ export function ProfilePage({ navigate = () => {} }) {
                     <input
                       autoComplete="current-password"
                       onChange={(event) => setCurrentPassword(event.target.value)}
+                      placeholder="Mot de passe actuel"
                       type="password"
                       value={currentPassword}
                     />
@@ -398,6 +400,7 @@ export function ProfilePage({ navigate = () => {} }) {
                   <input
                     autoComplete="new-password"
                     onChange={(event) => setNewPassword(event.target.value)}
+                    placeholder="Nouveau mot de passe"
                     type="password"
                     value={newPassword}
                   />
@@ -408,6 +411,7 @@ export function ProfilePage({ navigate = () => {} }) {
                   <input
                     autoComplete="new-password"
                     onChange={(event) => setNewPasswordConfirmation(event.target.value)}
+                    placeholder="Confirmez le nouveau mot de passe"
                     type="password"
                     value={newPasswordConfirmation}
                   />
@@ -444,6 +448,7 @@ export function ProfilePage({ navigate = () => {} }) {
               <input
                 autoComplete="current-password"
                 onChange={(event) => setDeleteCurrentPassword(event.target.value)}
+                placeholder="Mot de passe actuel"
                 type="password"
                 value={deleteCurrentPassword}
               />

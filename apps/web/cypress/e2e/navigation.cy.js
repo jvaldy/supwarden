@@ -27,7 +27,7 @@ describe('Navigation connectée', () => {
       cy.contains('button', 'Profil').click()
 
       cy.location('pathname', { timeout: 30000 }).should('eq', '/profil')
-      cy.contains('Gérez vos informations personnelles et votre sécurité.', { timeout: 30000 }).should('be.visible')
+      cy.contains('Gérez vos informations personnelles.', { timeout: 30000 }).should('be.visible')
     })
   })
 
@@ -36,10 +36,10 @@ describe('Navigation connectée', () => {
       visitDashboard(session)
 
       cy.contains('button', 'Mon compte').click()
-      cy.contains('button', 'Se déconnecter').click()
+      cy.contains('button', /Se déconnecter/i).click()
 
-      cy.location('pathname', { timeout: 30000 }).should('eq', '/')
-      cy.contains('Simplifiez le partage des accès dans votre équipe.').should('be.visible')
+      cy.location('pathname', { timeout: 30000 }).should('eq', '/connexion')
+      cy.contains(/Vos trousseaux en quelque[s]? secondes\.?/i).should('be.visible')
     })
   })
 })

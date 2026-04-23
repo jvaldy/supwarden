@@ -20,6 +20,11 @@
   gap: var(--space-4);
 }
 
+.dashboard-card {
+  position: relative;
+  overflow: hidden;
+}
+
 .activity-list {
   margin: 0;
   padding: 0;
@@ -162,11 +167,10 @@
   }
 
   .dashboard-summary-compact {
-    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
 .dashboard-actions-below-stats {
   margin-top: var(--space-2);
 }
-

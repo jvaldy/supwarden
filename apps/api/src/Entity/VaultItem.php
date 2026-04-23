@@ -12,7 +12,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: VaultItemRepository::class)]
-#[ORM\Table(name: 'vault_item')]
+#[ORM\Table(name: 'sw_vault_item')]
 #[ORM\Index(columns: ['vault_id'], name: 'idx_vault_item_vault_id')]
 #[ORM\Index(columns: ['created_at'], name: 'idx_vault_item_created_at')]
 #[ORM\HasLifecycleCallbacks]

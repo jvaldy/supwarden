@@ -1,24 +1,23 @@
-describe('Parcours publics', () => {
-  it('affiche la landing page', () => {
+﻿describe('Parcours publics', () => {
+  it('redirige vers la connexion depuis la racine', () => {
     cy.visit('/')
-
-    cy.contains('Simplifiez le partage des accès dans votre équipe.').should('be.visible')
-    cy.contains('button', 'Découvrir').should('be.visible')
-  })
-
-  it('ouvre la page connexion depuis la landing', () => {
-    cy.visit('/')
-    cy.contains('button', 'Découvrir').click()
 
     cy.location('pathname').should('eq', '/connexion')
-    cy.contains('Retrouvez vos trousseaux en quelques secondes.').should('be.visible')
+    cy.contains(/Vos trousseaux en quelque[s]? secondes\.?/i).should('be.visible')
+  })
+
+  it('affiche la page En savoir plus', () => {
+    cy.visit('/en-savoir-plus')
+
+    cy.contains('Centralisez vos trousseaux et partagez les bons accès.').should('be.visible')
+    cy.contains('button', 'Ouvrir le dashboard').should('be.visible')
   })
 
   it('ouvre la charte graphique depuis le footer', () => {
-    cy.visit('/')
+    cy.visit('/en-savoir-plus')
     cy.contains('Charte graphique').click()
 
     cy.location('pathname').should('eq', '/brand')
-    cy.contains('Charte graphique Supwarden').should('be.visible')
+    cy.contains('Des règles simples pour une interface cohérente.').should('be.visible')
   })
 })

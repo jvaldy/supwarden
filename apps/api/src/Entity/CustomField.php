@@ -9,7 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: CustomFieldRepository::class)]
-#[ORM\Table(name: 'custom_field')]
+#[ORM\Table(name: 'sw_custom_field')]
 #[ORM\Index(columns: ['item_id'], name: 'idx_custom_field_item_id')]
 class CustomField
 {

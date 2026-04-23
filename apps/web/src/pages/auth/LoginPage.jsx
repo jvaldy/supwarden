@@ -46,7 +46,7 @@ export function LoginPage({ navigate }) {
     <section className="auth-shell">
       <article className="auth-card">
         <p className="eyebrow">Connexion</p>
-        <h1 className="auth-title">Retrouvez vos trousseaux en quelques secondes.</h1>
+        <h1 className="auth-title">Vos trousseaux en quelques secondes.</h1>
         <p className="lede">
           Connectez-vous pour accéder au tableau de bord, à vos trousseaux et aux espaces
           collaboratifs de votre équipe.
@@ -90,11 +90,13 @@ export function LoginPage({ navigate }) {
           <button className="button-link button-link-ghost" onClick={() => navigate('/inscription')} type="button">
             Je n'ai pas encore de compte
           </button>
-          <button className="button-link button-link-ghost" onClick={() => navigate('/')} type="button">
-            Retour à l'accueil
+          <button className="button-link button-link-ghost" onClick={() => navigate('/en-savoir-plus')} type="button">
+            En savoir plus
           </button>
         </div>
       </article>
     </section>
   )
 }
+
+

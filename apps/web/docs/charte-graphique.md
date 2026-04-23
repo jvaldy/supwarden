@@ -1,113 +1,103 @@
 # Charte graphique Supwarden
 
-## ADN de marque
+## Objectif produit
 
-Supwarden exprime une securite moderne, premium et collaborative.
-La direction visuelle melange trois idees :
+Supwarden doit transmettre une sécurité claire, moderne et rassurante.
+La charte sert à garder une expérience cohérente sur toutes les pages, modales et formulaires, en desktop comme en mobile.
 
-- confiance : une base bleu nuit stable et serieuse ;
-- clarte : des accents cyan lisibles et technologiques ;
-- sang-froid : peu de couleurs, beaucoup d'air, des contrastes nets.
+## Direction visuelle
 
-## Palette de couleurs
+- Sérieux: base bleu nuit stable.
+- Lisibilité: accent cyan réservé aux actions et repères.
+- Sobriété: peu d’effets, hiérarchie nette, textes utiles.
 
-### Couleurs principales
+## Palette officielle
 
-- `Ink 950` : `#08111D` - fond principal de l'application
-- `Ink 900` : `#0F1D2D` - profondeur intermediaire
-- `Ink 800` : `#13263A` - variation pour degrades et sections
-- `Cyan 500` : `#5FA8D3` - halo, illustrations, signatures visuelles
-- `Cyan 400` : `#8FD3FF` - accent principal, liens, labels
-- `Cyan 300` : `#ADD8FF` - bordures et etats doux
+### Fond et surfaces
 
-### Couleurs de contenu
+- `Ink 950` : `#08111D` (fond principal)
+- `Ink 900` : `#0F1D2D` (profondeur)
+- `Ink 800` : `#13263A` (variation de surface)
+- `Panel` : `rgba(7, 16, 28, 0.72)`
+- `Panel Strong` : `rgba(12, 25, 39, 0.82)`
+- `Accent Soft` : `rgba(143, 211, 255, 0.08)`
 
-- `Text Strong` : `#EEF6FF` - titres et contenus critiques
-- `Text Soft` : `#C7DCEF` - texte courant
-- `Text Muted` : `#8EA9BF` - aide, meta, informations secondaires
+### Accent et contenu
 
-### Couleurs d'etat
+- `Cyan 500` : `#5FA8D3`
+- `Cyan 400` : `#8FD3FF`
+- `Cyan 300` : `#ADD8FF`
+- `Text Strong` : `#EEF6FF`
+- `Text Soft` : `#C7DCEF`
+- `Text Muted` : `#8EA9BF`
 
-- `Success` : `#7EE0B5`
-- `Warning` : `#FFD27A`
-- `Danger` : `#FF8F9F`
+### États (à conserver partout)
 
-## Degrades et surfaces
-
-### Fond applicatif
-
-Utiliser un fond profond structure par un degrade vertical :
-
-```css
-linear-gradient(180deg, #08111d 0%, #0f1d2d 55%, #13263a 100%)
-```
-
-### Halo de marque
-
-Ajouter un halo cyan discret dans les zones hero ou d'accueil :
-
-```css
-radial-gradient(circle at top left, rgba(95, 168, 211, 0.18), transparent 28%)
-```
-
-### Surfaces
-
-- panneau principal : `rgba(7, 16, 28, 0.72)`
-- carte secondaire : `rgba(12, 25, 39, 0.82)`
-- accent doux : `rgba(143, 211, 255, 0.08)`
+- `Success` : `#7EE0B5` (validation)
+- `Warning` : `#FFD27A` (vérification)
+- `Danger` : `#FF8F9F` (erreur, suppression)
 
 ## Typographie
 
-### Recommandation
+### Polices en production
 
-- titrage : `Sora`
-- texte courant : `Inter`
-- code / donnees techniques : `JetBrains Mono`
+- Titres: `Arial, Helvetica, sans-serif`
+- Texte: `Arial, Helvetica, sans-serif`
+- Technique: `'JetBrains Mono', Consolas, monospace`
 
-### Fallback local actuel
+### Échelle
 
-Si les fontes web ne sont pas encore chargees, conserver :
+- `--step--2` : `12px`
+- `--step--1` : `13px`
+- `--step-0` : `14px`
+- `--step-1` : `16px`
+- `--step-2` : `22px`
+- `--step-3` : `30px à 50px` selon viewport
 
-- titrage : `Sora, Inter, "Segoe UI", sans-serif`
-- texte : `Inter, "Segoe UI", sans-serif`
-- mono : `"JetBrains Mono", Consolas, monospace`
+## Espacements unifiés
 
-### Hierarchie
+Règle clé: les mêmes types d’éléments gardent les mêmes distances sur tout le site.
 
-- `Display` : `clamp(2.2rem, 5vw, 4.4rem)` pour les ecrans hero
-- `Heading L` : `1.5rem`
-- `Body` : `1rem`
-- `Body Large` : `1.125rem`
-- `Meta` : `0.875rem`
+### Vertical rhythm
 
-## Rayons, bordures et ombres
+- Eyebrow -> Titre: `8px` (`--space-2`)
+- Titre -> Lede: `12px` (`--space-3`)
+- Blocs internes de carte/modale/formulaire: `16px` (`--space-4`)
+- Sections majeures: `20px` (`--space-5`)
 
-- rayon principal : `24px`
-- rayon carte : `18px`
-- rayon compact : `12px`
-- bouton pill : `999px`
-- bordure douce : `1px solid rgba(173, 216, 255, 0.14)`
-- bordure accent : `1px solid rgba(173, 216, 255, 0.2)`
-- ombre panneau : `0 24px 80px rgba(0, 0, 0, 0.28)`
+### Composants concernés
 
-## Regles d'usage
+- Cartes de pages (`auth`, `dashboard`, `trousseaux`, `profil`, `messagerie`)
+- En-têtes de section et sous-sections
+- Formulaires et retours de formulaire
+- Modales et sections internes de modales
 
-- privilegier le bleu nuit comme masse dominante ;
-- reserver le cyan aux actions, reperes et informations importantes ;
-- garder des interfaces aeriennes, avec peu de separateurs visibles ;
-- ne pas multiplier les couleurs d'accent sur une meme vue ;
-- utiliser les couleurs d'etat seulement pour du feedback fonctionnel.
+## Rayons, bordures, ombres
 
-## Ton visuel
+- `--radius-sm` : `12px`
+- `--radius-md` : `18px`
+- `--radius-lg` : `24px`
+- `--radius-pill` : `999px`
+- `--border-subtle` : `1px solid rgba(173, 216, 255, 0.14)`
+- `--border-strong` : `1px solid rgba(173, 216, 255, 0.2)`
+- `--shadow-panel` : `0 24px 80px rgba(0, 0, 0, 0.28)`
 
-- sobre, precis, rassurant ;
-- technique sans etre froid ;
-- premium sans surcharge decorative.
+## Mobile friendly
 
-## Tokens techniques
+- Approche mobile-first sur toutes les pages.
+- Grilles qui basculent en mono-colonne sur petits écrans.
+- Boutons clés en pleine largeur si nécessaire.
+- Modales avec hauteur contrôlée et scroll interne pour rester utilisables sans zoom.
 
-Les variables globales de cette charte sont exposees dans :
+## Bonnes pratiques UX
 
-- `apps/web/src/index.css`
+- Un seul bouton dominant par zone.
+- Messages de feedback courts et actionnables.
+- Accents couleur réservés aux priorités (actions + états).
+- Pas de surcharge de styles dans une même vue.
 
-Les ecrans peuvent reutiliser ces tokens au lieu de redefinir des couleurs localement.
+## Références techniques
+
+- Variables globales: `apps/web/src/index.css`
+- Styles partagés: `apps/web/src/styles/components.css`
+- Vitrine charte: `apps/web/src/pages/marketing/BrandPage.jsx`

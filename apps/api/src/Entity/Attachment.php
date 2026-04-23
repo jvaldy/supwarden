@@ -8,7 +8,7 @@ use App\Repository\AttachmentRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: AttachmentRepository::class)]
-#[ORM\Table(name: 'attachment')]
+#[ORM\Table(name: 'sw_attachment')]
 #[ORM\Index(columns: ['item_id'], name: 'idx_attachment_item_id')]
 #[ORM\UniqueConstraint(name: 'uniq_attachment_stored_name', columns: ['stored_name'])]
 class Attachment

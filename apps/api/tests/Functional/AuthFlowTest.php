@@ -4,6 +4,7 @@ namespace App\Tests\Functional;
 
 use App\Repository\OAuthAccountRepository;
 use App\Repository\UserRepository;
+use App\Repository\VaultRepository;
 use App\Security\Token\BearerTokenManager;
 use Symfony\Component\BrowserKit\Cookie;
 
@@ -27,6 +28,13 @@ final class AuthFlowTest extends ApiTestCase
         self::assertSame('camille@example.com', $responseData['user']['email']);
         self::assertTrue($responseData['user']['hasLocalPassword']);
         self::assertArrayNotHasKey('password', $responseData['user']);
+
+        $userRepository = static::getContainer()->get(UserRepository::class);
+        $vaultRepository = static::getContainer()->get(VaultRepository::class);
+        $registeredUser = $userRepository->findOneByEmail('camille@example.com');
+
+        self::assertNotNull($registeredUser);
+        self::assertCount(1, $vaultRepository->findOwnedVaultsForUser($registeredUser));
 
         $this->client->request('GET', '/api/me', server: [
             'HTTP_AUTHORIZATION' => sprintf('Bearer %s', $responseData['token']),
@@ -281,8 +289,12 @@ final class AuthFlowTest extends ApiTestCase
 
         $userRepository = static::getContainer()->get(UserRepository::class);
         $oauthAccountRepository = static::getContainer()->get(OAuthAccountRepository::class);
+        $vaultRepository = static::getContainer()->get(VaultRepository::class);
 
         self::assertSame(1, $userRepository->count([]));
+        $oauthUser = $userRepository->findOneByEmail('google.user@example.com');
+        self::assertNotNull($oauthUser);
+        self::assertCount(1, $vaultRepository->findOwnedVaultsForUser($oauthUser));
         self::assertNotNull($oauthAccountRepository->findOneByProviderAndProviderUserId('google', 'google-user-123'));
     }
 }
