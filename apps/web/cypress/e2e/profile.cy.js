@@ -4,7 +4,7 @@ function visitProfilePage(session) {
   cy.intercept('GET', 'http://localhost:8000/api/me').as('meRequest')
   visitWithSession('/profil', session)
   cy.wait('@meRequest')
-  cy.contains('h1', 'Gérez vos informations personnelles et votre sécurité.', { timeout: 30000 }).should('be.visible')
+  cy.contains('h1', 'Gérez vos informations personnelles.', { timeout: 30000 }).should('be.visible')
 }
 
 describe('Profil', () => {
@@ -129,8 +129,8 @@ describe('Profil', () => {
         })
 
       cy.wait('@deleteAccount').its('response.statusCode').should('eq', 200)
-      cy.location('pathname', { timeout: 30000 }).should('eq', '/')
-      cy.contains('Simplifiez le partage des accès dans votre équipe.').should('be.visible')
+      cy.location('pathname', { timeout: 30000 }).should('eq', '/connexion')
+      cy.contains(/Vos trousseaux en quelque[s]? secondes\.?/i).should('be.visible')
     })
   })
 })

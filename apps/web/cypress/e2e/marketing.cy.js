@@ -1,16 +1,16 @@
-describe('Parcours publics', () => {
+Ôªødescribe('Parcours publics', () => {
   it('redirige vers la connexion depuis la racine', () => {
     cy.visit('/')
 
     cy.location('pathname').should('eq', '/connexion')
-    cy.contains('Retrouvez vos trousseaux en quelques secondes.').should('be.visible')
+    cy.contains(/Vos trousseaux en quelque[s]? secondes\.?/i).should('be.visible')
   })
 
   it('affiche la page En savoir plus', () => {
     cy.visit('/en-savoir-plus')
 
-    cy.contains('Simplifiez le partage des accËs dans votre Èquipe.').should('be.visible')
-    cy.contains('button', 'DÈcouvrir').should('be.visible')
+    cy.contains('Centralisez vos trousseaux et partagez les bons acc√®s.').should('be.visible')
+    cy.contains('button', 'Ouvrir le dashboard').should('be.visible')
   })
 
   it('ouvre la charte graphique depuis le footer', () => {
@@ -18,6 +18,6 @@ describe('Parcours publics', () => {
     cy.contains('Charte graphique').click()
 
     cy.location('pathname').should('eq', '/brand')
-    cy.contains('Charte graphique Supwarden').should('be.visible')
+    cy.contains('Des r√®gles simples pour une interface coh√©rente.').should('be.visible')
   })
 })

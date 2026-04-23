@@ -49,7 +49,7 @@ services:
 
   db:
     profiles: ["local-db"]
-    image: postgres:16-alpine
+    image: ${POSTGRES_IMAGE:-postgres:16-alpine}
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
@@ -69,7 +69,7 @@ services:
 
   adminer:
     profiles: ["local-db"]
-    image: adminer:4
+    image: ${ADMINER_IMAGE:-adminer:4}
     environment:
       ADMINER_DEFAULT_SERVER: db
     ports:
@@ -80,7 +80,7 @@ services:
     restart: unless-stopped
 
   mercure:
-    image: dunglas/mercure
+    image: ${MERCURE_IMAGE:-dunglas/mercure}
     environment:
       SERVER_NAME: :80
       MERCURE_PUBLISHER_JWT_KEY: ${MERCURE_JWT_SECRET}

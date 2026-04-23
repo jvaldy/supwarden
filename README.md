@@ -163,7 +163,13 @@ Sans configuration Google OAuth, le projet peut demarrer, mais la connexion Goog
 docker compose -f .docker-compose.yml --env-file .env --env-file .env.local up -d --build
 ```
 
-7. Ouvrir :
+7. Initialiser le schema de base de donnees (obligatoire au premier lancement) :
+
+```bash
+docker compose -f .docker-compose.yml --env-file .env --env-file .env.local exec api php bin/console doctrine:migrations:migrate --no-interaction
+```
+
+8. Ouvrir :
    - frontend : `http://localhost:5173`
    - API : `http://localhost:8000`
    - documentation API : `http://localhost:8000/api/doc`
@@ -173,20 +179,28 @@ docker compose -f .docker-compose.yml --env-file .env --env-file .env.local up -
 1. Copier `.env.prod.example` vers `.env`.
 2. Copier `.env.local.example` vers `.env.local` si des surcharges locales sont necessaires.
 3. Renseigner toutes les variables `__SET_...__`, en particulier :
-   - `POSTGRES_DB`
-   - `POSTGRES_USER`
-   - `POSTGRES_PASSWORD`
+   - `DATABASE_URL` (obligatoire pour l'API en prod)
    - `APP_SECRET`
    - `MERCURE_JWT_SECRET`
    - `GOOGLE_OAUTH_CLIENT_ID`
    - `GOOGLE_OAUTH_CLIENT_SECRET`
-4. Lancer :
+4. Si vous lancez aussi la base locale `db` du fichier `.docker-compose.prod.yml` (profile `local-db`), renseigner egalement :
+   - `POSTGRES_DB`
+   - `POSTGRES_USER`
+   - `POSTGRES_PASSWORD`
+5. Lancer :
 
 ```bash
 docker compose -f .docker-compose.prod.yml --env-file .env --env-file .env.local up -d --build
 ```
 
-5. Ouvrir :
+6. Initialiser le schema de base de donnees (obligatoire si la base est vide) :
+
+```bash
+docker compose -f .docker-compose.prod.yml --env-file .env --env-file .env.local exec api php bin/console doctrine:migrations:migrate --no-interaction
+```
+
+7. Ouvrir :
    - frontend : `http://localhost:5173`
    - API : `http://localhost:8000`
    - documentation API : `http://localhost:8000/api/doc`
@@ -206,7 +220,7 @@ POSTGRES_PASSWORD=choisir-un-mot-de-passe-solide
 - `docker compose -f .docker-compose.prod.yml --env-file .env --env-file .env.local up -d --build` : demarre la stack de validation prod.
 - `docker compose -f .docker-compose.prod.yml --env-file .env --env-file .env.local down --remove-orphans` : arrete la stack de validation prod.
 - `cd apps/api && composer install && php bin/console about` : verifie l'application Symfony localement.
-- `cd apps/web && npm install && npm run build` : construit le frontend React localement.
+- `cd apps/web && npm ci && npm run build` : construit le frontend React localement de facon deterministe.
 
 ## Documentation Sprint 6
 
@@ -251,3 +265,18 @@ Les secrets applicatifs doivent rester hors du depot. Les mots de passe utilisat
 
 - Dev : copier `.env.example` vers `.env`, puis `.env.local.example` vers `.env.local` si besoin.
 - Prod : copier `.env.prod.example` vers `.env`, puis `.env.local.example` vers `.env.local` si besoin.
+
+## Verrouillage de l'environnement
+
+Pour garantir qu'un autre developpeur relance le projet avec exactement le meme socle :
+
+- conserver `apps/api/composer.lock` et `apps/web/package-lock.json` dans le depot ;
+- utiliser `npm ci` (pas `npm install`) pour respecter strictement le lockfile ;
+- conserver `APP_ENV`, les variables BDD et les secrets uniquement dans `.env` / `.env.local` ;
+- garder les versions Node alignees sur `.nvmrc` et `.node-version` ;
+- figer les images Docker via :
+  - `POSTGRES_IMAGE`
+  - `ADMINER_IMAGE`
+  - `MERCURE_IMAGE`
+
+Pour un verrouillage maximal, vous pouvez remplacer ces tags par des digests immuables (`image@sha256:...`).

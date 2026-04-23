@@ -9,7 +9,7 @@ describe('Tableau de bord', () => {
 
       cy.wait('@meRequest')
       cy.contains('Bienvenue dans votre espace Supwarden.', { timeout: 30000 }).should('be.visible')
-      cy.contains('Votre session est ouverte pour').should('be.visible')
+      cy.contains('Vous êtes connectés en tant que').should('be.visible')
       cy.contains('Camille Durand').should('be.visible')
     })
   })

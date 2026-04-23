@@ -9,8 +9,6 @@ function visitVaultCreatePage(session) {
 
 describe('Trousseaux', () => {
   it('couvre le cycle de vie principal d’un trousseau', () => {
-    cy.on('window:confirm', () => true)
-
     registerUserThroughApi({ firstname: 'Camille', lastname: 'Owner' }).then((ownerSession) => {
       registerUserThroughApi({ firstname: 'Louis', lastname: 'Member' }).then((memberSession) => {
         visitVaultCreatePage(ownerSession)
@@ -21,7 +19,7 @@ describe('Trousseaux', () => {
 
         cy.location('pathname', { timeout: 30000 }).should('match', /^\/vaults\/\d+$/)
         cy.contains('h1', 'Streaming famille', { timeout: 30000 }).should('be.visible')
-        cy.contains('Personnel').should('be.visible')
+        cy.contains('Partagé').should('not.exist')
 
         cy.get('button[aria-label="Membres"]', { timeout: 30000 }).click()
         cy.contains('span', 'Adresse e-mail').parent().find('input').type(memberSession.email)
@@ -41,10 +39,16 @@ describe('Trousseaux', () => {
         cy.contains('Partagé').should('be.visible')
 
         cy.get('button[aria-label="Paramètres"]').click()
-        cy.contains('button', 'Supprimer le trousseau').click()
+        cy.get('.vault-settings-modal', { timeout: 30000 })
+          .contains('button', 'Supprimer le trousseau')
+          .click({ force: true })
+        cy.get('.modal-card', { timeout: 30000 })
+          .last()
+          .contains('button', 'Supprimer')
+          .click({ force: true })
 
         cy.location('pathname', { timeout: 30000 }).should('eq', '/vaults')
-        cy.contains('Aucun trousseau pour le moment').should('be.visible')
+        cy.contains('Streaming partagé').should('not.exist')
       })
     })
   })

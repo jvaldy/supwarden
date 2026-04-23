@@ -54,7 +54,7 @@ describe('RegisterPage', () => {
     fireEvent.change(screen.getByLabelText('Confirmer le mot de passe'), {
       target: { value: 'motdepasse123' },
     })
-    fireEvent.click(screen.getByRole('button', { name: 'Créer mon compte' }))
+    fireEvent.click(screen.getByRole('button', { name: "S'inscrire" }))
 
     await waitFor(() => {
       expect(registerUser).toHaveBeenCalledWith({
@@ -77,7 +77,7 @@ describe('RegisterPage', () => {
     fireEvent.change(screen.getByLabelText('Confirmer le mot de passe'), {
       target: { value: 'different' },
     })
-    fireEvent.click(screen.getByRole('button', { name: 'Créer mon compte' }))
+    fireEvent.click(screen.getByRole('button', { name: "S'inscrire" }))
 
     expect(registerUser).not.toHaveBeenCalled()
     expect(await screen.findByText('Les mots de passe doivent être identiques.')).toBeInTheDocument()

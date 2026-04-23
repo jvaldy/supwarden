@@ -1,4 +1,4 @@
-import { colorGroups, principles, spacingRules, typographyScale, mobileRules } from './content.js'
+﻿import { colorGroups, principles, spacingRules, typographyScale, mobileRules } from './content.js'
 import supwardenLogoMark from '../../assets/supwarden-logo-mark.svg'
 
 export function BrandPage() {
@@ -184,4 +184,3 @@ export function BrandPage() {
     </section>
   )
 }
-

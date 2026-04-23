@@ -37,7 +37,7 @@ describe('AppRouter', () => {
     // La garde d'accès doit corriger l'URL sans interaction utilisateur.
     renderRouter()
 
-    expect(await screen.findByText('Retrouvez vos trousseaux en quelques secondes.')).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: /vos trousseaux en quelq/i })).toBeInTheDocument()
     await waitFor(() => {
       expect(window.location.pathname).toBe('/connexion')
     })

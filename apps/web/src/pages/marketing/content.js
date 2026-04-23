@@ -1,4 +1,4 @@
-export const colorGroups = [
+﻿export const colorGroups = [
   {
     title: 'Couleurs principales',
     items: [
@@ -208,4 +208,3 @@ export const landingForces = [
     description: 'Les échanges d’équipe restent attachés au bon contexte de travail.',
   },
 ]
-

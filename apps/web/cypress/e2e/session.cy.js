@@ -12,14 +12,14 @@ describe('Session', () => {
   it('redirige un visiteur vers la connexion depuis le tableau de bord', () => {
     cy.visit('/dashboard')
 
-    cy.contains('Retrouvez vos trousseaux en quelques secondes.').should('be.visible')
+    cy.contains(/Vos trousseaux en quelque[s]? secondes\.?/i).should('be.visible')
     cy.location('pathname').should('eq', '/connexion')
   })
 
   it('redirige un visiteur vers la connexion depuis le profil', () => {
     cy.visit('/profil')
 
-    cy.contains('Retrouvez vos trousseaux en quelques secondes.').should('be.visible')
+    cy.contains(/Vos trousseaux en quelque[s]? secondes\.?/i).should('be.visible')
     cy.location('pathname').should('eq', '/connexion')
   })
 

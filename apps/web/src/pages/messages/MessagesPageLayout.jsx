@@ -28,9 +28,9 @@ export function MessagesPageLayout({
   return (
     <section className="dashboard-shell messaging-shell">
       <article className="auth-card messaging-card">
-        <p className="eyebrow">Messagerie priv\u00E9e</p>
+        <p className="eyebrow">Messagerie privée</p>
         <h1 className="dashboard-title">Discutez en direct avec vos collaborateurs.</h1>
-        <p className="lede">S\u00E9lectionnez un contact, consultez l\u2019historique et envoyez vos messages sans quitter Supwarden.</p>
+        <p className="lede">Sélectionnez un contact, consultez l’historique et envoyez vos messages sans quitter Supwarden.</p>
 
         {errorMessage ? <div className="feedback-banner feedback-banner-error">{errorMessage}</div> : null}
 
@@ -69,12 +69,12 @@ export function MessagesPageLayout({
             <header className="messaging-thread-header">
               <div>
                 <p className="messaging-panel-label">Conversation</p>
-                <h2>{selectedContact ? selectedContact.displayName : 'Conversation priv\u00E9e'}</h2>
+                <h2>{selectedContact ? selectedContact.displayName : 'Conversation privée'}</h2>
               </div>
               {selectedContact ? (
                 <div className="messaging-header-badges">
                   {selectedContact.unreadCount > 0 ? <span className="messaging-unread-pill"><MessageIcon /><span>{selectedContact.unreadCount}</span></span> : null}
-                  <span className="messaging-thread-meta"><MessageIcon /><span>Messagerie priv\u00E9e</span></span>
+                  <span className="messaging-thread-meta"><MessageIcon /><span>Messagerie privée</span></span>
                 </div>
               ) : null}
             </header>
@@ -85,7 +85,7 @@ export function MessagesPageLayout({
               {hasOlderMessages ? (
                 <div className="modal-actions">
                   <button className="button-link button-link-tertiary" type="button" onClick={onLoadOlderMessages} disabled={isLoadingOlderMessages}>
-                    {isLoadingOlderMessages ? 'Chargement...' : 'Charger les messages pr\u00E9c\u00E9dents'}
+                    {isLoadingOlderMessages ? 'Chargement...' : 'Charger les messages précédents'}
                   </button>
                 </div>
               ) : null}
@@ -94,7 +94,7 @@ export function MessagesPageLayout({
                 const isSelf = Boolean(message.sender?.isCurrentUser)
                 const previousMessage = messages[index - 1]
                 const isGrouped = previousMessage?.sender?.id === message.sender?.id
-                const deliveryLabel = isSelf ? (message.isRead ? 'Lu' : 'Envoy\u00E9') : null
+                const deliveryLabel = isSelf ? (message.isRead ? 'Lu' : 'Envoyé') : null
 
                 return (
                   <article key={message.id} className={isSelf ? 'messaging-row messaging-row-self' : 'messaging-row'}>
@@ -139,7 +139,7 @@ export function MessagesPageLayout({
                 value={messageInput}
                 onChange={(event) => onMessageInputChange(event.target.value)}
                 onKeyDown={onComposerKeyDown}
-                placeholder={'\u00C9crivez votre message...'}
+                placeholder="Écrivez votre message..."
                 disabled={!selectedContactId}
               />
               <button className="button-link button-link-primary messaging-send-button" type="submit" disabled={isSending || !selectedContactId || messageInput.trim() === ''}>

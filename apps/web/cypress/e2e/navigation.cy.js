@@ -1,4 +1,4 @@
-import { registerUserThroughApi, visitWithSession } from '../helpers/session.js'
+ï»¿import { registerUserThroughApi, visitWithSession } from '../helpers/session.js'
 
 function visitDashboard(session) {
   cy.intercept('GET', 'http://localhost:8000/api/me').as('meRequest')
@@ -7,7 +7,7 @@ function visitDashboard(session) {
   cy.contains('Bienvenue dans votre espace Supwarden.', { timeout: 30000 }).should('be.visible')
 }
 
-describe('Navigation connectée', () => {
+describe('Navigation connectÃ©e', () => {
   it('ouvre et referme le menu Mon compte', () => {
     registerUserThroughApi().then((session) => {
       visitDashboard(session)
@@ -27,20 +27,19 @@ describe('Navigation connectée', () => {
       cy.contains('button', 'Profil').click()
 
       cy.location('pathname', { timeout: 30000 }).should('eq', '/profil')
-      cy.contains('Gérez vos informations personnelles et votre sécurité.', { timeout: 30000 }).should('be.visible')
+      cy.contains('GÃ©rez vos informations personnelles.', { timeout: 30000 }).should('be.visible')
     })
   })
 
-  it("déconnecte l'utilisateur depuis le menu Mon compte", () => {
+  it("dÃ©connecte l'utilisateur depuis le menu Mon compte", () => {
     registerUserThroughApi().then((session) => {
       visitDashboard(session)
 
       cy.contains('button', 'Mon compte').click()
-      cy.contains('button', 'Se déconnecter').click()
+      cy.contains('button', /Se dÃ©connecter/i).click()
 
       cy.location('pathname', { timeout: 30000 }).should('eq', '/connexion')
-      cy.contains('Retrouvez vos trousseaux en quelques secondes.').should('be.visible')
+      cy.contains(/Vos trousseaux en quelque[s]? secondes\.?/i).should('be.visible')
     })
   })
 })
-
