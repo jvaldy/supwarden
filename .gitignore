@@ -20,9 +20,20 @@ vendor/
 dist/
 build/
 coverage/
+apps/web/cypress/screenshots/
+**/cypress/screenshots/
+apps/web/test-results/
+apps/web/test-results/.last-run.json
+apps/web/playwright/ui-snapshots.spec.js
 
 # Logs
 *.log
+
+# Documentation working files
+docs/*
+!docs/
+!docs/documentation technique.pdf
+!docs/guide utilisateur.pdf
 
 # OS / IDE
 .DS_Store
@@ -32,3 +43,4 @@ Thumbs.db
 
 # Temporary working files
 tmp_enonces_text.txt
+tmp_enonce_extract.txt
